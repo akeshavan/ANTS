@@ -82,6 +82,7 @@
 #include "itkSubtractImageFilter.h"
 #include "itkTDistribution.h"
 #include "itkTimeProbe.h"
+#include "itkTransformFileReader.h"
 #include "itkTranslationTransform.h"
 #include "itkVariableSizeMatrix.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
@@ -91,6 +92,7 @@
 #include "itkCorrelationImageToImageMetricv4.h"
 #include "itkDemonsImageToImageMetricv4.h"
 #include "itkJointHistogramMutualInformationImageToImageMetricv4.h"
+#include "itkTransformFactory.h"
 
 #include <fstream>
 #include <iostream>
@@ -156,6 +158,57 @@ std::string ANTSGetFilePrefix(const char *str)
   //      return INVALID_FILE;
   // }
   return filepre;
+}
+
+
+template <unsigned int ImageDimension>
+int FrobeniusNormOfMatrixDifference(int argc, char *argv[])
+{
+  if( argc < 6 )
+    {
+    antscout << " FrobeniusNormOfMatrixDifference: too few options " << std::endl;
+    antscout << " ImageMath 3 out FrobeniusNormOfMatrixDifference aff1.mat aff2.mat " << std::endl;
+    return 1;
+    }
+  int           argct = 2;
+  std::string   outname = std::string(argv[argct]); argct++;
+  std::string   operation = std::string(argv[argct]);  argct++;
+  std::string   fn1 = std::string(argv[argct]);   argct++;
+  std::string   fn2 = std::string(argv[argct]);   argct++;
+  typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
+                                         ImageDimension> AffineTransformType;
+  itk::TransformFactory<AffineTransformType>::RegisterTransform();
+  typedef itk::TransformFileReader        TransformReaderType;
+  typename TransformReaderType::Pointer transformReader1 = TransformReaderType::New();
+  transformReader1->SetFileName( fn1.c_str() );
+  try
+    {
+    transformReader1->Update();
+    }
+  catch(itk::ExceptionObject &excp)
+    {
+    ::ants::antscout << "no transformation1 that can be read" << fn1 << std::endl;
+    return 0;
+    }
+  typename TransformReaderType::Pointer transformReader2 = TransformReaderType::New();
+  transformReader2->SetFileName(  fn2.c_str()  );
+  try
+    {
+    transformReader2->Update();
+    }
+  catch(itk::ExceptionObject &excp)
+    {
+    ::ants::antscout << "no transformation2 that can be read" << fn2 << std::endl;
+    return 0;
+    }
+  typename AffineTransformType::Pointer aff1 =
+    dynamic_cast<AffineTransformType *>( (transformReader1->GetTransformList() )->front().GetPointer() );
+  typename AffineTransformType::Pointer aff2 =
+    dynamic_cast<AffineTransformType *>( (transformReader2->GetTransformList() )->front().GetPointer() );
+
+  typename AffineTransformType::MatrixType::InternalMatrixType diffmat = aff2->GetMatrix().GetVnlMatrix() - aff1->GetMatrix().GetVnlMatrix(); 
+  ::ants::antscout << diffmat.frobenius_norm() << std::endl;
+  return 0;
 }
 
 template <unsigned int ImageDimension>
@@ -10020,6 +10073,9 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     antscout << "      Usage        : RandomlySampleImageSetToCSV N_samples *images.nii" << std::endl;
     antscout << " RandomlySampleImageSetToCSV outputs a csv file type." << std::endl;
 
+    antscout << "\n  FrobeniusNormOfMatrixDifference: take the difference between two itk-transform matrices and then compute the frobenius norm"
+              << std::endl;
+    antscout << "      Usage        : FrobeniusNormOfMatrixDifference mat1 mat2 " << std::endl;
     antscout
     <<
     "\n  ConvertImageSetToEigenvectors: Each row/column contains image content extracted from mask applied to images in *img.nii "
@@ -10838,6 +10894,10 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
         {
         ImageMetrics<3>(argc, argv);
         }
+      else if ( strcmp(operation.c_str(), "FrobeniusNormOfMatrixDifference") == 0 )
+        {
+        FrobeniusNormOfMatrixDifference<3>(argc, argv);
+	}
       else
         {
         antscout << " cannot find operation : " << operation << std::endl;
