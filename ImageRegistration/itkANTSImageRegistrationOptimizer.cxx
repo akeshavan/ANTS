@@ -1754,7 +1754,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::AffineOptimization(OptAffineT
   // compute_single_affine_transform(fixedImage, movingImage, maskImage, transform, transform_init);
 
   // OptAffine<AffineTransformPointer, ImagePointer> opt;
-  ComputeSingleAffineTransform(fixedImage, movingImage, affine_opt, transform);
+  ComputeSingleAffineTransform<ImageType,TransformType,OptAffineType>(fixedImage,
+                                                                      movingImage,
+                                                                      affine_opt,
+                                                                      transform);
 
   return transform;
 }

@@ -77,9 +77,10 @@ public:
 
   typedef double TComp;
   typedef TReal  RealType;
-  typedef Image<RealType,
-                itkGetStaticConstMacro( Dimension )> ImageType;
-  typedef typename ImageType::Pointer                                           ImagePointer;
+
+  typedef Image<RealType, itkGetStaticConstMacro( Dimension )> ImageType;
+  typedef typename ImageType::Pointer                          ImagePointer;
+
   typedef itk::MatrixOffsetTransformBase<TComp, ImageDimension, ImageDimension> TransformType;
 
   /** Point Types  for landmarks and labeled point-sets */
@@ -93,7 +94,7 @@ public:
 
   typedef TransformType                                   AffineTransformType;
   typedef typename AffineTransformType::Pointer           AffineTransformPointer;
-  typedef OptAffine<AffineTransformPointer, ImagePointer> OptAffineType;
+  typedef OptAffine<AffineTransformType, ImageType> OptAffineType;
 
   typedef itk::Vector<TReal, ImageDimension>      VectorType;
   typedef itk::Image<VectorType, ImageDimension>  DisplacementFieldType;
