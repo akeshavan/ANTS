@@ -25,7 +25,7 @@ namespace ants
 {
 
 template <unsigned int Dimension>
-int antsApplyTransforms( itk::ants::CommandLineParser::Pointer &parser )
+int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
 {
   typedef double                           RealType;
   typedef double                           PixelType;
@@ -116,8 +116,9 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer &parser )
   typedef itk::CompositeTransform<double, Dimension> CompositeTransformType;
   typename itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
 
-  typename CompositeTransformType::Pointer compositeTransform = GetCompositeTransformFromParserOption<Dimension>( parser, transformOption );
-  if ( compositeTransform.IsNull() )
+  typename CompositeTransformType::Pointer compositeTransform = GetCompositeTransformFromParserOption<Dimension>(
+      parser, transformOption );
+  if( compositeTransform.IsNull() )
     {
     return EXIT_FAILURE;
     }
@@ -141,21 +142,26 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer &parser )
   typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3> HammingInterpolatorType;
   typename HammingInterpolatorType::Pointer hammingInterpolator = HammingInterpolatorType::New();
 
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3, itk::Function::CosineWindowFunction<3> > CosineInterpolatorType;
+  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
+                                                    itk::Function::CosineWindowFunction<3> > CosineInterpolatorType;
   typename CosineInterpolatorType::Pointer cosineInterpolator = CosineInterpolatorType::New();
 
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3, itk::Function::WelchWindowFunction<3> > WelchInterpolatorType;
+  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
+                                                    itk::Function::WelchWindowFunction<3> > WelchInterpolatorType;
   typename WelchInterpolatorType::Pointer welchInterpolator = WelchInterpolatorType::New();
 
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3, itk::Function::LanczosWindowFunction<3> > LanczosInterpolatorType;
+  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
+                                                    itk::Function::LanczosWindowFunction<3> > LanczosInterpolatorType;
   typename LanczosInterpolatorType::Pointer lanczosInterpolator = LanczosInterpolatorType::New();
 
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3, itk::Function::BlackmanWindowFunction<3> > BlackmanInterpolatorType;
+  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
+                                                    itk::Function::BlackmanWindowFunction<3> > BlackmanInterpolatorType;
   typename BlackmanInterpolatorType::Pointer blackmanInterpolator = BlackmanInterpolatorType::New();
 
   const unsigned int NVectorComponents = 1;
   typedef VectorPixelCompare<RealType, NVectorComponents> CompareType;
-  typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType, RealType, CompareType> MultiLabelInterpolatorType;
+  typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType, RealType,
+                                                                   CompareType> MultiLabelInterpolatorType;
   typename MultiLabelInterpolatorType::Pointer multiLabelInterpolator = MultiLabelInterpolatorType::New();
 
   std::string whichInterpolator( "linear" );
@@ -282,7 +288,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer &parser )
       }
     }
   antscout << "Interpolation type: "
-            << resampleFilter->GetInterpolator()->GetNameOfClass() << std::endl;
+           << resampleFilter->GetInterpolator()->GetNameOfClass() << std::endl;
 
   /**
    * Default voxel value
@@ -297,7 +303,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer &parser )
     resampleFilter->SetDefaultPixelValue( defaultValue );
     }
   antscout << "Default pixel value: "
-            << resampleFilter->GetDefaultPixelValue() << std::endl;
+           << resampleFilter->GetDefaultPixelValue() << std::endl;
 
   /**
    * output
@@ -490,48 +496,52 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int antsApplyTransforms( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int antsApplyTransforms( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "antsApplyTransforms" ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  args.insert( args.begin(), "antsApplyTransforms" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
@@ -613,8 +623,4 @@ int antsApplyTransforms( std::vector<std::string> args , std::ostream* out_strea
   return EXIT_SUCCESS;
 }
 
-
-
 } // namespace ants
-
-

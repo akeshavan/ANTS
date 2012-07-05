@@ -1,6 +1,5 @@
 /** ANTS Landmarks used to initialize an affine transform ... */
 
-
 #include "antsUtilities.h"
 #include <algorithm>
 
@@ -22,8 +21,8 @@ namespace ants
 // //////////////////////////////////////////////////////////////////////
 // Stripped from ANTS_affine_registration2.h
 template <class TransformType>
-void WriteAffineTransformFile(typename TransformType::Pointer & transform, 
-                              const std::string &filename)
+void WriteAffineTransformFile(typename TransformType::Pointer & transform,
+                              const std::string & filename)
 {
 
   itk::TransformFileWriter::Pointer transform_writer;
@@ -39,8 +38,8 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
   catch( itk::ExceptionObject & err )
     {
     antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
-              << "Exception in writing tranform file: " << std::endl
-              << filename << std::endl;
+             << "Exception in writing tranform file: " << std::endl
+             << filename << std::endl;
     return;
     }
 
@@ -70,9 +69,8 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
   // antscout << "transform" << transform << std::endl;
 }
 
-
 template <class TransformA>
-void DumpTransformForANTS3D(typename TransformA::Pointer &transform, const std::string &ANTS_prefix)
+void DumpTransformForANTS3D(typename TransformA::Pointer & transform, const std::string & ANTS_prefix)
 {
   const int ImageDimension = 3;
 
@@ -194,6 +192,7 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
 
   return;
 }
+
 //
 // The test specifies a bunch of fixed and moving landmarks and test if the
 // fixed landmarks after transform by the computed transform coincides
@@ -300,7 +299,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
           {
           myCenterOfMass[i] += point[i];
           }
-	antscout << " point " << point << std::endl;
+        antscout << " point " << point << std::endl;
         }
       }
     for( unsigned int i = 0; i < spacing.Size(); i++ )
@@ -373,7 +372,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
   typedef itk::AffineTransform<double, 3> AffineTransformType;
   AffineTransformType::Pointer aff = AffineTransformType::New();
 
-  GetAffineTransformFromTwoPointSets3D<PointsContainerType,AffineTransformType>(fixedLandmarks, movingLandmarks, aff);
+  GetAffineTransformFromTwoPointSets3D<PointsContainerType, AffineTransformType>(fixedLandmarks, movingLandmarks, aff);
 
   antscout << "affine:" << aff;
 
@@ -388,7 +387,6 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
 
   return EXIT_SUCCESS;
 }
-
 
 int LandmarkBasedTransformInitializer2D(int, char * [])
 {
@@ -413,53 +411,56 @@ typedef itk::Rigid2DTransform< double > TransformType;
    */
 }
 
-int ANTSUseLandmarkImagesToGetAffineTransform( std::vector<std::string> args , std::ostream* out_stream = NULL )
+int ANTSUseLandmarkImagesToGetAffineTransform( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "ANTSUseLandmarkImagesToGetAffineTransform" ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  args.insert( args.begin(), "ANTSUseLandmarkImagesToGetAffineTransform" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
     // allocate space for the string plus a null character
-    argv[i] = new char[args[i].length()+1] ;
-    std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
     // place the null character in the end
-    argv[i][args[i].length()] = '\0' ;
-    }   
-  argv[argc] = 0 ;
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
+  {
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
     {
-    public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
-    ~Cleanup_argv() 
-      { 
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
- 	{
- 	delete[] argv[i] ;
- 	}
-      delete[] argv ;
-      }
-   private:
-   char** argv ;
-   unsigned int argc_plus_one ;
-   } ;
-   Cleanup_argv cleanup_argv( argv , argc+1 ) ;
- 
-  antscout->set_stream( out_stream ) ;
+    }
+
+    ~Cleanup_argv()
+    {
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
+    }
+
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
   if( argc < 3 )
     {
     antscout << "Usage:   " << argv[0]
-              <<
+             <<
     " FixedImageWithLabeledLandmarks.nii.gz  MovingImageWithLabeledLandmarks.nii.gz [rigid | affine] OutAffine.txt "
-              << std::endl;
+             << std::endl;
     antscout
     << " we expect the input images to be (1) N-ary  (2) in the same physical space as the images you want to "
     << std::endl;
@@ -491,4 +492,5 @@ int ANTSUseLandmarkImagesToGetAffineTransform( std::vector<std::string> args , s
 
   return 0;
 }
+
 } // namespace ants

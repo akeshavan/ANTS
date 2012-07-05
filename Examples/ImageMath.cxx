@@ -19,7 +19,6 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
-
 #include "itkArray.h"
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkBayesianClassifierImageFilter.h"
@@ -108,7 +107,6 @@
 namespace ants
 {
 
-
 template <class T>
 bool from_string(T& t,
                  const std::string& s,
@@ -155,11 +153,10 @@ std::string ANTSGetFilePrefix(const char *str)
 //        else return DEFORMATION_FILE;
     }
 //    else{
-  //      return INVALID_FILE;
-  // }
+//      return INVALID_FILE;
+// }
   return filepre;
 }
-
 
 template <unsigned int ImageDimension>
 int FrobeniusNormOfMatrixDifference(int argc, char *argv[])
@@ -170,22 +167,22 @@ int FrobeniusNormOfMatrixDifference(int argc, char *argv[])
     antscout << " ImageMath 3 out FrobeniusNormOfMatrixDifference aff1.mat aff2.mat " << std::endl;
     return 1;
     }
-  int           argct = 2;
-  std::string   outname = std::string(argv[argct]); argct++;
-  std::string   operation = std::string(argv[argct]);  argct++;
-  std::string   fn1 = std::string(argv[argct]);   argct++;
-  std::string   fn2 = std::string(argv[argct]);   argct++;
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string fn2 = std::string(argv[argct]);   argct++;
   typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
                                          ImageDimension> AffineTransformType;
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
-  typedef itk::TransformFileReader        TransformReaderType;
+  typedef itk::TransformFileReader TransformReaderType;
   typename TransformReaderType::Pointer transformReader1 = TransformReaderType::New();
   transformReader1->SetFileName( fn1.c_str() );
   try
     {
     transformReader1->Update();
     }
-  catch(itk::ExceptionObject &excp)
+  catch( itk::ExceptionObject & excp )
     {
     ::ants::antscout << "no transformation1 that can be read" << fn1 << std::endl;
     return 0;
@@ -196,7 +193,7 @@ int FrobeniusNormOfMatrixDifference(int argc, char *argv[])
     {
     transformReader2->Update();
     }
-  catch(itk::ExceptionObject &excp)
+  catch( itk::ExceptionObject & excp )
     {
     ::ants::antscout << "no transformation2 that can be read" << fn2 << std::endl;
     return 0;
@@ -206,7 +203,8 @@ int FrobeniusNormOfMatrixDifference(int argc, char *argv[])
   typename AffineTransformType::Pointer aff2 =
     dynamic_cast<AffineTransformType *>( (transformReader2->GetTransformList() )->front().GetPointer() );
 
-  typename AffineTransformType::MatrixType::InternalMatrixType diffmat = aff2->GetMatrix().GetVnlMatrix() - aff1->GetMatrix().GetVnlMatrix(); 
+  typename AffineTransformType::MatrixType::InternalMatrixType diffmat = aff2->GetMatrix().GetVnlMatrix()
+    - aff1->GetMatrix().GetVnlMatrix();
   ::ants::antscout << diffmat.frobenius_norm() << std::endl;
   return 0;
 }
@@ -355,7 +353,7 @@ int GetLargestComponent(int argc, char *argv[])
     }
 
   antscout << " max float size "
-            <<  (maximgval
+           <<  (maximgval
        * volumeelement) << " long-size: " << (unsigned long) (maximgval * volumeelement)  << std::endl;
   for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
@@ -640,9 +638,9 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   if( argc < 4 )
     {
     antscout << " need more args -- see usage   " << std::endl
-              <<
+             <<
     " ImageMath 3 outimage.nii.gz  TruncateImageIntensity inputImage  {lowerQuantile=0.025} {upperQuantile=0.975}  {numberOfBins=65}  {binary-maskImage} "
-              << std::endl;  throw std::exception();
+             << std::endl;  throw std::exception();
     }
 
   unsigned int argct = 2;
@@ -1477,7 +1475,7 @@ int SetOrGetPixel(int argc, char *argv[])
     else
       {
       antscout << " SetValue at " << index << " value " << value << " replaces " <<  image1->GetPixel(index)
-                << std::endl;
+               << std::endl;
       image2->SetPixel(index, value);
       WriteImage<ImageType>(image2, outname.c_str() );
       }
@@ -2103,15 +2101,13 @@ int TimeSeriesToMatrix(int argc, char *argv[])
   return 0;
 }
 
-
-
 template <unsigned int ImageDimension>
 int PASL(int argc, char *argv[])
 {
   if( argc <= 3 )
     {
     antscout << " too few options " << argv[0] << std::endl;
-    antscout << argv[0] <<" NDImage  Bool_FirstImageIsControl optional-M0mask.nii.gz " << std::endl;
+    antscout << argv[0] << " NDImage  Bool_FirstImageIsControl optional-M0mask.nii.gz " << std::endl;
     return 1;
     }
 
@@ -2123,19 +2119,23 @@ int PASL(int argc, char *argv[])
   typedef itk::ImageFileReader<ImageType>              readertype;
   typedef itk::ImageFileWriter<ImageType>              writertype;
   typedef typename ImageType::IndexType                IndexType;
-  typedef typename OutImageType::IndexType                OutIndexType;
+  typedef typename OutImageType::IndexType             OutIndexType;
   typedef typename ImageType::SizeType                 SizeType;
   typedef typename ImageType::SpacingType              SpacingType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  typedef double RealType; 
-  typedef vnl_vector< RealType > timeVectorType;
-  int          argct = 2;
-  std::string  outname = std::string(argv[argct]); argct++;
-  std::string  operation = std::string(argv[argct]);  argct++;
-  std::string  fn1 = std::string(argv[argct]);   argct++;
-  bool  firstiscontrol = atoi(argv[argct]);   argct++;
+  typedef double                                       RealType;
+  typedef vnl_vector<RealType>                         timeVectorType;
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  bool        firstiscontrol = atoi(argv[argct]);   argct++;
   std::string m0fn = "";
-  if (argc > argct ) m0fn = std::string(argv[argct]);   argct++;
+  if( argc > argct )
+    {
+    m0fn = std::string(argv[argct]);
+    }
+  argct++;
   typename ImageType::Pointer image1 = NULL;
   typename OutImageType::Pointer outimage = NULL;
   typename OutImageType::Pointer M0image = NULL;
@@ -2144,9 +2144,9 @@ int PASL(int argc, char *argv[])
   typedef itk::ImageRegionIteratorWithIndex<ImageType>     ImageIt;
   typedef itk::ImageRegionIteratorWithIndex<OutImageType>  SliceIt;
 
-  RealType M0W = 1300; // FIXME 
-  RealType TE = 4000; 
-  RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE; 
+  RealType M0W = 1300; // FIXME
+  RealType TE = 4000;
+  RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
   calculatedM0 = 2800; // from "Impact of equilibrium magnetization of blood on ASL quantification" by YChen et al
 
   if( fn1.length() > 3 )
@@ -2161,8 +2161,14 @@ int PASL(int argc, char *argv[])
   unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
   extractRegion.SetSize(ImageDimension - 1, 0);
-  if ( firstiscontrol )  extractRegion.SetIndex(ImageDimension - 1, 0 );
-  else   extractRegion.SetIndex(ImageDimension - 1, 1 );
+  if( firstiscontrol )
+    {
+    extractRegion.SetIndex(ImageDimension - 1, 0 );
+    }
+  else
+    {
+    extractRegion.SetIndex(ImageDimension - 1, 1 );
+    }
 
   typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
   extractFilter->SetInput( image1 );
@@ -2176,7 +2182,7 @@ int PASL(int argc, char *argv[])
   outimage->CopyInformation( M0image );
   outimage->SetRegions( M0image->GetLargestPossibleRegion() );
   outimage->Allocate();
-  outimage->FillBuffer( 0 ); 
+  outimage->FillBuffer( 0 );
 
   bool haveM0 = true;
   if( m0fn.length() > 3 )
@@ -2186,102 +2192,119 @@ int PASL(int argc, char *argv[])
   else
     {
     haveM0 = false;
-    antscout << "Warning: using calculatedM0 as reference M0 value --- see see 'Impact of equilibrium magnetization of blood on ASL quantification' " << std::endl;
+    antscout
+    <<
+    "Warning: using calculatedM0 as reference M0 value --- see see 'Impact of equilibrium magnetization of blood on ASL quantification' "
+    << std::endl;
     M0image->FillBuffer( calculatedM0 );
     }
 
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> labIterator;
-  labIterator   vfIter2( outimage,  outimage->GetLargestPossibleRegion() );
+  labIterator vfIter2( outimage,  outimage->GetLargestPossibleRegion() );
 
   timeVectorType sample( timedims, 0 );
   timeVectorType cbf( timedims, 0 );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     OutIndexType ind = vfIter2.GetIndex();
-    IndexType tind;
+    IndexType    tind;
     for( unsigned int i = 0; i < ImageDimension - 1; i++ )
       {
       tind[i] = ind[i];
       }
-    RealType total = 0;
+    RealType      total = 0;
     unsigned long cbfct = 0;
-    RealType M_0   = M0image->GetPixel( ind ); // FIXME can be taken from an input reference image or defined for each tissue 
-    bool getCBF = true;
-    if ( haveM0 && M_0 == 0 ) getCBF = false; else if ( haveM0 ) M_0 = calculatedM0;
-    if ( getCBF ) 
-    for( unsigned int t = 0; t < timedims; t++ )
+    RealType      M_0   = M0image->GetPixel( ind ); // FIXME can be taken from an input reference image or defined for
+                                                    // each tissue
+    bool          getCBF = true;
+    if( haveM0 && M_0 == 0 )
       {
-      tind[ImageDimension - 1] = t;
-      RealType pix = image1->GetPixel(tind);
-      sample( t ) = pix;
-      if ( ( t % 2 ) == 1 ) 
-	{/**  the best resource i've found so far equation 1 http://cfn.upenn.edu/perfusion/articles/perfmri_9.pdf
+      getCBF = false;
+      }
+    else if( haveM0 )
+      {
+      M_0 = calculatedM0;
+      }
+    if( getCBF )
+      {
+      for( unsigned int t = 0; t < timedims; t++ )
+        {
+        tind[ImageDimension - 1] = t;
+        RealType pix = image1->GetPixel(tind);
+        sample( t ) = pix;
+        if( ( t % 2 ) == 1 )
+          {                                                /**  the best resource i've found so far equation 1 http://cfn.upenn.edu/perfusion/articles/perfmri_9.pdf
             "Pediatric Perfusion Imaging Using Pulsed Arterial Spin Labeling"
-	    CBF images calculated as:
-	        f =  \frac{      \lambda DeltaM        }  {     2 \alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  }
-                TI_2 = TI_1 + t * slice_delay  
+      CBF images calculated as:
+          f =  \frac{      \lambda DeltaM        }  {     2 \alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  }
+                TI_2 = TI_1 + t * slice_delay
              where t is the image index , DeltaM is the difference signal between tag and control acquisitions,
-             lambda = 0.9 ml/g is the blood/tissue water partition, T_{1a} = 1200 ms is the longitudinal relaxation time of blood, 
-             alpha = 0.95 is the inversion (or labeling or tagging?) efﬁciency, TI_1 = 800 millisec is the duration 
-             between the inversion and saturation pulses, TI_2 = TI_1 + w is the image acquisition time.  M_0 is 
-             the acquired image.  These parameters were primarily based on experience in healthy adults; potential effects 
-             of ignoring the difference between adults and children on CBF quantiﬁcation will be discussed below.
+             lambda = 0.9 ml/g is the blood/tissue water partition, T_{1a} = 1200 ms is the longitudinal relaxation time of blood,
+             alpha = 0.95 is the inversion (or labeling or tagging?) efciency, TI_1 = 800 millisec is the duration
+             between the inversion and saturation pulses, TI_2 = TI_1 + w is the image acquisition time.  M_0 is
+             the acquired image.  These parameters were primarily based on experience in healthy adults; potential effects
+             of ignoring the difference between adults and children on CBF quantication will be discussed below.
              ...
              also see https://gate.nmr.mgh.harvard.edu/wiki/whynhow/images/e/e2/ASL_whyNhow.pdf
-	 */
-	RealType lambda = 0.9; //  grams / mL
-	RealType alpha = 0.95; // labeling efficiency 
-	RealType deltaM = sample( t - 1 ) - sample( t ); // if 1st image is control
-	if ( ! firstiscontrol ) deltaM = sample( t ) - sample( t - 1 );  //  2nd image is control
-	bool is1pt5T = false;
-        RealType T_1a = 1650; // 3T
-        if ( is1pt5T ) T_1a = 1390; // 1.5T
-	// see "Impact of equilibrium magnetization of blood on ASL quantification" 
-	RealType TI_1  = 600; // FIXME milliseconds 
-	RealType slice_delay = 42.0;// FIXME milliseconds 
-        // TI2(slice) = TI2 + slice_number * slice_delay (slice_delay = the time taken to acquire each slice)
-        RealType TI_2  = TI_1 + t * slice_delay;
-	RealType scaling = 2 * alpha * M_0 * TI_1 * exp( - TI_2 / T_1a );
-	cbf( t ) = lambda * deltaM / scaling;
-	total += cbf( t );
-	cbfct++;
-	}
+   */
+          RealType lambda = 0.9;                           //  grams / mL
+          RealType alpha = 0.95;                           // labeling efficiency
+          RealType deltaM = sample( t - 1 ) - sample( t ); // if 1st image is control
+          if( !firstiscontrol )
+            {
+            deltaM = sample( t ) - sample( t - 1 );                //  2nd image is control
+            }
+          bool     is1pt5T = false;
+          RealType T_1a = 1650; // 3T
+          if( is1pt5T )
+            {
+            T_1a = 1390;            // 1.5T
+            }
+          // see "Impact of equilibrium magnetization of blood on ASL quantification"
+          RealType TI_1  = 600;        // FIXME milliseconds
+          RealType slice_delay = 42.0; // FIXME milliseconds
+          // TI2(slice) = TI2 + slice_number * slice_delay (slice_delay = the time taken to acquire each slice)
+          RealType TI_2  = TI_1 + t * slice_delay;
+          RealType scaling = 2 * alpha * M_0 * TI_1 * exp( -TI_2 / T_1a );
+          cbf( t ) = lambda * deltaM / scaling;
+          total += cbf( t );
+          cbfct++;
+          }
+        }
       }
     RealType mean = total / (RealType) cbfct;
     vfIter2.Set( mean );
     }
 
-  /** From Quantitative Imaging of Perhsion Using a Single Subtraction (QUIPSS and QUIPSS 11)     
-  In  a proton density weighted, high-resolution, gradient-echo conventional image 
-  (TE = 5 ms ,  TR  = 1000 ms ,  a  = l o o ) ,  the measured ratio R  of proton density of  
-  blood in  the saggital sinus to  that  of white matter was 1.06. 
-  In a single-shot EPI image (TR = \infty ),  the signal M_{0WM} from  white matter was  measured. 
-  The fully T_1 relaxed signal from blood was then taken to be 
+  /** From Quantitative Imaging of Perhsion Using a Single Subtraction (QUIPSS and QUIPSS 11)
+  In  a proton density weighted, high-resolution, gradient-echo conventional image
+  (TE = 5 ms ,  TR  = 1000 ms ,  a  = l o o ) ,  the measured ratio R  of proton density of
+  blood in  the saggital sinus to  that  of white matter was 1.06.
+  In a single-shot EPI image (TR = \infty ),  the signal M_{0WM} from  white matter was  measured.
+  The fully T_1 relaxed signal from blood was then taken to be
 
-  M_OB  = R M_{0WM} exp [ ( 1 / T_{2WM} - 1 / T_{2B} ) TE ] ,   
+  M_OB  = R M_{0WM} exp [ ( 1 / T_{2WM} - 1 / T_{2B} ) TE ] ,
   where T_{2WM} = 80ms  T_{2B} = 200 ms and TE = 5ms.
   */
   //  RealType M_0B = 1.06 * M0wm * exp( 5 / 80 - 5 / 200 );
 
-	  /*
-	RealType M0W = 1; // FIXME 
-	M_0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
+  /*
+RealType M0W = 1; // FIXME
+M_0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
 The term, M_{0B} is calculated as follows (Wong1998),
-      M0b = A * M_{0WM} * exp(1/T2_{WM}^* - 1/T2_B^*) * TE
-      where:
-      A is the proton density ratio between blood and white matter (assumed to be 1.06)
-      T2^* (GRE echo-planar imaging)
-        T2_{WM} is 55 msec  (1.5T), 40 (3.0T), and 30 (4.0T)
-        T2_B    is 100 msec (1.5T), 80 (3.0T), and 60 (4.0T)
-      M_{0WM} is the mean value in an homogenous white matter region from a image acquired with short TE long TR.
-	  */
-
+    M0b = A * M_{0WM} * exp(1/T2_{WM}^* - 1/T2_B^*) * TE
+    where:
+    A is the proton density ratio between blood and white matter (assumed to be 1.06)
+    T2^* (GRE echo-planar imaging)
+      T2_{WM} is 55 msec  (1.5T), 40 (3.0T), and 30 (4.0T)
+      T2_B    is 100 msec (1.5T), 80 (3.0T), and 60 (4.0T)
+    M_{0WM} is the mean value in an homogenous white matter region from a image acquired with short TE long TR.
+  */
 
   WriteImage<OutImageType>(outimage, outname.c_str() );
 
   return 0;
 }
-
 
 template <unsigned int ImageDimension>
 int pCASL(int argc, char *argv[])
@@ -2289,7 +2312,7 @@ int pCASL(int argc, char *argv[])
   if( argc <= 3 )
     {
     antscout << " too few options " << argv[0] << std::endl;
-    antscout << argv[0] <<" NDImage  Bool_FirstImageIsControl optional-M0mask.nii.gz " << std::endl;
+    antscout << argv[0] << " NDImage  Bool_FirstImageIsControl optional-M0mask.nii.gz " << std::endl;
     return 1;
     }
 
@@ -2301,19 +2324,23 @@ int pCASL(int argc, char *argv[])
   typedef itk::ImageFileReader<ImageType>              readertype;
   typedef itk::ImageFileWriter<ImageType>              writertype;
   typedef typename ImageType::IndexType                IndexType;
-  typedef typename OutImageType::IndexType                OutIndexType;
+  typedef typename OutImageType::IndexType             OutIndexType;
   typedef typename ImageType::SizeType                 SizeType;
   typedef typename ImageType::SpacingType              SpacingType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  typedef double RealType; 
-  typedef vnl_vector< RealType > timeVectorType;
-  int          argct = 2;
-  std::string  outname = std::string(argv[argct]); argct++;
-  std::string  operation = std::string(argv[argct]);  argct++;
-  std::string  fn1 = std::string(argv[argct]);   argct++;
-  bool  firstiscontrol = atoi(argv[argct]);   argct++;
+  typedef double                                       RealType;
+  typedef vnl_vector<RealType>                         timeVectorType;
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  bool        firstiscontrol = atoi(argv[argct]);   argct++;
   std::string m0fn = "";
-  if (argc > argct ) m0fn = std::string(argv[argct]);   argct++;
+  if( argc > argct )
+    {
+    m0fn = std::string(argv[argct]);
+    }
+  argct++;
   typename ImageType::Pointer image1 = NULL;
   typename OutImageType::Pointer outimage = NULL;
   typename OutImageType::Pointer M0image = NULL;
@@ -2334,8 +2361,14 @@ int pCASL(int argc, char *argv[])
   unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
   extractRegion.SetSize(ImageDimension - 1, 0);
-  if ( firstiscontrol )  extractRegion.SetIndex(ImageDimension - 1, 0 );
-  else   extractRegion.SetIndex(ImageDimension - 1, 1 );
+  if( firstiscontrol )
+    {
+    extractRegion.SetIndex(ImageDimension - 1, 0 );
+    }
+  else
+    {
+    extractRegion.SetIndex(ImageDimension - 1, 1 );
+    }
 
   typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
   extractFilter->SetInput( image1 );
@@ -2349,10 +2382,10 @@ int pCASL(int argc, char *argv[])
   outimage->CopyInformation( M0image );
   outimage->SetRegions( M0image->GetLargestPossibleRegion() );
   outimage->Allocate();
-  outimage->FillBuffer( 0 ); 
-  RealType M0W = 1300; // FIXME 
-  RealType TE = 4000; 
-  RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE; 
+  outimage->FillBuffer( 0 );
+  RealType M0W = 1300; // FIXME
+  RealType TE = 4000;
+  RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
   calculatedM0 = 2800; // from "Impact of equilibrium magnetization of blood on ASL quantification" by YChen et al
 
   bool haveM0 = true;
@@ -2363,83 +2396,105 @@ int pCASL(int argc, char *argv[])
   else
     {
     haveM0 = false;
-    antscout << "Warning: using calculated value as reference M0 value --- see see 'Impact of equilibrium magnetization of blood on ASL quantification' " << std::endl;
+    antscout
+    <<
+    "Warning: using calculated value as reference M0 value --- see see 'Impact of equilibrium magnetization of blood on ASL quantification' "
+    << std::endl;
     M0image->FillBuffer( calculatedM0 );
     }
 
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> labIterator;
-  labIterator   vfIter2( outimage,  outimage->GetLargestPossibleRegion() );
+  labIterator vfIter2( outimage,  outimage->GetLargestPossibleRegion() );
 
   timeVectorType sample( timedims, 0 );
   timeVectorType cbf( timedims, 0 );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     OutIndexType ind = vfIter2.GetIndex();
-    IndexType tind;
+    IndexType    tind;
     for( unsigned int i = 0; i < ImageDimension - 1; i++ )
       {
       tind[i] = ind[i];
       }
-    RealType total = 0;
+    RealType      total = 0;
     unsigned long cbfct = 0;
-    RealType M_0   = M0image->GetPixel( ind ); // FIXME can be taken from an input reference image or defined for each tissue 
-    bool getCBF = true;
-    if ( haveM0 && M_0 == 0 ) getCBF = false; else if ( haveM0 ) M_0 = calculatedM0;
-    if ( getCBF ) 
-    for( unsigned int t = 0; t < timedims; t++ )
+    RealType      M_0   = M0image->GetPixel( ind ); // FIXME can be taken from an input reference image or defined for
+                                                    // each tissue
+    bool          getCBF = true;
+    if( haveM0 && M_0 == 0 )
       {
-      tind[ImageDimension - 1] = t;
-      RealType pix = image1->GetPixel(tind);
-      sample( t ) = pix;
-      if ( ( t % 2 ) == 1 ) 
-	{
-	// see http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3049525/?tool=pubmed  Quantitative CBF section
-	/** 
-Quantitative CBF
+      getCBF = false;
+      }
+    else if( haveM0 )
+      {
+      M_0 = calculatedM0;
+      }
+    if( getCBF )
+      {
+      for( unsigned int t = 0; t < timedims; t++ )
+        {
+        tind[ImageDimension - 1] = t;
+        RealType pix = image1->GetPixel(tind);
+        sample( t ) = pix;
+        if( ( t % 2 ) == 1 )
+          {
+          // see http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3049525/?tool=pubmed  Quantitative CBF section
+          /**
+        Quantitative CBF
 
-Cerebral blood flow in mL per 100g per minute was calculated pixel-by-pixel using equation (1), where the PLD was taken to be longer than ATT, reducing to (Wang et al, 2002),
-CBF =  \frac{      \lambda DeltaM     }  {     2 \alpha M_0 T_1a [ exp( - w / T_1a ) - exp( - ( tau + w ) / T_1a )  ] }
-w of 0.7seconds was determined based on the results of experiment (1) for optimal contrast of the GM. Cerebral blood flow was calculated for a single PLD. Quantitative CBF for the whole brain, GM, and WM were tabulated. The bottom slice was excluded from this analysis because it covered only a small part of the cerebrum.
-	 */
-	// f =  \frac{      \lambda DeltaM     }  {     2 \alpha M_0 T_1a [ exp( - w / T_1a ) - exp( - ( tau + w ) / T_1a )  ] }
-	RealType lambda = 0.9; //  grams / mL
-	RealType deltaM = sample( t ) - sample( t - 1 );  //  control - tagged if  control is odd 
-	RealType alpha = 0.85; // labeling efficiency 
-	// or Tagging efficiency: Magic parameter. Reference values: pCASL 0.85, CASL at 3T 0.68, PASL 0.95.
-	bool is1pt5T = false;
-        RealType T_1a = 1650; // 3T  from ASL_whyNhow.pdf
-        if ( is1pt5T ) T_1a = 1390; // 1.5T
-        RealType T_1t = 1300; // 3T
-        if ( is1pt5T ) T_1t = 900; // 1.5T
-	// from "Impact of equilibrium magnetization of blood on ASL quantification" 
-	RealType tau  = 2100; // FIXME milliseconds from PMC3049525
-	RealType w    = 700; // FIXME milliseconds from PMC3049525 
-	// Label width: Not in dicom, but sequence-specific -- magic parameter. Reference values: pCASL 1.5, CASL 1.6, PASL 0.7.
-	RealType scaling = 4 * alpha * M_0 * T_1t * ( exp ( -1.0 * ( tau + w ) / T_1a ) - exp( -1.0 * w / T_1t )  ); // from PMC3049525
-	cbf( t ) = lambda * deltaM * ( -1.0 )  / scaling;
-	total += cbf( t );
-	cbfct++;
-	}
+        Cerebral blood flow in mL per 100g per minute was calculated pixel-by-pixel using equation (1), where the PLD was taken to be longer than ATT, reducing to (Wang et al, 2002),
+        CBF =  \frac{      \lambda DeltaM     }  {     2 \alpha M_0 T_1a [ exp( - w / T_1a ) - exp( - ( tau + w ) / T_1a )  ] }
+        w of 0.7seconds was determined based on the results of experiment (1) for optimal contrast of the GM. Cerebral blood flow was calculated for a single PLD. Quantitative CBF for the whole brain, GM, and WM were tabulated. The bottom slice was excluded from this analysis because it covered only a small part of the cerebrum.
+           */
+          // f =  \frac{      \lambda DeltaM     }  {     2 \alpha M_0 T_1a [ exp( - w / T_1a ) - exp( - ( tau + w ) /
+          // T_1a )  ] }
+          RealType lambda = 0.9;                           //  grams / mL
+          RealType deltaM = sample( t ) - sample( t - 1 ); //  control - tagged if  control is odd
+          RealType alpha = 0.85;                           // labeling efficiency
+          // or Tagging efficiency: Magic parameter. Reference values: pCASL 0.85, CASL at 3T 0.68, PASL 0.95.
+          bool     is1pt5T = false;
+          RealType T_1a = 1650; // 3T  from ASL_whyNhow.pdf
+          if( is1pt5T )
+            {
+            T_1a = 1390;            // 1.5T
+            }
+          RealType T_1t = 1300; // 3T
+          if( is1pt5T )
+            {
+            T_1t = 900;            // 1.5T
+            }
+          // from "Impact of equilibrium magnetization of blood on ASL quantification"
+          RealType tau  = 2100; // FIXME milliseconds from PMC3049525
+          RealType w    = 700;  // FIXME milliseconds from PMC3049525
+          // Label width: Not in dicom, but sequence-specific -- magic parameter. Reference values: pCASL 1.5, CASL 1.6,
+          // PASL 0.7.
+          RealType scaling = 4 * alpha * M_0 * T_1t * ( exp( -1.0 * ( tau + w ) / T_1a ) - exp( -1.0 * w / T_1t )  ); //
+                                                                                                                      // from
+                                                                                                                      // PMC3049525
+          cbf( t ) = lambda * deltaM * ( -1.0 )  / scaling;
+          total += cbf( t );
+          cbfct++;
+          }
+        }
       }
     RealType mean = total / (RealType) cbfct;
     vfIter2.Set( mean );
     }
-    
-	// see "Impact of equilibrium magnetization of blood on ASL quantification" 
-	  /*
-	RealType M0W = 1300; // FIXME 
-	RealType TE = 4000; 
-	M_0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE; 
-The term, M_{0B} is calculated as follows (Wong1998),
-      M0b = A * M_{0WM} * exp(1/T2_{WM}^* - 1/T2_B^*) * TE
-      where:
-      A is the proton density ratio between blood and white matter (assumed to be 1.06)
-      T2^* (GRE echo-planar imaging)
-        T2_{WM} is 55 msec  (1.5T), 40 (3.0T), and 30 (4.0T)
-        T2_B    is 100 msec (1.5T), 80 (3.0T), and 60 (4.0T)
-      M_{0WM} is the mean value in an homogenous white matter region from a image acquired with short TE long TR.
-	  */
 
+  // see "Impact of equilibrium magnetization of blood on ASL quantification"
+  /*
+RealType M0W = 1300; // FIXME
+RealType TE = 4000;
+M_0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
+The term, M_{0B} is calculated as follows (Wong1998),
+    M0b = A * M_{0WM} * exp(1/T2_{WM}^* - 1/T2_B^*) * TE
+    where:
+    A is the proton density ratio between blood and white matter (assumed to be 1.06)
+    T2^* (GRE echo-planar imaging)
+      T2_{WM} is 55 msec  (1.5T), 40 (3.0T), and 30 (4.0T)
+      T2_B    is 100 msec (1.5T), 80 (3.0T), and 60 (4.0T)
+    M_{0WM} is the mean value in an homogenous white matter region from a image acquired with short TE long TR.
+  */
 
   WriteImage<OutImageType>(outimage, outname.c_str() );
 
@@ -2456,11 +2511,11 @@ int MTR(int argc, char *argv[])
   if( argc <= 5 )
     {
     antscout << " too few options " << argv[0] << std::endl;
-    antscout << argv[0] <<" M0Image.nii.gz M1Image.nii.gz [OptionalMask.nii.gz] " << std::endl;
+    antscout << argv[0] << " M0Image.nii.gz M1Image.nii.gz [OptionalMask.nii.gz] " << std::endl;
     return 1;
     }
 
-  typedef itk::Image<float, ImageDimension>        ImageType;
+  typedef itk::Image<float, ImageDimension> ImageType;
 
   typename ImageType::Pointer M0 = ImageType::New();
   typename ImageType::Pointer M1 = ImageType::New();
@@ -2471,10 +2526,10 @@ int MTR(int argc, char *argv[])
   MTR->CopyInformation( M0 );
   MTR->SetRegions( M0->GetLargestPossibleRegion() );
   MTR->Allocate();
-  MTR->FillBuffer( 0 ); 
+  MTR->FillBuffer( 0 );
 
   typename ImageType::Pointer mask = ImageType::New();
-  if ( argc > 6 ) 
+  if( argc > 6 )
     {
     ReadImage<ImageType>(mask, argv[6]);
     }
@@ -2483,25 +2538,25 @@ int MTR(int argc, char *argv[])
     mask->CopyInformation( M0 );
     mask->SetRegions( M0->GetLargestPossibleRegion() );
     mask->Allocate();
-    mask->FillBuffer( 1 ); 
+    mask->FillBuffer( 1 );
     }
 
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>     ImageIt;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> ImageIt;
   ImageIt it( mask, mask->GetLargestPossibleRegion() );
 
-  while ( !it.IsAtEnd() ) 
+  while( !it.IsAtEnd() )
     {
     if( it.Value() > 0 )
       {
       float m0 = M0->GetPixel( it.GetIndex() );
       float m1 = M1->GetPixel( it.GetIndex() );
       float mtr = ( m0 - m1 ) / m0;
-      
-      if ( mtr < 0 )
+
+      if( mtr < 0 )
         {
         mtr = 0;
         }
-      else if ( mtr > 1 )
+      else if( mtr > 1 )
         {
         mtr = 1;
         }
@@ -2839,19 +2894,27 @@ int ThreeTissueConfounds(int argc, char *argv[])
   typedef typename ImageType::SpacingType              SpacingType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
 
-  typedef double                                             Scalar;
+  typedef double                                            Scalar;
   typedef itk::ants::antsMatrixUtilities<ImageType, Scalar> matrixOpType;
   typename matrixOpType::Pointer matrixOps = matrixOpType::New();
 
-  int         argct = 2;
-  std::string outname = std::string(argv[argct]); argct++;
-  std::string operation = std::string(argv[argct]);  argct++;
-  std::string fn1 = std::string(argv[argct]);   argct++;
-  std::string fn_label = std::string(argv[argct]);   argct++;
-  unsigned int  wmlabel = 1;
-  unsigned int  csflabel = 3;
-  if( argc > argct ) csflabel = atoi(argv[argct]); argct++;
-  if( argc > argct ) wmlabel = atoi(argv[argct]); argct++;
+  int          argct = 2;
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  operation = std::string(argv[argct]);  argct++;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  std::string  fn_label = std::string(argv[argct]);   argct++;
+  unsigned int wmlabel = 1;
+  unsigned int csflabel = 3;
+  if( argc > argct )
+    {
+    csflabel = atoi(argv[argct]);
+    }
+  argct++;
+  if( argc > argct )
+    {
+    wmlabel = atoi(argv[argct]);
+    }
+  argct++;
   std::string::size_type idx;
   idx = outname.find_first_of('.');
   std::string tempname = outname.substr(0, idx);
@@ -3024,9 +3087,9 @@ int ThreeTissueConfounds(int argc, char *argv[])
   ct_nuis = 0;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
-    //OutIndexType ind = vfIter2.GetIndex();
+    // OutIndexType ind = vfIter2.GetIndex();
     if( vfIter2.Get() == csflabel )      // reference
-      //    if( var_image->GetPixel(ind) > varval_csf  )      // nuisance
+    //    if( var_image->GetPixel(ind) > varval_csf  )      // nuisance
       {
       ct_nuis++;
       }
@@ -3085,9 +3148,8 @@ int ThreeTissueConfounds(int argc, char *argv[])
       }
     }
 
-
   // factor out the nuisance variables by OLS
-  unsigned int nnuis = 3;// global , csf , wm 
+  unsigned int nnuis = 3; // global , csf , wm
   if( ct_nuis <= 0 )
     {
     nnuis = 1;
@@ -3097,7 +3159,7 @@ int ThreeTissueConfounds(int argc, char *argv[])
   reducedNuisance.set_column( 0, vGlobal);
   vGlobal = matrixOps->AverageColumns( mNuisance ); // csf
   reducedNuisance.set_column( 1, vGlobal);
-  vGlobal = matrixOps->AverageColumns( mReference ); // wm 
+  vGlobal = matrixOps->AverageColumns( mReference ); // wm
   reducedNuisance.set_column( 2, vGlobal);
 
   std::vector<std::string> ColumnHeaders;
@@ -3107,7 +3169,7 @@ int ThreeTissueConfounds(int argc, char *argv[])
   ColumnHeaders.push_back( colname );
   colname = std::string("WM");
   ColumnHeaders.push_back( colname );
-  
+
   // write out these nuisance variables
   // write out the array2D object
   typedef itk::CSVNumericObjectFileWriter<double> WriterType;
@@ -3128,7 +3190,6 @@ int ThreeTissueConfounds(int argc, char *argv[])
     }
 
   return 0;
-
 
   timeMatrixType RRt = matrixOps->ProjectionMatrix(reducedNuisance);
   mReference = matrixOps->NormalizeMatrix(mReference);
@@ -4126,7 +4187,7 @@ int TensorFunctions(int argc, char *argv[])
       else
         {
         antscout << "Unrecognized component.  Need to specify "
-                  << "xx, xy, xz, yy, yz, or zz";
+                 << "xx, xy, xz, yy, yz, or zz";
         return EXIT_FAILURE;
         }
       }
@@ -4251,7 +4312,7 @@ int TensorFunctions(int argc, char *argv[])
       {
       result = GetTensorADC<TensorType>(tIter.Value(), 2);
       if( vnl_math_isnan(result) )
-        { 
+        {
         result = 0;
         }
       vimage->SetPixel(ind, result);
@@ -4260,7 +4321,7 @@ int TensorFunctions(int argc, char *argv[])
       {
       result = GetTensorADC<TensorType>(tIter.Value(), 3 + whichvec);
       if( vnl_math_isnan(result) )
-        { 
+        {
         result = 0;
         }
       vimage->SetPixel(ind, result);
@@ -4783,7 +4844,6 @@ int CompareHeadersAndImages(int argc, char *argv[])
 //
 //
 // }
-
 
 // template<class TImage>
 // typename TImage::Pointer
@@ -6247,8 +6307,8 @@ int DistanceMap(int argc, char *argv[])
   typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
 
-  int         argct = 2;
-  if(argc < 5)
+  int argct = 2;
+  if( argc < 5 )
     {
     antscout << "Missing required arguments ( output name, operation & fn1)" << std::endl;
     throw;
@@ -6706,7 +6766,7 @@ int PoissonDiffusion( int argc, char *argv[])
   if( argc < 6 )
     {
     antscout << "Usage error---not enough arguments.   See help menu."
-              << std::endl;
+             << std::endl;
     throw std::exception();
     }
 
@@ -7350,23 +7410,23 @@ int DiceAndMinDistSum(      int argc, char *argv[])
 
   LabelSetType myLabelSet2;
   unsigned int labct = 0;
-          { Iterator It( image2, image2->GetLargestPossibleRegion() );
-          for( It.GoToBegin(); !It.IsAtEnd(); ++It )
-            {
-            PixelType label = It.Get();
-            if( fabs(label) > 0 )
-              {
-              if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
-                  == myLabelSet2.end()   &&
-                  find( myLabelSet1.begin(), myLabelSet1.end(), label )
-                  != myLabelSet1.end() )
-                {
-                myLabelSet2.push_back( label );
-                labct++;
-                }
-              }
-            }
-          }
+                  { Iterator It( image2, image2->GetLargestPossibleRegion() );
+                  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+                    {
+                    PixelType label = It.Get();
+                    if( fabs(label) > 0 )
+                      {
+                      if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
+                          == myLabelSet2.end()   &&
+                          find( myLabelSet1.begin(), myLabelSet1.end(), label )
+                          != myLabelSet1.end() )
+                        {
+                        myLabelSet2.push_back( label );
+                        labct++;
+                        }
+                      }
+                    }
+                  }
 
   vnl_vector<double> distances(labct, 0.0);
   vnl_vector<double> dicevals(labct, 0.0);
@@ -7510,97 +7570,92 @@ int DiceAndMinDistSum(      int argc, char *argv[])
   squareimage2->Allocate();
   squareimage2->FillBuffer( 0 );
 
-  std::vector<std::string> ColumnHeaders; 
-  std::vector<std::string> RowHeaders; 
-  unsigned int NumberOfLabels = labelcount; 
-  
+  std::vector<std::string> ColumnHeaders;
+  std::vector<std::string> RowHeaders;
+  unsigned int             NumberOfLabels = labelcount;
 
-  if(outdist) 
-  {
-      vnl_matrix<double> OutputValues(NumberOfLabels, 2);
+  if( outdist )
+    {
+    vnl_matrix<double> OutputValues(NumberOfLabels, 2);
 
-      ColumnHeaders.push_back("Label Name"); 
-      ColumnHeaders.push_back("Min_Distance"); 
-      ColumnHeaders.push_back("Dice"); 
-      
-      for (it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it)
+    ColumnHeaders.push_back("Label Name");
+    ColumnHeaders.push_back("Min_Distance");
+    ColumnHeaders.push_back("Dice");
+    for( it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it )
       {
-          OutputValues(labct, 0) = distances[labct]; 
-          OutputValues(labct, 1) = dicevals[labct];   
-          std::string LabelName = "Label_"; 
-          int LabelNumber; 
-          LabelNumber = *it;  
-          char LabelNumberAsString[50]; 
-          sprintf(LabelNumberAsString, "%.2d", LabelNumber);  
-          LabelName = LabelName + LabelNumberAsString; 
-          RowHeaders.push_back(LabelName); 
-          labct++;        
+      OutputValues(labct, 0) = distances[labct];
+      OutputValues(labct, 1) = dicevals[labct];
+      std::string LabelName = "Label_";
+      int         LabelNumber;
+      LabelNumber = *it;
+      char LabelNumberAsString[50];
+      sprintf(LabelNumberAsString, "%.2d", LabelNumber);
+      LabelName = LabelName + LabelNumberAsString;
+      RowHeaders.push_back(LabelName);
+      labct++;
       }
-      typedef  itk::CSVNumericObjectFileWriter< double, 1, 1 > CSVType; 
-      CSVType::Pointer OutputCSV = CSVType::New();
-      OutputCSV -> SetInput(&OutputValues);
-      OutputCSV -> SetFileName(std::string(outname.c_str()) + ".csv"); 
-      OutputCSV -> SetColumnHeaders(ColumnHeaders); 
-      OutputCSV -> SetRowHeaders(RowHeaders); 
-      try 
+    typedef  itk::CSVNumericObjectFileWriter<double, 1, 1> CSVType;
+    CSVType::Pointer OutputCSV = CSVType::New();
+    OutputCSV->SetInput(&OutputValues);
+    OutputCSV->SetFileName(std::string(outname.c_str() ) + ".csv");
+    OutputCSV->SetColumnHeaders(ColumnHeaders);
+    OutputCSV->SetRowHeaders(RowHeaders);
+    try
       {
-          OutputCSV -> Write(); 
-      } 
-      catch( itk::ExceptionObject& exp )
-      {
-        antscout << "Exception caught!" << std::endl;
-        antscout << exp << std::endl;         
+      OutputCSV->Write();
       }
-  }
-  else 
-  {
-      vnl_matrix<double> OutputValues(NumberOfLabels, 4);
-      ColumnHeaders.push_back("Label Name"); 
-      ColumnHeaders.push_back("Dice"); 
-      ColumnHeaders.push_back("RO"); 
-      ColumnHeaders.push_back("Percent_of_Region_1_In_Overlap"); 
-      ColumnHeaders.push_back("Percent_of_Region_2_In_Overlap"); 
-      
-      
-      for (it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it )
+    catch( itk::ExceptionObject& exp )
       {
-          OutputValues(labct,0) = dicevals[labct]; 
-          OutputValues(labct,1) = rovals[labct]; 
-          OutputValues(labct,2) = tpvals[labct]; 
-          OutputValues(labct,3) = tpvals2[labct]; 
-          
-          std::string LabelName = "Label_"; 
-          int LabelNumber; 
-          LabelNumber = *it;  
-          char LabelNumberAsString[50]; 
-          sprintf(LabelNumberAsString, "%.2d", LabelNumber);  
-          LabelName = LabelName + LabelNumberAsString; 
-          RowHeaders.push_back(LabelName); 
-          labct++; 
+      antscout << "Exception caught!" << std::endl;
+      antscout << exp << std::endl;
       }
- 
-      typedef  itk::CSVNumericObjectFileWriter< double, 1, 1 > CSVType; 
-      CSVType::Pointer OutputCSV = CSVType::New();
-      OutputCSV -> SetInput(&OutputValues);
-      OutputCSV -> SetFileName(std::string(outname.c_str()) + ".csv"); 
-      OutputCSV -> SetColumnHeaders(ColumnHeaders); 
-      OutputCSV -> SetRowHeaders(RowHeaders); 
-      try 
+    }
+  else
+    {
+    vnl_matrix<double> OutputValues(NumberOfLabels, 4);
+    ColumnHeaders.push_back("Label Name");
+    ColumnHeaders.push_back("Dice");
+    ColumnHeaders.push_back("RO");
+    ColumnHeaders.push_back("Percent_of_Region_1_In_Overlap");
+    ColumnHeaders.push_back("Percent_of_Region_2_In_Overlap");
+    for( it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it )
       {
-          OutputCSV -> Write(); 
-          antscout << "Output written to " << outname.c_str() << ".csv." << std::endl; 
-      } 
-      catch( itk::ExceptionObject& exp )
-      {
-        antscout << "Exception caught!" << std::endl;
-        antscout << exp << std::endl;         
-      }
-      
-  }
+      OutputValues(labct, 0) = dicevals[labct];
+      OutputValues(labct, 1) = rovals[labct];
+      OutputValues(labct, 2) = tpvals[labct];
+      OutputValues(labct, 3) = tpvals2[labct];
 
- 
+      std::string LabelName = "Label_";
+      int         LabelNumber;
+      LabelNumber = *it;
+      char LabelNumberAsString[50];
+      sprintf(LabelNumberAsString, "%.2d", LabelNumber);
+      LabelName = LabelName + LabelNumberAsString;
+      RowHeaders.push_back(LabelName);
+      labct++;
+      }
+
+    typedef  itk::CSVNumericObjectFileWriter<double, 1, 1> CSVType;
+    CSVType::Pointer OutputCSV = CSVType::New();
+    OutputCSV->SetInput(&OutputValues);
+    OutputCSV->SetFileName(std::string(outname.c_str() ) + ".csv");
+    OutputCSV->SetColumnHeaders(ColumnHeaders);
+    OutputCSV->SetRowHeaders(RowHeaders);
+    try
+      {
+      OutputCSV->Write();
+      antscout << "Output written to " << outname.c_str() << ".csv." << std::endl;
+      }
+    catch( itk::ExceptionObject& exp )
+      {
+      antscout << "Exception caught!" << std::endl;
+      antscout << exp << std::endl;
+      }
+
+    }
+
   labelcount = 0;
-  labct = 0; 
+  labct = 0;
   for( it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it )
 
     {
@@ -7788,7 +7843,7 @@ int ExtractVectorComponent( int argc, char *argv[] )
   if( whichvec >= vecimage->GetVectorLength() )
     {
     antscout << " input image " << inname << " only has " << vecimage->GetVectorLength() << " components "
-              << std::endl;
+             << std::endl;
     return EXIT_FAILURE;
     }
   else
@@ -8057,12 +8112,12 @@ int LabelStats(      int argc, char *argv[])
     if( !valimage )
       {
       antscout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
-                << std::endl;
+               << std::endl;
       }
     else // if ( totalvolume > 500 &&  totalmass/totalct > 1/500 )  {
       {
       antscout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
-                << " mass is " << totalmass << " average-val is " << totalmass / totalct << std::endl;
+               << " mass is " << totalmass << " average-val is " << totalmass / totalct << std::endl;
       //      antscout << *it << "  " <<  totalvolume <<  " & " <<  totalmass/totalct   << " \ " << std::endl;
       }
 
@@ -8194,8 +8249,8 @@ int ROIStatistics(      int argc, char *argv[])
     {
     antscout << " not enough parameters --- usage example 1 :" << "" << std::endl;
     antscout << argv[0]
-              << " ImageMath  3 output.csv ROIStatistics roinames.txt LabelImage.nii.gz ValueImage.nii.gz  "
-              << std::endl;
+             << " ImageMath  3 output.csv ROIStatistics roinames.txt LabelImage.nii.gz ValueImage.nii.gz  "
+             << std::endl;
     throw std::exception();
     }
   std::string outname = std::string(argv[argct]); argct++;
@@ -8557,12 +8612,12 @@ int ROIStatistics(      int argc, char *argv[])
     if( roimap.find(roi) != roimap.end()  )
       {
       antscout << roimap.find(roi)->second << " & " << clusters[roi] << " , "  << pvals[roi] << "  & "
-                <<  pvals3[roi]  << " &  " << pvals4[roi]   << " &  "
-                << (float)( (int)(myCenterOfMass[0]
+               <<  pvals3[roi]  << " &  " << pvals4[roi]   << " &  "
+               << (float)( (int)(myCenterOfMass[0]
                         * 10) ) / 10. << " "
-                << (float)( (int)(myCenterOfMass[1]
+               << (float)( (int)(myCenterOfMass[1]
                         * 10) ) / 10.  << " "
-                <<  (float)( (int)(myCenterOfMass[2] * 10) ) / 10.  << "   \\ " << std::endl;
+               <<  (float)( (int)(myCenterOfMass[2] * 10) ) / 10.  << "   \\ " << std::endl;
       }
 
     mCSVMatrix(roi, 0) = clusters[roi];
@@ -8781,7 +8836,6 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
   typename ImageType::Pointer image2 = NULL;
   typename ImageType::SizeType size;
   size.Fill(0);
-
   for( unsigned int j = argct; j < argc; j++ )
     {
     numberofimages++;
@@ -9099,7 +9153,6 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
   typename ImageType::Pointer image2 = NULL;
   typename ImageType::SizeType size;
   size.Fill(0);
-
   for( unsigned int j = argct; j < argc; j++ )
     {
     numberofimages++;
@@ -9415,14 +9468,14 @@ int CorrelationUpdate(      int argc, char *argv[])
 template <unsigned int ImageDimension>
 int MajorityVoting( int argc, char *argv[] )
 {
-  typedef int                                    PixelType;
-  typedef itk::Image<PixelType, ImageDimension>            ImageType;
-  typedef itk::ImageFileReader<ImageType>                  ImageReaderType;
-  typedef itk::ImageFileWriter<ImageType>                  ImageWriterType;
-  typedef itk::MinimumMaximumImageCalculator<ImageType>    CalculatorType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>     IteratorType;
+  typedef int                                           PixelType;
+  typedef itk::Image<PixelType, ImageDimension>         ImageType;
+  typedef itk::ImageFileReader<ImageType>               ImageReaderType;
+  typedef itk::ImageFileWriter<ImageType>               ImageWriterType;
+  typedef itk::MinimumMaximumImageCalculator<ImageType> CalculatorType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>  IteratorType;
 
-  if ( argc < 5 )
+  if( argc < 5 )
     {
     antscout << " Not enough inputs " << std::endl;
     return 1;
@@ -9431,30 +9484,30 @@ int MajorityVoting( int argc, char *argv[] )
   std::string outputName = std::string( argv[2] );
 
   // Read input segmentations
-  const unsigned long nImages = argc-4;
-  typename std::vector<typename ImageType::Pointer> images(argc-4);
-  for (int i=4; i<argc; i++)
+  const unsigned long                               nImages = argc - 4;
+  typename std::vector<typename ImageType::Pointer> images(argc - 4);
+  for( int i = 4; i < argc; i++ )
     {
-    images[i-4] = ImageType::New();
-    ReadImage<ImageType>( images[i-4], argv[i] );
+    images[i - 4] = ImageType::New();
+    ReadImage<ImageType>( images[i - 4], argv[i] );
     }
 
   // Find maximum label
   int maxLabel = 0;
-  for (unsigned int i=0; i<nImages; i++)
+  for( unsigned int i = 0; i < nImages; i++ )
     {
     typename CalculatorType::Pointer calc = CalculatorType::New();
     calc->SetImage( images[i] );
     calc->ComputeMaximum();
-    if ( calc->GetMaximum() > maxLabel ) 
+    if( calc->GetMaximum() > maxLabel )
       {
       maxLabel = calc->GetMaximum();
       }
     }
   unsigned long nLabels = maxLabel + 1; // account for label=0
-  
+
   typename ImageType::Pointer output = ImageType::New();
-  //output->CopyInformation( images[0] );
+  // output->CopyInformation( images[0] );
   output->SetRegions( images[0]->GetLargestPossibleRegion() );
   output->SetSpacing( images[0]->GetSpacing() );
   output->SetOrigin( images[0]->GetOrigin() );
@@ -9462,53 +9515,52 @@ int MajorityVoting( int argc, char *argv[] )
   output->Allocate();
   output->FillBuffer( 0 );
 
-  IteratorType it( output, output->GetLargestPossibleRegion() );
+  IteratorType              it( output, output->GetLargestPossibleRegion() );
   itk::Array<unsigned long> votes;
   votes.SetSize( nLabels );
-  
-  while ( !it.IsAtEnd() ) 
+
+  while( !it.IsAtEnd() )
     {
-    
+
     votes.Fill(0);
     unsigned long maxVotes = 0;
     unsigned long votedLabel = 0;
- 
-    for ( unsigned long i=0; i<nImages; i++)
+    for( unsigned long i = 0; i < nImages; i++ )
       {
       unsigned long label = images[i]->GetPixel( it.GetIndex() );
       votes.SetElement(label, votes.GetElement(label) + 1 );
 
-      if ( votes.GetElement(label) > maxVotes )
+      if( votes.GetElement(label) > maxVotes )
         {
         maxVotes = votes.GetElement(label);
         votedLabel = label;
         }
       }
-    
+
     it.Set( votedLabel );
     ++it;
     }
 
   WriteImage<ImageType>( output, outputName.c_str() );
   return 0;
-  
+
 }
 
 template <unsigned int ImageDimension>
 int CorrelationVoting( int argc, char *argv[] )
 {
-  typedef float                                               PixelType;
-  typedef int                                                 LabelType;
-  typedef itk::Image<PixelType, ImageDimension>               ImageType;
-  typedef itk::Image<LabelType, ImageDimension>               LabelImageType;
-  typedef itk::ImageFileReader<ImageType>                     ImageReaderType;
-  typedef itk::ImageFileReader<LabelImageType>                LabelImageReaderType;
-  typedef itk::ImageFileWriter<LabelImageType>                LabelImageWriterType;
-  typedef itk::MinimumMaximumImageCalculator<LabelImageType>  CalculatorType;
-  typedef itk::ImageRegionIteratorWithIndex<LabelImageType>   IteratorType;
-  typedef itk::NeighborhoodIterator<ImageType>                NeighborhoodIteratorType;
+  typedef float                                              PixelType;
+  typedef int                                                LabelType;
+  typedef itk::Image<PixelType, ImageDimension>              ImageType;
+  typedef itk::Image<LabelType, ImageDimension>              LabelImageType;
+  typedef itk::ImageFileReader<ImageType>                    ImageReaderType;
+  typedef itk::ImageFileReader<LabelImageType>               LabelImageReaderType;
+  typedef itk::ImageFileWriter<LabelImageType>               LabelImageWriterType;
+  typedef itk::MinimumMaximumImageCalculator<LabelImageType> CalculatorType;
+  typedef itk::ImageRegionIteratorWithIndex<LabelImageType>  IteratorType;
+  typedef itk::NeighborhoodIterator<ImageType>               NeighborhoodIteratorType;
 
-  if ( argc < 6 )
+  if( argc < 6 )
     {
     antscout << " Not enough inputs " << std::endl;
     return 1;
@@ -9516,47 +9568,45 @@ int CorrelationVoting( int argc, char *argv[] )
 
   std::string outputName = std::string( argv[2] );
 
-
-
   // Read input images and segmentations
-  const int nImages = (argc-5)/2;
+  const int nImages = (argc - 5) / 2;
 
   int radius = 5;
-  if ( argc > ( 5 + 2*nImages ) ) 
+  if( argc > ( 5 + 2 * nImages ) )
     {
-    radius = atoi( argv[ 5 +2*nImages ] );
+    radius = atoi( argv[5 + 2 * nImages] );
     }
 
   typename ImageType::Pointer target = ImageType::New();
   ReadImage<ImageType>( target, argv[4] );
 
-  typename std::vector< typename ImageType::Pointer> images(nImages);
-  typename std::vector< typename LabelImageType::Pointer> labels(nImages);
-  for (int i=5; i<(5+nImages); i++)
+  typename std::vector<typename ImageType::Pointer>      images(nImages);
+  typename std::vector<typename LabelImageType::Pointer> labels(nImages);
+  for( int i = 5; i < (5 + nImages); i++ )
     {
-    images[i-5] = ImageType::New();
-    ReadImage<ImageType>( images[i-5], argv[i] );
+    images[i - 5] = ImageType::New();
+    ReadImage<ImageType>( images[i - 5], argv[i] );
     }
-  for (int i=5+nImages; i<(5 + 2*nImages); i++)
+  for( int i = 5 + nImages; i < (5 + 2 * nImages); i++ )
     {
-    labels[i-5-nImages] = LabelImageType::New();
-    ReadImage<LabelImageType>( labels[i-5-nImages], argv[i] );
+    labels[i - 5 - nImages] = LabelImageType::New();
+    ReadImage<LabelImageType>( labels[i - 5 - nImages], argv[i] );
     }
 
   // Find maximum label
   int maxLabel = 0;
-  for ( int i=0; i<nImages; i++)
+  for( int i = 0; i < nImages; i++ )
     {
     typename CalculatorType::Pointer calc = CalculatorType::New();
     calc->SetImage( labels[i] );
     calc->ComputeMaximum();
-    if ( calc->GetMaximum() > maxLabel ) 
+    if( calc->GetMaximum() > maxLabel )
       {
       maxLabel = calc->GetMaximum();
       }
     }
   unsigned long nLabels = maxLabel + 1; // account for label=0
-  
+
   typename LabelImageType::Pointer output = LabelImageType::New();
   output->SetRegions( images[0]->GetLargestPossibleRegion() );
   output->SetSpacing( images[0]->GetSpacing() );
@@ -9565,10 +9615,10 @@ int CorrelationVoting( int argc, char *argv[] )
   output->Allocate();
   output->FillBuffer( 0 );
 
-  IteratorType it( output, output->GetLargestPossibleRegion() );
+  IteratorType      it( output, output->GetLargestPossibleRegion() );
   itk::Array<float> votes;
   votes.SetSize( nLabels );
-  
+
   typename NeighborhoodIteratorType::RadiusType rad;
   for( unsigned int j = 0; j < ImageDimension; j++ )
     {
@@ -9576,27 +9626,26 @@ int CorrelationVoting( int argc, char *argv[] )
     }
   NeighborhoodIteratorType metricIt(rad, target, target->GetLargestPossibleRegion() );
 
-  while ( !it.IsAtEnd() ) 
+  while( !it.IsAtEnd() )
     {
-    
+
     votes.Fill(0);
     float maxVotes = 0;
-    int votedLabel = 0;
- 
-    for ( int i=0; i<nImages; i++)
+    int   votedLabel = 0;
+    for( int i = 0; i < nImages; i++ )
       {
       int label = labels[i]->GetPixel( it.GetIndex() );
       votes.SetElement(label, votes.GetElement(label) + 1 );
 
-      if ( votes.GetElement(label) > maxVotes )
+      if( votes.GetElement(label) > maxVotes )
         {
         maxVotes = votes.GetElement(label);
         votedLabel = label;
         }
       }
-    
+
     // If all agree, assign label immediately
-    if ( maxVotes == nImages )
+    if( maxVotes == nImages )
       {
       it.Set( votedLabel );
       }
@@ -9605,10 +9654,9 @@ int CorrelationVoting( int argc, char *argv[] )
       votes.Fill( 0.0 );
       maxVotes = 0.0;
       votedLabel = 0;
-      
-      itk::VariableLengthVector<float> weights( nImages );
 
-      for ( int i=0; i<nImages; i++ )
+      itk::VariableLengthVector<float> weights( nImages );
+      for( int i = 0; i < nImages; i++ )
         {
         metricIt.SetLocation( it.GetIndex() );
         float targetMean = 0.0;
@@ -9617,17 +9665,16 @@ int CorrelationVoting( int argc, char *argv[] )
         float imageVar = 0.0;
         float k = 0;
         float product = 0.0;
-
-        for ( unsigned int j=0; j<metricIt.Size(); j++ ) 
+        for( unsigned int j = 0; j < metricIt.Size(); j++ )
           {
-          
-          typename NeighborhoodIteratorType::OffsetType internal;                                                                  
+
+          typename NeighborhoodIteratorType::OffsetType internal;
           typename NeighborhoodIteratorType::OffsetType offset;
-          if ( metricIt.IndexInBounds( j, internal, offset ) )
+          if( metricIt.IndexInBounds( j, internal, offset ) )
             {
             k++;
             typename ImageType::IndexType idx = metricIt.GetIndex( j );
-            if ( k == 1 )
+            if( k == 1 )
               {
               targetMean = target->GetPixel( idx );
               imageMean = images[i]->GetPixel( idx );
@@ -9650,31 +9697,29 @@ int CorrelationVoting( int argc, char *argv[] )
 
               }
             } // metricIt.IndexInBounds()
-          } // j >= metricIt.Size()
-        
-        targetVar /= (k-1);
-        imageVar /= (k-1);
-        float pearson = ( product - k*targetMean*imageMean ) / ( (k-1)*vcl_sqrt(targetVar)*vcl_sqrt(imageVar) );
-        weights.SetElement( i, vcl_fabs(pearson) );
-        
-        } // i >= nImages
+          }   // j >= metricIt.Size()
 
-      for ( int i=0; i<nImages; i++)
+        targetVar /= (k - 1);
+        imageVar /= (k - 1);
+        float pearson = ( product - k * targetMean * imageMean ) / ( (k - 1) * vcl_sqrt(targetVar) * vcl_sqrt(imageVar) );
+        weights.SetElement( i, vcl_fabs(pearson) );
+
+        } // i >= nImages
+      for( int i = 0; i < nImages; i++ )
         {
-        
+
         int label = labels[i]->GetPixel( it.GetIndex() );
         votes.SetElement(label, votes.GetElement(label) + weights.GetElement(i) );
-        
-        if ( votes.GetElement(label) > maxVotes )
-        {
+
+        if( votes.GetElement(label) > maxVotes )
+          {
           maxVotes = votes.GetElement(label);
           votedLabel = label;
           }
-        
+
         }
 
       it.Set(votedLabel);
-      
 
       } // else find weighted vote winner
 
@@ -9686,16 +9731,15 @@ int CorrelationVoting( int argc, char *argv[] )
 
 }
 
-
 template <unsigned int ImageDimension>
 int ImageMetrics( int argc, char *argv[] )
 {
-  typedef float                                                              PixelType;
-  typedef itk::Image<PixelType, ImageDimension>                              ImageType;
+  typedef float                                 PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4
-    <ImageType,ImageType,ImageType>                                          MetricType;
+  <ImageType, ImageType, ImageType>                                          MetricType;
 
-  if ( argc < 5 )
+  if( argc < 5 )
     {
     antscout << "ERROR: Not enough inputs " << std::endl;
     return 1;
@@ -9709,20 +9753,20 @@ int ImageMetrics( int argc, char *argv[] )
 
   float value = 0.0;
 
-  if ( strcmp(argv[3], "NeighborhoodCorrelation") == 0 )
+  if( strcmp(argv[3], "NeighborhoodCorrelation") == 0 )
     {
     typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4
-      <ImageType,ImageType,ImageType>                                          MetricType;
-    
+    <ImageType, ImageType, ImageType>                                          MetricType;
+
     int r = 5;
-    if ( argc > 6 )
+    if( argc > 6 )
       {
       r = atoi( argv[6] );
       }
 
     typename MetricType::RadiusType radius;
     radius.Fill( r );
-    
+
     typename MetricType::Pointer metric = MetricType::New();
     metric->SetRadius( radius );
     metric->SetFixedImage( img1 );
@@ -9730,22 +9774,22 @@ int ImageMetrics( int argc, char *argv[] )
     metric->Initialize();
     value = metric->GetValue();
     }
-  else if ( strcmp(argv[3], "NormalizedCorrelation") == 0 )
+  else if( strcmp(argv[3], "NormalizedCorrelation") == 0 )
     {
     typedef itk::CorrelationImageToImageMetricv4
-      <ImageType,ImageType,ImageType> MetricType;
-    
+    <ImageType, ImageType, ImageType> MetricType;
+
     typename MetricType::Pointer metric = MetricType::New();
     metric->SetFixedImage( img1 );
     metric->SetMovingImage( img2 );
     metric->Initialize();
     value = metric->GetValue();
     }
-  else if ( strcmp(argv[3], "Demons") == 0 )
+  else if( strcmp(argv[3], "Demons") == 0 )
     {
     typedef itk::DemonsImageToImageMetricv4
-      <ImageType,ImageType,ImageType> MetricType;
-    
+    <ImageType, ImageType, ImageType> MetricType;
+
     typename MetricType::Pointer metric = MetricType::New();
     metric->SetFixedImage( img1 );
     metric->SetMovingImage( img2 );
@@ -9753,46 +9797,43 @@ int ImageMetrics( int argc, char *argv[] )
     // FIXME - Calling initialize on demons causes seg fault
     antscout << "Demons is currently broken" << std::endl;
     return 1;
- 
+
     metric->Initialize();
     value = metric->GetValue();
     }
-  else if ( strcmp(argv[3], "Mattes") == 0 )
+  else if( strcmp(argv[3], "Mattes") == 0 )
     {
     typedef itk::JointHistogramMutualInformationImageToImageMetricv4
-      <ImageType,ImageType,ImageType> MetricType;
+    <ImageType, ImageType, ImageType> MetricType;
 
     int bins = 32;
-    if ( argc > 6 )
+    if( argc > 6 )
       {
       bins = atoi( argv[6] );
       }
-    
+
     typename MetricType::Pointer metric = MetricType::New();
     metric->SetFixedImage( img1 );
     metric->SetMovingImage( img2 );
     metric->SetNumberOfHistogramBins( bins );
     metric->Initialize();
-    value = metric->GetValue();    
+    value = metric->GetValue();
     }
 
   antscout << value << std::endl;
-    
+
   return 0;
 
 }
 
-
-
-
 template <unsigned int ImageDimension>
 int PearsonCorrelation( int argc, char *argv[] )
 {
-  typedef float                                               PixelType;
-  typedef itk::Image<PixelType, ImageDimension>               ImageType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>        IteratorType;
+  typedef float                                        PixelType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
 
-  if ( argc < 5 )
+  if( argc < 5 )
     {
     antscout << "ERROR: Not enough inputs " << std::endl;
     return 1;
@@ -9806,7 +9847,7 @@ int PearsonCorrelation( int argc, char *argv[] )
 
   typename ImageType::Pointer mask = ImageType::New();
 
-  if ( argc > 6 )
+  if( argc > 6 )
     {
     ReadImage<ImageType>( mask, argv[6] );
     }
@@ -9828,13 +9869,13 @@ int PearsonCorrelation( int argc, char *argv[] )
   float k = 0;
 
   IteratorType it( mask, mask->GetLargestPossibleRegion() );
-  while ( !it.IsAtEnd() ) 
+  while( !it.IsAtEnd() )
     {
-    if ( it.Value() > 0 )
+    if( it.Value() > 0 )
       {
       k++;
-      typename ImageType::IndexType idx = it.GetIndex( );
-      if ( k == 1 )
+      typename ImageType::IndexType idx = it.GetIndex();
+      if( k == 1 )
         {
         mean1 = img1->GetPixel( idx );
         mean2 = img2->GetPixel( idx );
@@ -9847,76 +9888,80 @@ int PearsonCorrelation( int argc, char *argv[] )
         float value = img1->GetPixel( idx );
         mean1 = mean1 + (value - mean1) / k;
         var1 = var1 + (value - oldMean) * ( value - mean1 );
-        
+
         oldMean = mean2;
         value = img2->GetPixel( idx );
         mean2 = mean2 + ( value - mean2 ) / k;
         var2 = var2 + ( value - oldMean) * ( value - mean2 );
-        
+
         product += img1->GetPixel( idx ) *  img2->GetPixel( idx );
-        
+
         }
       }
     ++it;
-    } 
-  
-  var1 /= (k-1);
-  var2 /= (k-1);
+    }
 
-  float pearson = ( product - k*mean1*mean2 ) / ( (k-1)*vcl_sqrt(var1)*vcl_sqrt(var2) );
+  var1 /= (k - 1);
+  var2 /= (k - 1);
+
+  float pearson = ( product - k * mean1 * mean2 ) / ( (k - 1) * vcl_sqrt(var1) * vcl_sqrt(var2) );
   antscout << pearson << std::endl;
 
   return 0;
 
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "ImageMath" ) ;
+  args.insert( args.begin(), "ImageMath" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc < 5 )
     {
     antscout << "\nUsage: " << argv[0]
-              << " ImageDimension <OutputImage.ext> [operations and inputs] <Image1.ext> <Image2.ext>" << std::endl;
+             << " ImageDimension <OutputImage.ext> [operations and inputs] <Image1.ext> <Image2.ext>" << std::endl;
 
     antscout << "\nUsage Information " << std::endl;
     antscout << " ImageDimension: 2 or 3 (for 2 or 3 dimensional operations)." << std::endl;
@@ -9933,9 +9978,9 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     antscout << "  ^            : Power" << std::endl;
     antscout << "  exp            : Take exponent exp(imagevalue*value)" << std::endl;
     antscout << "  addtozero        : add image-b to image-a only over points where image-a has zero values"
-              << std::endl;
+             << std::endl;
     antscout << "  overadd        : replace image-a pixel with image-b pixel if image-b pixel is non-zero"
-              << std::endl;
+             << std::endl;
     antscout << "  abs            : absolute value " << std::endl;
     antscout
     << "  total            : Sums up values in an image or in image1*image2 (img2 is the probability mask)"
@@ -9961,11 +10006,11 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     << std::endl;
     antscout
     <<
-      "   ImageMath 4 ${out}compcorr.nii.gz ThreeTissueConfounds ${out}.nii.gz  ${out}seg.nii.gz 1 3  " << 
-     " : Outputs average global, CSF and WM signals.  Requires a label image with 3 labels , csf, gm , wm ."
+    "   ImageMath 4 ${out}compcorr.nii.gz ThreeTissueConfounds ${out}.nii.gz  ${out}seg.nii.gz 1 3  "
+    << " : Outputs average global, CSF and WM signals.  Requires a label image with 3 labels , csf, gm , wm ."
     << std::endl;
     antscout << "    Usage        : ThreeTissueConfounds 4D_TimeSeries.nii.gz LabeLimage.nii.gz  csf-label wm-label "
-              << std::endl;
+             << std::endl;
     antscout
     << " TimeSeriesSubset : Outputs n 3D image sub-volumes extracted uniformly from the input time-series 4D image."
     << std::endl;
@@ -9984,23 +10029,27 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
 
     antscout
     <<
-      " PASL : computes the PASL model of CBF  "     << std::endl <<  "f =  \frac{      lambda DeltaM        } " << std::endl <<
-      " {     2 \alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  } " << std::endl;
-    antscout << "    Usage        : PASL 3D/4D_TimeSeries.nii.gz BoolFirstImageIsControl M0Image parameter_list.txt " << std::endl;
+    " PASL : computes the PASL model of CBF  "     << std::endl <<  "f =  \frac{      lambda DeltaM        } "
+    << std::endl
+    << " {     2 \alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  } " << std::endl;
+    antscout
+    << "    Usage        : PASL 3D/4D_TimeSeries.nii.gz BoolFirstImageIsControl M0Image parameter_list.txt "
+    << std::endl;
 
     antscout
     <<
-      " pCASL : computes the pCASL model of CBF  "     << std::endl << " f =  \frac{      lambda DeltaM R_{1a}        }  " << std::endl << 
-            "  {     2 \alpha M_0 [ exp( - w R_{1a} ) - exp( -w ( \tau + w ) R_{1a}) ]     } " << std::endl;
+    " pCASL : computes the pCASL model of CBF  "     << std::endl
+    << " f =  \frac{      lambda DeltaM R_{1a}        }  " << std::endl
+    << "  {     2 \alpha M_0 [ exp( - w R_{1a} ) - exp( -w ( \tau + w ) R_{1a}) ]     } " << std::endl;
     antscout << "    Usage        : pCASL 3D/4D_TimeSeries.nii.gz parameter_list.txt " << std::endl;
 
     antscout << "\nTensor Operations:" << std::endl;
     antscout << "  4DTensorTo3DTensor    : Outputs a 3D_DT_Image with the same information. " << std::endl;
     antscout << "    Usage        : 4DTensorTo3DTensor 4D_DTImage.ext" << std::endl;
     antscout << "  ComponentTo3DTensor    : Outputs a 3D_DT_Image with the same information as component images. "
-              << std::endl;
+             << std::endl;
     antscout << "    Usage        : ComponentTo3DTensor component_image_prefix[xx,xy,xz,yy,yz,zz] extension"
-              << std::endl;
+             << std::endl;
     antscout << "  ExtractComponentFrom3DTensor    : Outputs a component images. " << std::endl;
     antscout << "    Usage        : ExtractComponentFrom3DTensor dtImage.ext which={xx,xy,xz,yy,yz,zz}" << std::endl;
     antscout << "  ExtractVectorComponent: Produces the WhichVec component of the vector " << std::endl;
@@ -10014,7 +10063,7 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     antscout << "  TensorFANumerator    : " << std::endl;
     antscout << "    Usage        : TensorFANumerator DTImage.ext" << std::endl;
     antscout << "  TensorIOTest    : Will write the DT image back out ... tests I/O processes for consistency. "
-              << std::endl;
+             << std::endl;
     antscout << "    Usage        : TensorIOTest DTImage.ext" << std::endl;
     antscout << "  TensorMeanDiffusion    : " << std::endl;
     antscout << "    Usage        : TensorMeanDiffusion DTImage.ext" << std::endl;
@@ -10037,7 +10086,8 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     antscout << "  MajorityVoting : Select label with most votes from candidates" << std::endl;
     antscout << "    Usage: MajorityVoting LabelImage1.nii.gz .. LabelImageN.nii.gz" << std::endl;
     antscout << "  CorrelationVoting : Select label with local correlation weights" << std::endl;
-    antscout << "    Usage: CorrelationVoting Template.ext IntenistyImages* LabelImages* {Optional-Radius=5}" << std::endl;
+    antscout << "    Usage: CorrelationVoting Template.ext IntenistyImages* LabelImages* {Optional-Radius=5}"
+             << std::endl;
 
     antscout << "\nImage Metrics & Info:" <<  std::endl;
     antscout << "  PearsonsCorrelation: r-value from intesities of two images" << std::endl;
@@ -10069,12 +10119,14 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     antscout << " ConvertImageSetToMatrix output can be an image type or csv file type." << std::endl;
 
     antscout << "\n  RandomlySampleImageSetToCSV: N random samples are selected from each image in a list "
-              << std::endl;
+             << std::endl;
     antscout << "      Usage        : RandomlySampleImageSetToCSV N_samples *images.nii" << std::endl;
     antscout << " RandomlySampleImageSetToCSV outputs a csv file type." << std::endl;
 
-    antscout << "\n  FrobeniusNormOfMatrixDifference: take the difference between two itk-transform matrices and then compute the frobenius norm"
-              << std::endl;
+    antscout
+    <<
+    "\n  FrobeniusNormOfMatrixDifference: take the difference between two itk-transform matrices and then compute the frobenius norm"
+    << std::endl;
     antscout << "      Usage        : FrobeniusNormOfMatrixDifference mat1 mat2 " << std::endl;
     antscout
     <<
@@ -10082,7 +10134,7 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     << std::endl;
     antscout << "      Usage        : ConvertImageSetToEigenvectors N_Evecs Mask.nii *images.nii" << std::endl;
     antscout << " ConvertImageSetToEigenvectors output will be a csv file for each label value > 0 in the mask."
-              << std::endl;
+             << std::endl;
 
     antscout << "\n  ConvertImageToFile    : Writes voxel values to a file  " << std::endl;
     antscout << "      Usage        : ConvertImageToFile imagevalues.nii {Optional-ImageMask.nii}" << std::endl;
@@ -10103,7 +10155,7 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     antscout << "      Usage        : ConvertVectorToImage Mask.nii vector.nii" << std::endl;
 
     antscout << "\n  CorrelationUpdate    : In voxels, compute update that makes Image2 more like Image1."
-              << std::endl;
+             << std::endl;
     antscout << "      Usage        : CorrelationUpdate Image1.ext Image2.ext RegionRadius" << std::endl;
 
     antscout << "\n  CountVoxelDifference    : The where function from IDL " << std::endl;
@@ -10119,7 +10171,7 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     "\n  DiceAndMinDistSum    : Outputs DiceAndMinDistSum and Dice Overlap to text log file + optional distance image"
     << std::endl;
     antscout << "      Usage        : DiceAndMinDistSum LabelImage1.ext LabelImage2.ext OptionalDistImage"
-              << std::endl;
+             << std::endl;
 
     antscout << "\n  EnumerateLabelInterfaces: " << std::endl;
     antscout
@@ -10149,14 +10201,14 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     antscout << "      Usage        : FitSphere GM-ImageIn {WM-Image} {MaxRad-Default=5}" << std::endl;
 
     antscout << "\n  FlattenImage        : Replaces values greater than %ofMax*Max to the value %ofMax*Max "
-              << std::endl;
+             << std::endl;
     antscout << "      Usage        : FlattenImage Image %ofMax" << std::endl;
 
     antscout << "\n  GetLargestComponent    : Get the largest object in an image" << std::endl;
     antscout << "      Usage        : GetLargestComponent InputImage {MinObjectSize}" << std::endl;
 
     antscout << "\n  Grad            : Gradient magnitude with sigma s (if normalize, then output in range [0, 1])"
-              << std::endl;
+             << std::endl;
     antscout << "      Usage        : Grad Image.ext s normalize?" << std::endl;
 
     antscout << "\n  HistogramMatch    : " << std::endl;
@@ -10172,7 +10224,7 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     antscout << "      Usage        : InvId VectorFieldName VectorFieldName" << std::endl;
 
     antscout << "\n  LabelStats        : Compute volumes / masses of objects in a label image. Writes to text file"
-              << std::endl;
+             << std::endl;
     antscout << "      Usage        : LabelStats labelimage.ext valueimage.nii" << std::endl;
 
     antscout
@@ -10186,7 +10238,9 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     antscout << "\n  MakeImage        : " << std::endl;
     antscout << "      Usage        : MakeImage SizeX  SizeY {SizeZ};" << std::endl;
 
-    antscout << "\n  MTR        : Computes the magnetization transfer ratio ( (M0-M1)/M0 ) and truncates values to [0,1]" << std::endl;
+    antscout
+    << "\n  MTR        : Computes the magnetization transfer ratio ( (M0-M1)/M0 ) and truncates values to [0,1]"
+    << std::endl;
     antscout << "      Usage        : MTR M0Image M1Image [MaskImage];" << std::endl;
 
     antscout << "\n  Normalize        : Normalize to [0,1]. Option instead divides by average value" << std::endl;
@@ -10239,7 +10293,7 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
     "      Example 2        : ImageMath 2 outimage.nii SetOrGetPixel Image 1.e9 24 34; This sets 1.e9 as the value at 23 34"
     << std::endl;
     antscout << "                You can also pass a boolean at the end to force the physical space to be used"
-              << std::endl;
+             << std::endl;
 
     antscout
     << "\n  Segment        : Segment an Image  with option of Priors, weight 1 => maximally local/prior-based )"
@@ -10518,31 +10572,31 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
         {
         ExtractSlice<2>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "MajorityVoting") == 0 )
+      else if( strcmp(operation.c_str(), "MajorityVoting") == 0 )
         {
         MajorityVoting<2>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
+      else if( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
         {
         CorrelationVoting<2>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
+      else if( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
         {
         PearsonCorrelation<2>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
+      else if( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
         {
         ImageMetrics<2>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "NormalizedCorrelation") == 0 )
+      else if( strcmp(operation.c_str(), "NormalizedCorrelation") == 0 )
         {
         ImageMetrics<2>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "Demons") == 0 )
+      else if( strcmp(operation.c_str(), "Demons") == 0 )
         {
         ImageMetrics<2>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "Mattes") == 0 )
+      else if( strcmp(operation.c_str(), "Mattes") == 0 )
         {
         ImageMetrics<2>(argc, argv);
         }
@@ -10866,38 +10920,38 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
         {
         MTR<3>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "MajorityVoting") == 0 )
+      else if( strcmp(operation.c_str(), "MajorityVoting") == 0 )
         {
         MajorityVoting<3>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
+      else if( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
         {
         CorrelationVoting<3>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
+      else if( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
         {
         PearsonCorrelation<3>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
+      else if( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
         {
         ImageMetrics<3>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "NormalizedCorrelation") == 0 )
+      else if( strcmp(operation.c_str(), "NormalizedCorrelation") == 0 )
         {
         ImageMetrics<3>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "Demons") == 0 )
+      else if( strcmp(operation.c_str(), "Demons") == 0 )
         {
         ImageMetrics<3>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "Mattes") == 0 )
+      else if( strcmp(operation.c_str(), "Mattes") == 0 )
         {
         ImageMetrics<3>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "FrobeniusNormOfMatrixDifference") == 0 )
+      else if( strcmp(operation.c_str(), "FrobeniusNormOfMatrixDifference") == 0 )
         {
         FrobeniusNormOfMatrixDifference<3>(argc, argv);
-	}
+        }
       else
         {
         antscout << " cannot find operation : " << operation << std::endl;
@@ -11184,31 +11238,31 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
         {
         pCASL<4>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "MajorityVoting") == 0 )
+      else if( strcmp(operation.c_str(), "MajorityVoting") == 0 )
         {
         MajorityVoting<4>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
+      else if( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
         {
         CorrelationVoting<4>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
+      else if( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
         {
         PearsonCorrelation<4>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
+      else if( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
         {
         ImageMetrics<4>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "NormalizedCorrelation") == 0 )
+      else if( strcmp(operation.c_str(), "NormalizedCorrelation") == 0 )
         {
         ImageMetrics<4>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "Demons") == 0 )
+      else if( strcmp(operation.c_str(), "Demons") == 0 )
         {
         ImageMetrics<4>(argc, argv);
         }
-      else if ( strcmp(operation.c_str(), "Mattes") == 0 )
+      else if( strcmp(operation.c_str(), "Mattes") == 0 )
         {
         ImageMetrics<4>(argc, argv);
         }
@@ -11225,8 +11279,4 @@ int ImageMath( std::vector<std::string> args , std::ostream* out_stream = NULL )
   return 0;
 }
 
-
-
 } // namespace ants
-
-

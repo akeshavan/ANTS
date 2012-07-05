@@ -16,8 +16,8 @@ namespace ants
 {
 
 static bool WarpTimeSeriesImageMultiTransform_ParseInput(int argc, char * *argv, char *& moving_image_filename,
-                char *& output_image_filename,
-                TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
+                                                         char *& output_image_filename,
+                                                         TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
 {
 
   opt_queue.clear();
@@ -341,7 +341,8 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
 
       switch( opt.file_type )
         {
-        case AFFINE_FILE: {
+        case AFFINE_FILE:
+          {
           typename TranReaderType::Pointer tran_reader = TranReaderType::New();
           tran_reader->SetFileName(opt.filename);
           tran_reader->Update();
@@ -360,27 +361,26 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
             warper->SetOutputParametersFromImage( img_ref );
             }
           transcount++;
-          break;
           }
-
-        case IDENTITY_TRANSFORM: {
+          break;
+        case IDENTITY_TRANSFORM:
+          {
           typename AffineTransformType::Pointer aff;
           GetIdentityTransform(aff);
           // antscout << " aff id" << transcount << std::endl;
           warper->PushBackAffineTransform(aff);
           transcount++;
-          break;
           }
-
-        case IMAGE_AFFINE_HEADER: {
-
+          break;
+        case IMAGE_AFFINE_HEADER:
+          {
           typename AffineTransformType::Pointer aff = AffineTransformType::New();
           typename ImageFileReaderType::Pointer reader_image_affine = ImageFileReaderType::New();
           reader_image_affine->SetFileName(opt.filename);
           reader_image_affine->Update();
           typename ImageType::Pointer img_affine = reader_image_affine->GetOutput();
 
-          GetAffineTransformFromImage<ImageType,AffineTransformType>(img_affine, aff);
+          GetAffineTransformFromImage<ImageType, AffineTransformType>(img_affine, aff);
 
           if( opt.do_affine_inv )
             {
@@ -397,10 +397,10 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
           //            }
 
           transcount++;
-          break;
           }
-
-        case DEFORMATION_FILE: {
+          break;
+        case DEFORMATION_FILE:
+          {
           typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
           field_reader->SetFileName( opt.filename );
           field_reader->Update();
@@ -410,15 +410,16 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
           warper->SetOutputParametersFromImage( field );
 
           transcount++;
-          break;
           }
+          break;
         default:
+          {
           antscout << "Unknown file type!" << std::endl;
+          }
         }
       }
 
     // warper->PrintTransformList();
-
     if( img_ref.IsNotNull() )
       {
       warper->SetOutputParametersFromImage( img_ref );
@@ -443,14 +444,11 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
           }
           */
         }
-
       }
 
     if( timedim % vnl_math_max(timedims / 10, static_cast<unsigned int>(1) ) == 0 )
       {
-      antscout << (float) timedim / (float)timedims * 100 << " % done ... " << std::flush;                                                                           //
-                                                                                                                                                                      // <<
-                                                                                                                                                                      // std::endl;
+      antscout << (float) timedim / (float)timedims * 100 << " % done ... " << std::flush;
       }
     typename VectorImageType::RegionType extractRegion = img_mov->GetLargestPossibleRegion();
     extractRegion.SetSize(ImageDimension - 1, 0);
@@ -610,7 +608,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
       switch( opt.file_type )
         {
-        case AFFINE_FILE: {
+        case AFFINE_FILE:
+          {
           typename TranReaderType::Pointer tran_reader = TranReaderType::New();
           tran_reader->SetFileName(opt.filename);
           tran_reader->Update();
@@ -629,27 +628,26 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
             warper->SetOutputParametersFromImage( img_mov );
             }
           transcount++;
-          break;
           }
-
-        case IDENTITY_TRANSFORM: {
+          break;
+        case IDENTITY_TRANSFORM:
+          {
           typename AffineTransformType::Pointer aff;
           GetIdentityTransform(aff);
           // antscout << " aff id" << transcount << std::endl;
           warper->PushBackAffineTransform(aff);
           transcount++;
-          break;
           }
-
-        case IMAGE_AFFINE_HEADER: {
-
+          break;
+        case IMAGE_AFFINE_HEADER:
+          {
           typename AffineTransformType::Pointer aff = AffineTransformType::New();
           typename ImageFileReaderType::Pointer reader_image_affine = ImageFileReaderType::New();
           reader_image_affine->SetFileName(opt.filename);
           reader_image_affine->Update();
           typename ImageType::Pointer img_affine = reader_image_affine->GetOutput();
 
-          GetAffineTransformFromImage<ImageType,AffineTransformType>(img_affine, aff);
+          GetAffineTransformFromImage<ImageType, AffineTransformType>(img_affine, aff);
 
           if( opt.do_affine_inv )
             {
@@ -664,12 +662,11 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           //            if (transcount==0){
           //                warper->SetOutputParametersFromImage( img_mov );
           //            }
-
           transcount++;
-          break;
           }
-
-        case DEFORMATION_FILE: {
+          break;
+        case DEFORMATION_FILE:
+          {
           typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
           field_reader->SetFileName( opt.filename );
           field_reader->Update();
@@ -679,10 +676,12 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           warper->SetOutputParametersFromImage( field );
 
           transcount++;
-          break;
           }
+          break;
         default:
+          {
           antscout << "Unknown file type!" << std::endl;
+          }
         }
       }
 
@@ -700,7 +699,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
         typename ImageType::SizeType largest_size;
         typename ImageType::PointType origin_warped;
-        GetLargestSizeAfterWarp<WarperType,VectorImageType>(warper, img_mov, largest_size, origin_warped);
+        GetLargestSizeAfterWarp<WarperType, VectorImageType>(warper, img_mov, largest_size, origin_warped);
         warper->SetOutputParametersFromImage( img_mov );
         warper->SetOutputSize(largest_size);
         warper->SetOutputOrigin(origin_warped);
@@ -726,66 +725,68 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       }
 
     }
-
   WriteImage<VectorImageType>(img_output, output_image_filename);
-
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int WarpTimeSeriesImageMultiTransform( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int WarpTimeSeriesImageMultiTransform( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "WarpTimeSeriesImageMultiTransform" ) ;
+  args.insert( args.begin(), "WarpTimeSeriesImageMultiTransform" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc <= 3 )
     {
 
     antscout << "\nUsage 1 (Forward warp): " << argv[0]
-              <<
+             <<
     " ImageDimension <moving_image.ext> <output_image.ext> -R <fixed_image.ext> <MyWarp.ext> <MyAffine.txt> [interpolation]"
-              << std::endl;
+             << std::endl;
 
     antscout << "\nUsage 2 (Inverse warp): " << argv[0]
-              <<
+             <<
     " ImageDimension <fixed_image.ext> <output_image.ext> -R <moving_image.ext> -i <MyAffine.txt> <MyInverseWarp.ext> [interpolation]"
-              << std::endl;
+             << std::endl;
 
     antscout << "\nUsage Information " << std::endl;
     antscout << " ImageDimension            : 3 or 4 (required argument)." << std::endl;
@@ -834,7 +835,10 @@ int WarpTimeSeriesImageMultiTransform( std::vector<std::string> args , std::ostr
   bool is_parsing_ok = false;
   int  kImageDim = atoi(argv[1]);
 
-  is_parsing_ok = WarpTimeSeriesImageMultiTransform_ParseInput(argc - 2, argv + 2, moving_image_filename, output_image_filename, opt_queue, misc_opt);
+  is_parsing_ok =
+    WarpTimeSeriesImageMultiTransform_ParseInput(argc - 2, argv + 2, moving_image_filename, output_image_filename,
+                                                 opt_queue,
+                                                 misc_opt);
 
   if( is_parsing_ok )
     {
@@ -854,18 +858,15 @@ int WarpTimeSeriesImageMultiTransform( std::vector<std::string> args , std::ostr
 
     switch( kImageDim )
       {
-      case 2: {
+      case 2:
         WarpImageMultiTransform<2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
         break;
-        }
-      case 3: {
+      case 3:
         WarpImageMultiTransform<3>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
         break;
-        }
-      case 4: {
+      case 4:
         WarpImageMultiTransformFourD<4>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
         break;
-        }
       }
 
     }
@@ -878,8 +879,4 @@ int WarpTimeSeriesImageMultiTransform( std::vector<std::string> args , std::ostr
 
 }
 
-
-
 } // namespace ants
-
-

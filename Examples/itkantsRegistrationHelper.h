@@ -18,11 +18,9 @@
 #ifndef __antsRegistrationHelper_h
 #define __antsRegistrationHelper_h
 
-
 #include <string>
 #include <iostream>
 #include <deque>
-
 
 #include "antsCommandLineParser.h"
 #include "itkANTSAffine3DTransform.h"
@@ -73,7 +71,6 @@
 #include "itkVersorRigid3DTransform.h"
 #include "itkWeakPointer.h"
 
-
 #include "itkantsReadWriteTransform.h"
 
 namespace ants
@@ -86,15 +83,15 @@ class RegistrationHelper : public itk::Object
 {
 public:
   /** Standard class typedefs */
-  typedef RegistrationHelper              Self;
-  typedef itk::Object                     Superclass;
-  typedef itk::SmartPointer< Self >       Pointer;
-  typedef itk::SmartPointer< const Self > ConstPointer;
-  typedef itk::WeakPointer< const Self >  ConstWeakPointer;
+  typedef RegistrationHelper            Self;
+  typedef itk::Object                   Superclass;
+  typedef itk::SmartPointer<Self>       Pointer;
+  typedef itk::SmartPointer<const Self> ConstPointer;
+  typedef itk::WeakPointer<const Self>  ConstWeakPointer;
 
-  typedef double                                        RealType;
-  typedef float                                         PixelType;
-  typedef itk::Image<PixelType, VImageDimension>        ImageType;
+  typedef double                                 RealType;
+  typedef float                                  PixelType;
+  typedef itk::Image<PixelType, VImageDimension> ImageType;
 
   typedef itk::Transform<double, VImageDimension, VImageDimension>          TransformType;
   typedef itk::CompositeTransform<RealType, VImageDimension>                CompositeTransformType;
@@ -104,7 +101,7 @@ public:
   typedef itk::ImageMaskSpatialObject<VImageDimension>                      ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                    MaskImageType;
 
-  typedef itk::InterpolateImageFunction<ImageType, RealType>                InterpolatorType;
+  typedef itk::InterpolateImageFunction<ImageType, RealType> InterpolatorType;
 
   enum MetricEnumeration
     {
@@ -124,7 +121,7 @@ public:
     };
   class Metric
   {
-  public:
+public:
     Metric(MetricEnumeration metricType, typename ImageType::Pointer & fixedImage,
            typename ImageType::Pointer & movingImage, double weighting, SamplingStrategy samplingStrategy,
            int numberOfBins,
@@ -138,33 +135,33 @@ public:
       m_NumberOfBins(numberOfBins),
       m_Radius(radius),
       m_SamplingPercentage(samplingPercentage)
-      {
-      }
+    {
+    }
 
     const std::string GetMetricAsString() const
-      {
-        switch( this->m_MetricType )
-          {
-          case CC: return "CC";
-          case MI: return "MI";
-          case Mattes: return "Mattes";;
-          case MeanSquares: return "MeanSquares";
-          case Demons: return "Demons";
-          case GC: return "GC";
-          default:
-            break;
-          }
-        return "";
-      }
+    {
+      switch( this->m_MetricType )
+        {
+        case CC: return "CC";
+        case MI: return "MI";
+        case Mattes: return "Mattes";;
+        case MeanSquares: return "MeanSquares";
+        case Demons: return "Demons";
+        case GC: return "GC";
+        default:
+          break;
+        }
+      return "";
+    }
 
-    MetricEnumeration           m_MetricType;
+    MetricEnumeration m_MetricType;
     typename ImageType::Pointer m_FixedImage;
     typename ImageType::Pointer m_MovingImage;
-    double                      m_Weighting;
-    SamplingStrategy            m_SamplingStrategy;
-    int                         m_NumberOfBins;
-    unsigned int                m_Radius;
-    double                      m_SamplingPercentage;
+    double           m_Weighting;
+    SamplingStrategy m_SamplingStrategy;
+    int              m_NumberOfBins;
+    unsigned int     m_Radius;
+    double           m_SamplingPercentage;
   };
 
   typedef std::deque<Metric> MetricListType;
@@ -188,39 +185,39 @@ public:
 
   class TransformMethod
   {
-  public:
+public:
     TransformMethod() : m_XfrmMethod(Rigid),
-                        m_GradientStep(0),
-                        m_UpdateFieldVarianceInVarianceSpace(0.0),
-                        m_TotalFieldVarianceInVarianceSpace(0.0),
-                        m_SplineOrder(3),
-                        m_UpdateFieldTimeSigma(0.0),
-                        m_TotalFieldTimeSigma(0.0),
-                        m_NumberOfTimeIndices(0),
-                        m_NumberOfTimePointSamples(4)
-      {
-      }
+      m_GradientStep(0),
+      m_UpdateFieldVarianceInVarianceSpace(0.0),
+      m_TotalFieldVarianceInVarianceSpace(0.0),
+      m_SplineOrder(3),
+      m_UpdateFieldTimeSigma(0.0),
+      m_TotalFieldTimeSigma(0.0),
+      m_NumberOfTimeIndices(0),
+      m_NumberOfTimePointSamples(4)
+    {
+    }
 
     std::string XfrmMethodAsString() const
-      {
-        switch( this->m_XfrmMethod )
-          {
-          case Rigid: return std::string("Rigid");
-          case Affine: return std::string("Affine");
-          case CompositeAffine: return std::string("CompositeAffine");
-          case Similarity: return std::string("Similarity");
-          case Translation: return std::string("Translation");
-          case BSpline: return std::string("BSpline");
-          case GaussianDisplacementField: return std::string("GaussianDisplacementField");
-          case BSplineDisplacementField: return std::string("BSplineDisplacementField");
-          case TimeVaryingVelocityField: return std::string("TimeVaryingVelocityField");
-          case TimeVaryingBSplineVelocityField: return std::string("TimeVaryingBSplineVelocityField");
-          case SyN: return std::string("SyN");
-          case BSplineSyN: return std::string("BSplineSyN");
-          case UnknownXfrm: return std::string("UnknownXfrm");
-          }
-        return std::string("Impossible");
-      }
+    {
+      switch( this->m_XfrmMethod )
+        {
+        case Rigid: return std::string("Rigid");
+        case Affine: return std::string("Affine");
+        case CompositeAffine: return std::string("CompositeAffine");
+        case Similarity: return std::string("Similarity");
+        case Translation: return std::string("Translation");
+        case BSpline: return std::string("BSpline");
+        case GaussianDisplacementField: return std::string("GaussianDisplacementField");
+        case BSplineDisplacementField: return std::string("BSplineDisplacementField");
+        case TimeVaryingVelocityField: return std::string("TimeVaryingVelocityField");
+        case TimeVaryingBSplineVelocityField: return std::string("TimeVaryingBSplineVelocityField");
+        case SyN: return std::string("SyN");
+        case BSplineSyN: return std::string("BSplineSyN");
+        case UnknownXfrm: return std::string("UnknownXfrm");
+        }
+      return std::string("Impossible");
+    }
 
     XfrmMethod m_XfrmMethod;
     // all transforms
@@ -259,24 +256,24 @@ public:
   /**
    * add a metric, corresponding to the registration stage
    */
-  void  AddMetric(MetricEnumeration metricType,
-                  typename ImageType::Pointer &fixedImage,
-                  typename ImageType::Pointer &movingImage,
-                  double weighting,
-                  SamplingStrategy samplingStrategy,
-                  int numberOfBins,
-                  unsigned int radius,
-                  double samplingPercentage);
+  void AddMetric(MetricEnumeration metricType,
+                 typename ImageType::Pointer & fixedImage,
+                 typename ImageType::Pointer & movingImage,
+                 double weighting,
+                 SamplingStrategy samplingStrategy,
+                 int numberOfBins,
+                 unsigned int radius,
+                 double samplingPercentage);
 
   /**
    * return the enumerated Metric type based on a string representation
    */
-  MetricEnumeration StringToMetricType(const std::string &str) const;
+  MetricEnumeration StringToMetricType(const std::string & str) const;
 
   /**
    * return the enumerated transform method specified by str
    */
-  XfrmMethod StringToXfrmMethod(const std::string &str) const;
+  XfrmMethod StringToXfrmMethod(const std::string & str) const;
 
   /**
    * set the fixed initial transform.
@@ -292,6 +289,7 @@ public:
    * add a rigid transform
    */
   void AddRigidTransform(double GradientStep);
+
   /**
    * add an affine transform
    */
@@ -355,8 +353,7 @@ public:
   /**
    * add a B-spline SyN transform
    */
-  void AddBSplineSyNTransform(double GradientStep,
-                              std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
+  void AddBSplineSyNTransform(double GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
                               std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel,
                               unsigned int SplineOrder);
 
@@ -391,7 +388,6 @@ public:
   itkSetMacro(UseHistogramMatching, bool);
   itkGetMacro(UseHistogramMatching, bool);
 
-
   /**
    * turn on the option that lets you estimate the learning rate step size only at the beginning of each level.
    * useful as a second stage of fine-scale registration.
@@ -416,26 +412,28 @@ public:
    *  Get the Warped Image & Inverse Warped Images
    */
   typename ImageType::Pointer GetWarpedImage() const;
+
   typename ImageType::Pointer GetInverseWarpedImage() const;
 
   /**
    * Set the fixed/moving image masks with a spatial object
    */
-  void SetFixedImageMask(typename ImageMaskSpatialObjectType::Pointer &fixedImageMask)
-    {
-      this->m_FixedImageMask = fixedImageMask;
-    }
-  void SetMovingImageMask(typename ImageMaskSpatialObjectType::Pointer &movingImageMask)
-    {
-      this->m_MovingImageMask = movingImageMask;
-    }
+  void SetFixedImageMask(typename ImageMaskSpatialObjectType::Pointer & fixedImageMask)
+  {
+    this->m_FixedImageMask = fixedImageMask;
+  }
+
+  void SetMovingImageMask(typename ImageMaskSpatialObjectType::Pointer & movingImageMask)
+  {
+    this->m_MovingImageMask = movingImageMask;
+  }
 
   /**
    * Set the fixed/moving mask image. this will be used to instantiate
    * ImageMaskSpatialObject masks.
    */
-  void SetFixedImageMask(typename MaskImageType::Pointer &fixedImageMask);
-  void SetMovingImageMask(typename MaskImageType::Pointer &movingImageMask);
+  void SetFixedImageMask(typename MaskImageType::Pointer & fixedImageMask);
+  void SetMovingImageMask(typename MaskImageType::Pointer & movingImageMask);
 
   /**
    * Do the registration. Will return EXIT_FAILURE if there is any
@@ -458,10 +456,12 @@ protected:
   virtual ~RegistrationHelper();
 private:
   int ValidateParameters();
-  std::ostream &Logger() const
-    {
-      return *m_LogStream;
-    }
+
+  std::ostream & Logger() const
+  {
+    return *m_LogStream;
+  }
+
   typename CompositeTransformType::Pointer m_CompositeTransform;
   typename CompositeTransformType::Pointer m_FixedInitialTransform;
   typename ImageMaskSpatialObjectType::Pointer     m_FixedImageMask;
@@ -469,20 +469,20 @@ private:
 
   typename InterpolatorType::Pointer               m_Interpolator;
 
-  unsigned int                             m_NumberOfStages;
-  MetricListType                           m_Metrics;
-  TransformMethodListType                  m_TransformMethods;
-  std::vector<std::vector<unsigned int> >  m_Iterations;
-  std::vector<double>                      m_ConvergenceThresholds;
-  std::vector<unsigned int>                m_ConvergenceWindowSizes;
-  std::vector<std::vector<float> >         m_SmoothingSigmas;
-  std::vector<std::vector<unsigned int> >  m_ShrinkFactors;
-  bool                                     m_UseHistogramMatching;
-  bool                                     m_WinsorizeImageIntensities;
-  bool                                     m_DoEstimateLearningRateAtEachIteration;
-  double                                   m_LowerQuantile;
-  double                                   m_UpperQuantile;
-  std::ostream                             *m_LogStream;
+  unsigned int                            m_NumberOfStages;
+  MetricListType                          m_Metrics;
+  TransformMethodListType                 m_TransformMethods;
+  std::vector<std::vector<unsigned int> > m_Iterations;
+  std::vector<double>                     m_ConvergenceThresholds;
+  std::vector<unsigned int>               m_ConvergenceWindowSizes;
+  std::vector<std::vector<float> >        m_SmoothingSigmas;
+  std::vector<std::vector<unsigned int> > m_ShrinkFactors;
+  bool                                    m_UseHistogramMatching;
+  bool                                    m_WinsorizeImageIntensities;
+  bool                                    m_DoEstimateLearningRateAtEachIteration;
+  double                                  m_LowerQuantile;
+  double                                  m_UpperQuantile;
+  std::ostream *                          m_LogStream;
 };
 
 // ##########################################################################
@@ -490,12 +490,13 @@ private:
 // ##########################################################################
 // ##########################################################################
 
-//Provide common way of reading transforms.
+// Provide common way of reading transforms.
 template <unsigned VImageDimension>
 typename ants::RegistrationHelper<VImageDimension>::CompositeTransformType::Pointer
-GetCompositeTransformFromParserOption(typename ParserType::Pointer & parser, typename ParserType::OptionType::Pointer initialTransformOption)
+GetCompositeTransformFromParserOption(typename ParserType::Pointer & parser,
+                                      typename ParserType::OptionType::Pointer initialTransformOption)
 {
-  typedef typename ants::RegistrationHelper<VImageDimension> RegistrationHelperType;
+  typedef typename ants::RegistrationHelper<VImageDimension>      RegistrationHelperType;
   typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
   typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
 
@@ -504,7 +505,7 @@ GetCompositeTransformFromParserOption(typename ParserType::Pointer & parser, typ
   for( unsigned int n = 0; n < initialTransformOption->GetNumberOfValues(); n++ )
     {
     std::string initialTransformName;
-    bool useInverse(false);
+    bool        useInverse(false);
 
     if( initialTransformOption->GetNumberOfParameters(n) == 0 )
       {
@@ -520,11 +521,11 @@ GetCompositeTransformFromParserOption(typename ParserType::Pointer & parser, typ
       }
 
       {
-      typedef ants::RegistrationHelper<VImageDimension>                  RegistrationHelperType;
+      typedef ants::RegistrationHelper<VImageDimension>                       RegistrationHelperType;
       typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
 
-      static bool MatOffRegistered(false); //Only register once for each template dimension.
-      if(!MatOffRegistered)
+      static bool MatOffRegistered(false); // Only register once for each template dimension.
+      if( !MatOffRegistered )
         {
         MatOffRegistered = true;
         // Register the matrix offset transform base class to the
@@ -534,7 +535,7 @@ GetCompositeTransformFromParserOption(typename ParserType::Pointer & parser, typ
         }
       typedef typename RegistrationHelperType::TransformType TransformType;
       typename TransformType::Pointer initialTransform = itk::ants::ReadTransform<VImageDimension>(initialTransformName);
-      if(initialTransform.IsNull())
+      if( initialTransform.IsNull() )
         {
         ::ants::antscout << "Can't read initial transform " << initialTransformName << std::endl;
         return NULL;
@@ -554,16 +555,17 @@ GetCompositeTransformFromParserOption(typename ParserType::Pointer & parser, typ
       transformTypes.push_back( initialTransform->GetNameOfClass() );
       }
     }
-    antscout << "=============================================================================" << std::endl;
-    antscout << "The composite transform is comprised of the following transforms (in order): " << std::endl;
-    for( unsigned int n = 0; n < transformNames.size(); n++ )
-      {
-      antscout << "  " << n + 1 << ". " << transformNames[n] << " (type = " << transformTypes[n] << ")" << std::endl;
-      }
-    antscout << "=============================================================================" << std::endl;
+  antscout << "=============================================================================" << std::endl;
+  antscout << "The composite transform is comprised of the following transforms (in order): " << std::endl;
+  for( unsigned int n = 0; n < transformNames.size(); n++ )
+    {
+    antscout << "  " << n + 1 << ". " << transformNames[n] << " (type = " << transformTypes[n] << ")" << std::endl;
+    }
+  antscout << "=============================================================================" << std::endl;
   return compositeTransform;
 }
-//####################
+
+// ####################
 
 } // namespace ants
 

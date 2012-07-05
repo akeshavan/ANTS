@@ -73,8 +73,8 @@ vnl_matrix_fixed<double, 4, 4> ConstructVTKtoNiftiTransform(
 }
 
 static bool WarpVTKPolyDataMultiTransform_ParseInput(int argc, char * *argv, char *& input_vtk_filename,
-                char *& output_vtk_filename,
-                char *& reference_image_filename, TRAN_OPT_QUEUE & opt_queue)
+                                                     char *& output_vtk_filename,
+                                                     char *& reference_image_filename, TRAN_OPT_QUEUE & opt_queue)
 {
 
   opt_queue.clear();
@@ -109,8 +109,8 @@ static bool WarpVTKPolyDataMultiTransform_ParseInput(int argc, char * *argv, cha
       if( CheckFileType(opt.filename) != AFFINE_FILE )
         {
         antscout << "file: " << opt.filename
-                  << " is not an affine .txt file. Invalid to use '-i' "
-                  << std::endl;
+                 << " is not an affine .txt file. Invalid to use '-i' "
+                 << std::endl;
         return false;
         }
       opt.file_type = AFFINE_FILE;
@@ -171,7 +171,7 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
   else
     {
     antscout << "the reference image file (-R) must be given!!!"
-              << std::endl;
+             << std::endl;
     return;
     }
 
@@ -437,7 +437,7 @@ void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
         }
       case DEFORMATION_FILE: {
         antscout << "Compose affine only files: ignore "
-                  << opt.filename << std::endl;
+                 << opt.filename << std::endl;
         break;
         }
       default:
@@ -489,48 +489,52 @@ void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
 
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int WarpVTKPolyDataMultiTransform( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int WarpVTKPolyDataMultiTransform( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "WarpVTKPolyDataMultiTransform" ) ;
+  args.insert( args.begin(), "WarpVTKPolyDataMultiTransform" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc <= 4 )
     {
@@ -552,7 +556,7 @@ int WarpVTKPolyDataMultiTransform( std::vector<std::string> args , std::ostream*
   int  kImageDim = atoi(argv[1]);
 
   is_parsing_ok = WarpVTKPolyDataMultiTransform_ParseInput(argc - 2, argv + 2, input_vtk_filename, output_vtk_filename,
-                             reference_image_filename, opt_queue);
+                                                           reference_image_filename, opt_queue);
 
   if( is_parsing_ok )
     {
@@ -564,12 +568,12 @@ int WarpVTKPolyDataMultiTransform( std::vector<std::string> args , std::ostream*
         if( reference_image_filename == NULL )
           {
           antscout << "the reference image file (-R) must be given!!!"
-                    << std::endl;
+                   << std::endl;
           return false;
           }
 
         antscout << "output_vtk_filename: " << output_vtk_filename
-                  << std::endl;
+                 << std::endl;
         antscout << "reference_image_filename: ";
         if( reference_image_filename )
           {
@@ -601,7 +605,7 @@ int WarpVTKPolyDataMultiTransform( std::vector<std::string> args , std::ostream*
 
       case AFFINE_FILE: {
         antscout << "output_affine_txt: " << output_vtk_filename
-                  << std::endl;
+                 << std::endl;
         antscout << "reference_affine_txt: ";
         if( reference_image_filename )
           {
@@ -645,8 +649,4 @@ int WarpVTKPolyDataMultiTransform( std::vector<std::string> args , std::ostream*
 
 }
 
-
-
 } // namespace ants
-
-

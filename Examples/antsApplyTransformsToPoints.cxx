@@ -26,13 +26,13 @@ namespace ants
 {
 
 template <unsigned int Dimension>
-int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer &parser )
+int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser )
 {
-  typedef double                           RealType;
-  typedef double                           PixelType;
-  typedef vnl_matrix<PixelType>            MatrixType;
-  MatrixType   points_out;
-  MatrixType   points_in;
+  typedef double                RealType;
+  typedef double                PixelType;
+  typedef vnl_matrix<PixelType> MatrixType;
+  MatrixType points_out;
+  MatrixType points_in;
   //  bool input_points_are_indices = false;
 
   /**
@@ -45,103 +45,104 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer &parser )
     antscout << "Input csv file: " << inputOption->GetValue() << std::endl;
     std::string ext = itksys::SystemTools::GetFilenameExtension(  ( inputOption->GetValue() ).c_str()  );
     if( strcmp(ext.c_str(), ".csv") == 0 )
-    {
-    typedef itk::CSVArray2DFileReader<double> ReaderType;
-    typename ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName(  ( inputOption->GetValue() ).c_str()  );
-    reader->SetFieldDelimiterCharacter( ',' );
-    reader->SetStringDelimiterCharacter( '"' );
-    reader->HasColumnHeadersOn();
-    reader->HasRowHeadersOff();
-    reader->UseStringDelimiterCharacterOff();
-    try
       {
-      reader->Update();
+      typedef itk::CSVArray2DFileReader<double> ReaderType;
+      typename ReaderType::Pointer reader = ReaderType::New();
+      reader->SetFileName(  ( inputOption->GetValue() ).c_str()  );
+      reader->SetFieldDelimiterCharacter( ',' );
+      reader->SetStringDelimiterCharacter( '"' );
+      reader->HasColumnHeadersOn();
+      reader->HasRowHeadersOff();
+      reader->UseStringDelimiterCharacterOff();
+      try
+        {
+        reader->Update();
+        }
+      catch( itk::ExceptionObject& exp )
+        {
+        antscout << "Exception caught!" << std::endl;
+        antscout << exp << std::endl;
+        }
+      typedef itk::CSVArray2DDataObject<double> DataFrameObjectType;
+      DataFrameObjectType::Pointer dfo = reader->GetOutput();
+      points_in = dfo->GetMatrix();
+      points_out.set_size( points_in.rows(), Dimension );
       }
-    catch( itk::ExceptionObject& exp )
-      {
-      antscout << "Exception caught!" << std::endl;
-      antscout << exp << std::endl;
-      }
-    typedef itk::CSVArray2DDataObject<double> DataFrameObjectType;
-    DataFrameObjectType::Pointer dfo = reader->GetOutput();
-    points_in = dfo->GetMatrix();
-    points_out.set_size( points_in.rows() , Dimension );
-    }
-   else 
-     {
-     antscout << "An input csv file is required." << std::endl;
-     return EXIT_FAILURE;
-     }
-
-    if(  points_in.cols() < Dimension )
-     {
-     antscout << "The number of columns in the input point set is fewer than " << Dimension << " Exiting." << std::endl;
-     return EXIT_FAILURE;
-     }
-
-   if( outputOption && outputOption->GetNumberOfValues() > 0 )
-    {
-    if( outputOption->GetNumberOfParameters( 0 ) > 1 &&
-        parser->Convert<unsigned int>( outputOption->GetParameter( 0, 1 ) ) == 0 )
+    else
       {
       antscout << "An input csv file is required." << std::endl;
       return EXIT_FAILURE;
       }
-    }
 
-  /**
-   * Transform option
-   */
-  // Register the matrix offset transform base class to the
-  // transform factory for compatibility with the current ANTs.
-  typedef itk::MatrixOffsetTransformBase<double, Dimension, Dimension> MatrixOffsetTransformType;
-  itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
-  typedef itk::MatrixOffsetTransformBase<double, Dimension, Dimension> MatrixOffsetTransformType;
-  itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
-
-  /**
-   * Load an identity transform in case no transforms are loaded.
-   */
-  // Register the matrix offset transform base class to the
-  // transform factory for compatibility with the current ANTs.
-  typedef itk::MatrixOffsetTransformBase<double, 2, 2> MatrixOffsetTransformType2D;
-  itk::TransformFactory<MatrixOffsetTransformType2D>::RegisterTransform();
-  typedef itk::MatrixOffsetTransformBase<double, 3, 3> MatrixOffsetTransformType3D;
-  itk::TransformFactory<MatrixOffsetTransformType3D>::RegisterTransform();
-
-  typedef itk::CompositeTransform<double, Dimension> CompositeTransformType;
-  typename CompositeTransformType::InputPointType point_in;
-  typename CompositeTransformType::OutputPointType point_out;
-  typename itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
-
-  typename CompositeTransformType::Pointer compositeTransform = GetCompositeTransformFromParserOption<Dimension>( parser, transformOption );
-  if ( compositeTransform.IsNull() )
-    {
-    return EXIT_FAILURE;
-    }
-
-  for ( unsigned int pointct = 0; pointct < points_in.rows(); pointct++ )
-    {
-    point_in.Fill( 0 );
-    point_out.Fill( 0 );
-    for ( unsigned int p = 0; p < Dimension; p++ )
+    if(  points_in.cols() < Dimension )
       {
-      point_in[ p ] = points_in( pointct, p );
+      antscout << "The number of columns in the input point set is fewer than " << Dimension << " Exiting."
+               << std::endl;
+      return EXIT_FAILURE;
       }
-    point_out = compositeTransform->TransformPoint( point_in );
-    for ( unsigned int p = 0; p < Dimension; p++ )
-      {
-      points_out( pointct , p ) = point_out[ p ];
-      }
-    std::cout << " point-in = " << point_in << " point-out = " << point_out << std::endl;
-    }
 
-  /**
-   * output
-   */
-  if( outputOption && outputOption->GetNumberOfValues() > 0 )
-    {
+    if( outputOption && outputOption->GetNumberOfValues() > 0 )
+      {
+      if( outputOption->GetNumberOfParameters( 0 ) > 1 &&
+          parser->Convert<unsigned int>( outputOption->GetParameter( 0, 1 ) ) == 0 )
+        {
+        antscout << "An input csv file is required." << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+
+    /**
+     * Transform option
+     */
+    // Register the matrix offset transform base class to the
+    // transform factory for compatibility with the current ANTs.
+    typedef itk::MatrixOffsetTransformBase<double, Dimension, Dimension> MatrixOffsetTransformType;
+    itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
+    typedef itk::MatrixOffsetTransformBase<double, Dimension, Dimension> MatrixOffsetTransformType;
+    itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
+
+    /**
+     * Load an identity transform in case no transforms are loaded.
+     */
+    // Register the matrix offset transform base class to the
+    // transform factory for compatibility with the current ANTs.
+    typedef itk::MatrixOffsetTransformBase<double, 2, 2> MatrixOffsetTransformType2D;
+    itk::TransformFactory<MatrixOffsetTransformType2D>::RegisterTransform();
+    typedef itk::MatrixOffsetTransformBase<double, 3, 3> MatrixOffsetTransformType3D;
+    itk::TransformFactory<MatrixOffsetTransformType3D>::RegisterTransform();
+
+    typedef itk::CompositeTransform<double, Dimension> CompositeTransformType;
+    typename CompositeTransformType::InputPointType point_in;
+    typename CompositeTransformType::OutputPointType point_out;
+    typename itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
+
+    typename CompositeTransformType::Pointer compositeTransform = GetCompositeTransformFromParserOption<Dimension>(
+        parser, transformOption );
+    if( compositeTransform.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+    for( unsigned int pointct = 0; pointct < points_in.rows(); pointct++ )
+      {
+      point_in.Fill( 0 );
+      point_out.Fill( 0 );
+      for( unsigned int p = 0; p < Dimension; p++ )
+        {
+        point_in[p] = points_in( pointct, p );
+        }
+      point_out = compositeTransform->TransformPoint( point_in );
+      for( unsigned int p = 0; p < Dimension; p++ )
+        {
+        points_out( pointct, p ) = point_out[p];
+        }
+      std::cout << " point-in = " << point_in << " point-out = " << point_out << std::endl;
+      }
+
+    /**
+     * output
+     */
+    if( outputOption && outputOption->GetNumberOfValues() > 0 )
+      {
       std::string outputFileName = "";
       if( outputOption->GetNumberOfParameters( 0 ) > 1 &&
           parser->Convert<unsigned int>( outputOption->GetParameter( 0, 1 ) ) == 0 )
@@ -159,9 +160,15 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer &parser )
       colname = std::string("y");
       ColumnHeaders.push_back( colname );
       colname = std::string("z");
-      if ( Dimension > 2 ) ColumnHeaders.push_back( colname );
+      if( Dimension > 2 )
+        {
+        ColumnHeaders.push_back( colname );
+        }
       colname = std::string("t");
-      if ( Dimension > 3 ) ColumnHeaders.push_back( colname );
+      if( Dimension > 3 )
+        {
+        ColumnHeaders.push_back( colname );
+        }
 
       typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
@@ -169,15 +176,15 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer &parser )
       writer->SetInput( &points_out );
       writer->SetColumnHeaders( ColumnHeaders );
       try
-	{
-	writer->Write();
-	}
+        {
+        writer->Write();
+        }
       catch( itk::ExceptionObject& exp )
-	{
-	antscout << "Exception caught!" << std::endl;
-	antscout << exp << std::endl;
-	return EXIT_FAILURE;
-	}
+        {
+        antscout << "Exception caught!" << std::endl;
+        antscout << exp << std::endl;
+        return EXIT_FAILURE;
+        }
       }
     }
 
@@ -187,7 +194,6 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer &parser )
 static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
-
 
     {
     std::string description =
@@ -205,8 +211,8 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "Currently, the only input supported is a csv file with " )
-      + std::string( "columns including x,y (2D), x,y,z (3D) or x,y,z,t (4D) column headers." )  
-      + std::string( "The points should be defined in physical space." ); 
+      + std::string( "columns including x,y (2D), x,y,z (3D) or x,y,z,t (4D) column headers." )
+      + std::string( "The points should be defined in physical space." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "input" );
@@ -277,48 +283,52 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int antsApplyTransformsToPoints( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int antsApplyTransformsToPoints( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "antsApplyTransformsToPoints" ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  args.insert( args.begin(), "antsApplyTransformsToPoints" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
@@ -370,14 +380,14 @@ int antsApplyTransformsToPoints( std::vector<std::string> args , std::ostream* o
     return EXIT_FAILURE;
     }
 
-  unsigned int dimension = 3;
+  unsigned int                                      dimension = 3;
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "dimensionality" );
   if( dimOption && dimOption->GetNumberOfValues() > 0 )
     {
     dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
     }
-  else 
+  else
     {
     antscout << "No -d ( dimensionality ) option is specified.  Exiting." << std::endl;
     return EXIT_FAILURE;
@@ -401,8 +411,4 @@ int antsApplyTransformsToPoints( std::vector<std::string> args , std::ostream* o
   return EXIT_SUCCESS;
 }
 
-
-
 } // namespace ants
-
-

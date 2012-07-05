@@ -3,7 +3,6 @@
 #include "antsUtilities.h"
 #include "itkImageFileReader.h"
 
-
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
@@ -15,9 +14,8 @@
 namespace ants
 {
 
-
 static bool ComposeMultiTransform_ParseInput(int argc, char * *argv, char *& output_image_filename,
-                char *& reference_image_filename, TRAN_OPT_QUEUE & opt_queue)
+                                             char *& reference_image_filename, TRAN_OPT_QUEUE & opt_queue)
 {
 
   opt_queue.clear();
@@ -51,8 +49,8 @@ static bool ComposeMultiTransform_ParseInput(int argc, char * *argv, char *& out
       if( CheckFileType(opt.filename) != AFFINE_FILE )
         {
         antscout << "file: " << opt.filename
-                  << " is not an affine .txt file. Invalid to use '-i' "
-                  << std::endl;
+                 << " is not an affine .txt file. Invalid to use '-i' "
+                 << std::endl;
         return false;
         }
       opt.file_type = AFFINE_FILE;
@@ -78,7 +76,6 @@ static bool ComposeMultiTransform_ParseInput(int argc, char * *argv, char *& out
 
   return true;
 }
-
 
 template <int ImageDimension>
 void ComposeMultiTransform(char *output_image_filename,
@@ -113,7 +110,7 @@ void ComposeMultiTransform(char *output_image_filename,
   else
     {
     antscout << "the reference image file (-R) must be given!!!"
-              << std::endl;
+             << std::endl;
     return;
     }
 
@@ -136,13 +133,12 @@ void ComposeMultiTransform(char *output_image_filename,
 
     switch( opt_queue[i].file_type )
       {
-      case AFFINE_FILE: {
-        typename TranReaderType::Pointer tran_reader =
-          TranReaderType::New();
+      case AFFINE_FILE:
+        {
+        typename TranReaderType::Pointer tran_reader = TranReaderType::New();
         tran_reader->SetFileName(opt.filename);
         tran_reader->Update();
-        typename AffineTransformType::Pointer
-        aff =
+        typename AffineTransformType::Pointer aff =
           dynamic_cast<AffineTransformType *>( (tran_reader->GetTransformList() )->front().GetPointer() );
         if( opt_queue[i].do_affine_inv )
           {
@@ -150,19 +146,18 @@ void ComposeMultiTransform(char *output_image_filename,
           }
         // antscout << aff << std::endl;
         warper->PushBackAffineTransform(aff);
-        break;
         }
-      case DEFORMATION_FILE: {
-        typename FieldReaderType::Pointer field_reader =
-          FieldReaderType::New();
+        break;
+      case DEFORMATION_FILE:
+        {
+        typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
         field_reader->SetFileName(opt.filename);
         field_reader->Update();
-        typename DisplacementFieldType::Pointer field =
-          field_reader->GetOutput();
+        typename DisplacementFieldType::Pointer field = field_reader->GetOutput();
         // antscout << field << std::endl;
         warper->PushBackDisplacementFieldTransform(field);
-        break;
         }
+        break;
       default:
         antscout << "Unknown file type!" << std::endl;
       }
@@ -255,7 +250,8 @@ void ComposeMultiAffine(char *output_affine_txt,
 
     switch( opt_queue[i].file_type )
       {
-      case AFFINE_FILE: {
+      case AFFINE_FILE:
+        {
         typename TranReaderType::Pointer tran_reader =
           TranReaderType::New();
         tran_reader->SetFileName(opt.filename);
@@ -269,15 +265,18 @@ void ComposeMultiAffine(char *output_affine_txt,
         // antscout << aff << std::endl;
         warper->PushBackAffineTransform(aff);
         cnt_affine++;
-        break;
         }
-      case DEFORMATION_FILE: {
+        break;
+      case DEFORMATION_FILE:
+        {
         antscout << "Compose affine only files: ignore "
-                  << opt.filename << std::endl;
-        break;
+                 << opt.filename << std::endl;
         }
+        break;
       default:
+        {
         antscout << "Unknown file type!" << std::endl;
+        }
       }
     }
 
@@ -325,48 +324,52 @@ void ComposeMultiAffine(char *output_affine_txt,
 
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int ComposeMultiTransform( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int ComposeMultiTransform( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "ComposeMultiTransform" ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  args.insert( args.begin(), "ComposeMultiTransform" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc <= 3 )
     {
@@ -378,21 +381,21 @@ int ComposeMultiTransform( std::vector<std::string> args , std::ostream* out_str
     antscout << " For Example: " << std::endl;
     antscout << std::endl;
     antscout <<   argv[0]  << " Dimension  outwarp.nii   -R template.nii   ExistingWarp.nii  ExistingAffine.nii "
-              << std::endl;
+             << std::endl;
     antscout << " or for an inverse mapping : " << std::endl;
     antscout << argv[0]
-              << " Dimension  outwarp.nii   -R template.nii   -i ExistingAffine.nii ExistingInverseWarp.nii "
-              << std::endl;
+             << " Dimension  outwarp.nii   -R template.nii   -i ExistingAffine.nii ExistingInverseWarp.nii "
+             << std::endl;
     antscout << " recalling that the -i option takes the inverse of the affine mapping " << std::endl;
     antscout << std::endl;
     antscout << "Or: to compose multiple affine text file into one: "        << std::endl;
     antscout << "ComposeMultiTransform ImageDimension output_affine_txt [-R reference_affine_txt] "
-              << "{[-i] affine_transform_txt}" << std::endl
-              << "This will be evoked if a text file is given as the second parameter. In this case "
-              << "reference_affine_txt is used to define the center of the output affine.  "
-              << "The default reference is the first given affine text file. "
-              << "This ignores all non-txt files among the following parameters."
-              << std::endl;
+             << "{[-i] affine_transform_txt}" << std::endl
+             << "This will be evoked if a text file is given as the second parameter. In this case "
+             << "reference_affine_txt is used to define the center of the output affine.  "
+             << "The default reference is the first given affine text file. "
+             << "This ignores all non-txt files among the following parameters."
+             << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -405,24 +408,24 @@ int ComposeMultiTransform( std::vector<std::string> args , std::ostream* out_str
   int  kImageDim = atoi(argv[1]);
 
   is_parsing_ok = ComposeMultiTransform_ParseInput(argc - 2, argv + 2, output_image_filename,
-                             reference_image_filename, opt_queue);
+                                                   reference_image_filename, opt_queue);
 
   if( is_parsing_ok )
     {
 
     switch( CheckFileType(output_image_filename) )
       {
-      case DEFORMATION_FILE: {
+      case DEFORMATION_FILE:
 
         if( reference_image_filename == NULL )
           {
           antscout << "the reference image file (-R) must be given!!!"
-                    << std::endl;
+                   << std::endl;
           return false;
           }
 
         antscout << "output_image_filename: " << output_image_filename
-                  << std::endl;
+                 << std::endl;
         antscout << "reference_image_filename: ";
         if( reference_image_filename )
           {
@@ -436,23 +439,20 @@ int ComposeMultiTransform( std::vector<std::string> args , std::ostream* out_str
 
         switch( kImageDim )
           {
-          case 2: {
+          case 2:
             ComposeMultiTransform<2>(output_image_filename,
                                      reference_image_filename, opt_queue);
             break;
-            }
-          case 3: {
+          case 3:
             ComposeMultiTransform<3>(output_image_filename,
                                      reference_image_filename, opt_queue);
             break;
-            }
           }
         break;
-        }
-
-      case AFFINE_FILE: {
+      case AFFINE_FILE:
+        {
         antscout << "output_affine_txt: " << output_image_filename
-                  << std::endl;
+                 << std::endl;
         antscout << "reference_affine_txt: ";
         if( reference_image_filename )
           {
@@ -463,41 +463,31 @@ int ComposeMultiTransform( std::vector<std::string> args , std::ostream* out_str
           antscout << "NULL" << std::endl;
           }
         DisplayOptQueue(opt_queue);
-
         switch( kImageDim )
           {
-          case 2: {
+          case 2:
             ComposeMultiAffine<2>(output_image_filename,
                                   reference_image_filename, opt_queue);
             break;
-            }
-          case 3: {
+          case 3:
             ComposeMultiAffine<3>(output_image_filename,
                                   reference_image_filename, opt_queue);
             break;
-            }
           }
-        break;
         }
-
-      default:
-        antscout << "Unknow output file format: " << output_image_filename << std::endl;
         break;
-
+      default:
+        {
+        antscout << "Unknow output file format: " << output_image_filename << std::endl;
+        }
+        break;
       }
-
     }
   else
     {
     antscout << "Input error!" << std::endl;
     }
-
   return EXIT_FAILURE;
-
 }
 
-
-
 } // namespace ants
-
-

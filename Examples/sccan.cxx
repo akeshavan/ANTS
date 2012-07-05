@@ -33,7 +33,6 @@
 namespace ants
 {
 
-
 template <class TImageType>
 bool SCCANReadImage(itk::SmartPointer<TImageType> & target, const char *file)
 {
@@ -66,6 +65,7 @@ template <class TComp>
 double vnl_pearson_corr( vnl_vector<TComp> v1, vnl_vector<TComp> v2 )
 {
   double xysum = 0;
+
   for( unsigned int i = 0; i < v1.size(); i++ )
     {
     xysum += v1(i) * v2(i);
@@ -202,7 +202,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
     std::string colname = std::string("Variate") + sccan_to_string<unsigned int>(nv);
     ColumnHeaders.push_back( colname );
     }
-  typedef itk::CSVNumericObjectFileWriter<double,1,1> WriterType;
+  typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( fnmp.c_str() );
   writer->SetColumnHeaders(ColumnHeaders);
@@ -261,8 +261,8 @@ CopyImageToVnlMatrix( typename TImage::Pointer   p_img )
   typedef vnl_matrix<TComp> vMatrix;
 
   typename TImage::SizeType  pMatSize = p_img->GetLargestPossibleRegion().GetSize();
-  vMatrix p(pMatSize[0], pMatSize[1]);       // a (size)x(size+1)-matrix of int's
-  for( unsigned long j = 0; j < p.columns(); ++j )    // loop over columns
+  vMatrix p(pMatSize[0], pMatSize[1]);             // a (size)x(size+1)-matrix of int's
+  for( unsigned long j = 0; j < p.columns(); ++j ) // loop over columns
     {
     for( unsigned long i = 0; i < p.rows(); ++i )   // loop over rows
       {
@@ -288,7 +288,7 @@ DeleteRow(vnl_matrix<TComp> p_in, unsigned int row)
     }
   vMatrix      p(nrows, p_in.columns() );
   unsigned int rowct = 0;
-  for( long i = 0; i < static_cast<long>(p.rows()); ++i )   // loop over rows
+  for( long i = 0; i < static_cast<long>(p.rows() ); ++i )   // loop over rows
     {
     if( i != static_cast<long>(row) )
       {
@@ -515,7 +515,7 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
         }
       }
     // write out the array2D object
-    typedef itk::CSVNumericObjectFileWriter<double,1,1> WriterType;
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( outname );
     writer->SetInput( &matrix );
@@ -683,13 +683,16 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
             == myLabelSet1.end() )
           {
           myLabelSet1.push_back( label );
-	  if ( label > maxlabel ) maxlabel = label;
+          if( label > maxlabel )
+            {
+            maxlabel = label;
+            }
           }
         voxct++;
         }
       }
     }
-  if ( maxlabel == 0 ) 
+  if( maxlabel == 0 )
     {
     antscout << "FAILURE: Max label in input mask " << maskfn << " is 0 " << std::endl;
     return EXIT_FAILURE;
@@ -716,22 +719,22 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
   timeVectorType mSample(timedims, 0);
   typedef itk::Array2D<double> MatrixType;
   std::vector<std::string> ColumnHeaders;
-  if ( myLabelSet1.size() > 1 ) 
+  if( myLabelSet1.size() > 1 )
     {
     /** sort the labels */
     std::sort(myLabelSet1.begin(), myLabelSet1.end() );
     /** create a map between the roi and its matrix index */
     std::map<unsigned int, unsigned int> vectorindexMap;
-    for ( unsigned int i = 0 ; i < myLabelSet1.size(); i++) 
+    for( unsigned int i = 0; i < myLabelSet1.size(); i++ )
       {
-      std::string colname = std::string("Label") + sccan_to_string<unsigned int>( myLabelSet1[ i ] );
+      std::string colname = std::string("Label") + sccan_to_string<unsigned int>( myLabelSet1[i] );
       ColumnHeaders.push_back( colname );
-      vectorindexMap[  myLabelSet1[ i ] ] = i;
+      vectorindexMap[myLabelSet1[i]] = i;
       }
     typedef vnl_vector<unsigned int> countVectorType;
-    countVectorType countVector( myLabelSet1.size() , 0 );
+    countVectorType countVector( myLabelSet1.size(), 0 );
     antscout << "Will map the image to its ROIs" << std::endl;
-    MatrixType               matrix(timedims, myLabelSet1.size() );
+    MatrixType matrix(timedims, myLabelSet1.size() );
     matrix.Fill(0);
     SliceIt vfIter2( outimage, outimage->GetLargestPossibleRegion() );
     voxct = 0;
@@ -741,8 +744,8 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
       unsigned int label = static_cast<unsigned int>( mask->GetPixel( ind ) + 0.5 );
       if( label > 0 )
         {
- 	unsigned int vind = vectorindexMap[ label ];
-        IndexType tind;
+        unsigned int vind = vectorindexMap[label];
+        IndexType    tind;
         // first collect all samples for that location
         for( unsigned int i = 0; i < ImageDimension - 1; i++ )
           {
@@ -750,19 +753,19 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
           }
         for( unsigned int t = 0; t < timedims; t++ )
           {
-          tind[ ImageDimension - 1 ] = t;
+          tind[ImageDimension - 1] = t;
           Scalar pix = image1->GetPixel(tind);
           mSample(t) = pix;
-          matrix[ t ][ vind ] += pix;
-	  countVector[ vind ] += 1;
+          matrix[t][vind] += pix;
+          countVector[vind] += 1;
           }
         } // check mask
       }
-    for ( unsigned int i = 0 ; i <  myLabelSet1.size(); i++ )
+    for( unsigned int i = 0; i <  myLabelSet1.size(); i++ )
       {
-      matrix.set_column( i  , matrix. get_column( i ) / ( double ) countVector[ i ]   );
+      matrix.set_column( i, matrix.get_column( i ) / ( double ) countVector[i]   );
       }
-    typedef itk::CSVNumericObjectFileWriter<double,1,1> WriterType;
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( outname );
     writer->SetInput( &matrix );
@@ -780,7 +783,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     antscout << " done writing " << std::endl;
     return EXIT_SUCCESS;
     }
-  MatrixType               matrix(timedims, voxct);
+  MatrixType matrix(timedims, voxct);
   matrix.Fill(0);
   SliceIt vfIter2( outimage, outimage->GetLargestPossibleRegion() );
   voxct = 0;
@@ -808,7 +811,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
       } // check mask
     }
 
-  typedef itk::CSVNumericObjectFileWriter<double,1,1> WriterType;
+  typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( outname );
   writer->SetInput( &matrix );
@@ -858,7 +861,7 @@ ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outn
   if( mct != p.rows() && mct != p.cols() )
     {
     antscout << " csv-vec rows " << p.rows() << " cols " << p.cols() << " mask non zero elements " << mct
-              <<  std::endl;
+             <<  std::endl;
     throw std::exception();
     }
 
@@ -867,7 +870,7 @@ ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outn
     if( rowOrCol > p.cols() - 1 )
       {
       antscout << " You are trying to select the " << rowOrCol << "th column but there are only " << p.cols()
-                << " columns " << std::endl;
+               << " columns " << std::endl;
       throw std::exception();
       }
     mct = 0;
@@ -886,7 +889,7 @@ ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outn
     if( rowOrCol > p.rows() - 1 )
       {
       antscout << " You are trying to select the " << rowOrCol << "th row but there are only " << p.rows()
-                << " rows " << std::endl;
+               << " rows " << std::endl;
       throw std::exception();
       }
     mct = 0;
@@ -1077,7 +1080,10 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
       {
       antscout << " nuis_img " << nuis_img << std::endl;
       ReadMatrixFromCSVorImageSet<Scalar>(nuis_img, r);
-      if ( CompareMatrixSizes<Scalar>( p, r ) == EXIT_FAILURE ) return EXIT_FAILURE;
+      if( CompareMatrixSizes<Scalar>( p, r ) == EXIT_FAILURE )
+        {
+        return EXIT_FAILURE;
+        }
       itk::ants::CommandLineParser::OptionType::Pointer partialccaOpt =
         parser->GetOption( "partial-scca-option" );
       std::string partialccaoption = std::string("PQ");
@@ -1133,11 +1139,11 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     }
   else if( svd_option == 4  )
     {
-    truecorr = sccanobj->NetworkDecomposition( n_evec );                        
+    truecorr = sccanobj->NetworkDecomposition( n_evec );
     }
   else if( svd_option == 5  )
     {
-    truecorr = sccanobj->LASSO( n_evec );                        
+    truecorr = sccanobj->LASSO( n_evec );
     }
   else if( svd_option == 2 )
     {
@@ -1177,7 +1183,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     std::vector<std::string> ColumnHeaders;
     std::string              colname = std::string("Eigenvalue");
     ColumnHeaders.push_back( colname );
-    typedef itk::CSVNumericObjectFileWriter<double,1,1> CWriterType;
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> CWriterType;
     CWriterType::Pointer cwriter = CWriterType::New();
     cwriter->SetFileName( fnmp.c_str() );
     cwriter->SetColumnHeaders(ColumnHeaders);
@@ -1204,9 +1210,15 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
       sccanobj->SetMatrixP( p_perm );
       sccanobj->SetMatrixR( r_perm );
       double permcorr = 1.e9;
-      // if ( pct > 76 && pct < 79 ) 
-      if ( svd_option == 4 ) permcorr = sccanobj->NetworkDecomposition(n_evec); // cgsparse
-      if ( svd_option == 5 ) permcorr = sccanobj->LASSO( n_evec ); // cgsparse
+      // if ( pct > 76 && pct < 79 )
+      if( svd_option == 4 )
+        {
+        permcorr = sccanobj->NetworkDecomposition(n_evec);                      // cgsparse
+        }
+      if( svd_option == 5 )
+        {
+        permcorr = sccanobj->LASSO( n_evec );                      // cgsparse
+        }
       if( permcorr < truecorr )
         {
         perm_exceed_ct++;
@@ -1254,7 +1266,10 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   vMatrix     q;
   // antscout <<" read-q "<< std::endl;
   ReadMatrixFromCSVorImageSet<Scalar>(qmatname, q);
-  if ( CompareMatrixSizes<Scalar>( p, q ) == EXIT_FAILURE ) return EXIT_FAILURE;
+  if( CompareMatrixSizes<Scalar>( p, q ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
 
   typename ImageType::Pointer mask1 = NULL;
   bool have_p_mask = SCCANReadImage<ImageType>(mask1, option->GetParameter( 2 ).c_str() );
@@ -1481,9 +1496,18 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
   std::string rmatname = std::string(option->GetParameter( 2 ) );
   vMatrix     rin;
   ReadMatrixFromCSVorImageSet<Scalar>(rmatname, rin);
-  if ( CompareMatrixSizes<Scalar>( pin, qin ) == EXIT_FAILURE ) return EXIT_FAILURE;
-  if ( CompareMatrixSizes<Scalar>( qin, rin ) == EXIT_FAILURE ) return EXIT_FAILURE;
-  if ( CompareMatrixSizes<Scalar>( pin, rin ) == EXIT_FAILURE ) return EXIT_FAILURE;
+  if( CompareMatrixSizes<Scalar>( pin, qin ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
+  if( CompareMatrixSizes<Scalar>( qin, rin ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
+  if( CompareMatrixSizes<Scalar>( pin, rin ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
 
   typename ImageType::Pointer mask1 = NULL;
   bool have_p_mask = SCCANReadImage<ImageType>(mask1, option->GetParameter( 3 ).c_str() );
@@ -1724,9 +1748,9 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
           }
         antscout <<  " p-value " <<  (double)perm_exceed_ct / (permct) << " ct " << permct << std::endl;
         antscout << " p-vox " <<  (double)psigct / sccanobjCovar->GetVariateP(0).size() << " ct " << permct
-                  << std::endl;
+                 << std::endl;
         antscout << " q-vox " <<  (double)qsigct / sccanobjCovar->GetVariateP(0).size() << " ct " << permct
-                  << std::endl;
+                 << std::endl;
         }
 
       return EXIT_SUCCESS;
@@ -2022,7 +2046,7 @@ int sccan( itk::ants::CommandLineParser *parser )
       }
     if(  !initializationStrategy.compare( std::string( "recon" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct , 6 );
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 6 );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "prior" ) )  )
@@ -2036,7 +2060,7 @@ int sccan( itk::ants::CommandLineParser *parser )
     }
 
   antscout << " scca-max-iterations " << iterct << " you will assess significance with " << permct
-            << " permutations." << std::endl;
+           << " permutations." << std::endl;
   //  operations on pairs of matrices
   itk::ants::CommandLineParser::OptionType::Pointer matrixPairOption =
     parser->GetOption( "scca" );
@@ -2054,22 +2078,24 @@ int sccan( itk::ants::CommandLineParser *parser )
       {
       antscout << " scca 2-view " << std::endl;
       exitvalue = SCCA_vnl<ImageDimension, double>( parser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
-                                        q_cluster_thresh,
-                                        iterct);
+                                                    q_cluster_thresh,
+                                                    iterct);
       }
     else if(  !initializationStrategy.compare( std::string("three-view") )  )
       {
       antscout << " mscca 3-view " << std::endl;
-      exitvalue = mSCCA_vnl<ImageDimension, double>( parser, permct,  false, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
-                                         q_cluster_thresh,
-                                         iterct);
+      exitvalue =
+        mSCCA_vnl<ImageDimension, double>( parser, permct,  false, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
+                                           q_cluster_thresh,
+                                           iterct);
       }
     else if( !initializationStrategy.compare( std::string("partial") )   )
       {
       antscout << " pscca " << std::endl;
-      exitvalue = mSCCA_vnl<ImageDimension, double>( parser, permct, true, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
-                                         q_cluster_thresh,
-                                         iterct);
+      exitvalue =
+        mSCCA_vnl<ImageDimension, double>( parser, permct, true, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
+                                           q_cluster_thresh,
+                                           iterct);
       }
     else
       {
@@ -2219,8 +2245,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "takes a timeseries (4D) image " )
-      + std::string( "and converts it to a 2D matrix csv format as output." ) 
-      + std::string( "If the mask has multiple labels ( more the one ) then the average time series in each label will be computed and put in the csv." );
+      + std::string( "and converts it to a 2D matrix csv format as output." )
+      + std::string(
+        "If the mask has multiple labels ( more the one ) then the average time series in each label will be computed and put in the csv." );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "timeseriesimage-to-matrix" );
     option->SetUsageOption(
@@ -2296,48 +2323,52 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int sccan( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int sccan( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "sccan" ) ;
+  args.insert( args.begin(), "sccan" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
@@ -2555,8 +2586,4 @@ end;
 return;
 */
 
-
-
 } // namespace ants
-
-

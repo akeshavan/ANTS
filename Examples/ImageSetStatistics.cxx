@@ -16,7 +16,6 @@
 
 =========================================================================*/
 
-
 #include "antsUtilities.h"
 #include <algorithm>
 
@@ -25,7 +24,6 @@
 #include <ctime>
 #include <iostream>
 #include "ReadWriteImage.h"
-
 
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkHistogramMatchingImageFilter.h"
@@ -47,7 +45,6 @@
 
 namespace ants
 {
-
 
 template <class TImageType>
 void ReadImage(itk::SmartPointer<TImageType> & target, const char *file, bool copy)
@@ -145,8 +142,11 @@ template <class TInputImage>
 void
 HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInputImage::Pointer m_InputMovingImage) //
                                                                                                                    //
+                                                                                                                   //
                                                                                                                    // typename
+                                                                                                                   //
                                                                                                                    // TInputImage::Pointer
+                                                                                                                   //
                                                                                                                    // m_OutputMovingImage
                                                                                                                    // )
 {
@@ -990,56 +990,60 @@ int ImageSetStatistics(int argc, char *argv[])
 
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int ImageSetStatistics( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int ImageSetStatistics( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "ImageSetStatistics" ) ;
+  args.insert( args.begin(), "ImageSetStatistics" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc < 4 )
     {
     antscout << "Usage:  " << std::endl;
     antscout << argv[0]
-              <<
+             <<
     " ImageDimension controlslist.txt outimage.nii whichstat {roi.nii} {imagelist2forsimilarityweightedstats.txt}"
-              << std::endl;
+             << std::endl;
     antscout
     <<
     " whichstat = 0:  median,  1:  max prob appearance  , 2: weighted mean appearance ,  3: trimmed mean , 4 : max value , option 5 : similarity-weighted (must pass imagelist2 as well) else median , option 6 : same as similarity-weighted option 5 but the label corresponds to the image that provides the best local match ... useful if you want to MRF smooth these indices  , option 7 : similar to 5 but expects the max-value to be stored in the ROI image and uses it to get the intensity ... "
@@ -1071,8 +1075,4 @@ int ImageSetStatistics( std::vector<std::string> args , std::ostream* out_stream
 
 }
 
-
-
 } // namespace ants
-
-

@@ -3,12 +3,9 @@
 #include "antsUtilities.h"
 #include "itkImageFileReader.h"
 
-
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
-
-
 
 #include "itkAverageAffineTransformFunction.h"
 
@@ -19,7 +16,7 @@ namespace ants
 {
 
 static bool AverageAffineTransform_ParseInput(int argc, char * *argv, char *& output_transform_filename,
-                char *& reference_transform_filename, TRAN_OPT_QUEUE & opt_queue)
+                                              char *& reference_transform_filename, TRAN_OPT_QUEUE & opt_queue)
 {
 
   opt_queue.clear();
@@ -53,8 +50,8 @@ static bool AverageAffineTransform_ParseInput(int argc, char * *argv, char *& ou
       if( CheckFileType(opt.filename) != AFFINE_FILE )
         {
         antscout << "file: " << opt.filename
-                  << " is not an affine .txt file. Invalid to use '-i' "
-                  << std::endl;
+                 << " is not an affine .txt file. Invalid to use '-i' "
+                 << std::endl;
         return false;
         }
       opt.file_type = AFFINE_FILE;
@@ -79,7 +76,7 @@ static bool AverageAffineTransform_ParseInput(int argc, char * *argv, char *& ou
       if( CheckFileType(opt.filename) != AFFINE_FILE )
         {
         antscout << "file: " << opt.filename
-                  << " is not an affine .txt file." << std::endl;
+                 << " is not an affine .txt file." << std::endl;
         return false;
         }
       opt.file_type = CheckFileType(opt.filename);
@@ -139,7 +136,7 @@ void AverageAffineTransform(char *output_affine_txt, char *reference_affine_txt,
   // warper->SetEdgePaddingValue( 0);
 //    VectorType pad;
 //    pad.Fill(0);
-  // warper->SetEdgePaddingValue(pad);
+// warper->SetEdgePaddingValue(pad);
 
   typedef itk::TransformFileReader TranReaderType;
 
@@ -174,7 +171,7 @@ void AverageAffineTransform(char *output_affine_txt, char *reference_affine_txt,
         }
       case DEFORMATION_FILE:
         antscout << "Average affine only files: ignore " << opt.filename
-                  << std::endl;
+                 << std::endl;
         break;
       default:
         antscout << "Unknown file type!" << std::endl;
@@ -227,48 +224,52 @@ void AverageAffineTransform(char *output_affine_txt, char *reference_affine_txt,
 
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int AverageAffineTransform( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int AverageAffineTransform( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "AverageAffineTransform" ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  args.insert( args.begin(), "AverageAffineTransform" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc <= 3 )
     {
@@ -313,13 +314,13 @@ int AverageAffineTransform( std::vector<std::string> args , std::ostream* out_st
   int  kImageDim = atoi(argv[1]);
 
   is_parsing_ok = AverageAffineTransform_ParseInput(argc - 2, argv + 2, output_transform_filename,
-                             reference_transform_filename, opt_queue);
+                                                    reference_transform_filename, opt_queue);
 
   if( is_parsing_ok )
     {
 
     antscout << "output_transform_filename: " << output_transform_filename
-              << std::endl;
+             << std::endl;
     antscout << "reference_transform_filename: ";
 
     if( reference_transform_filename )
@@ -357,8 +358,4 @@ int AverageAffineTransform( std::vector<std::string> args , std::ostream* out_st
 
 }
 
-
-
 } // namespace ants
-
-

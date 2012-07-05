@@ -20,13 +20,11 @@
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkVectorCurvatureAnisotropicDiffusionImageFilter.h"
 
-
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkWarpImageMultiTransformFilter.h"
 
 namespace ants
 {
-
 
 template <class TImage>
 typename TImage::Pointer VectorAniDiff(typename TImage::Pointer img, unsigned int iters)
@@ -279,7 +277,6 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   unsigned int posoff = 1;
   float        space = 1.0;
 
-
   typedef itk::Vector<float, ImageDimension> VectorType;
 
   typename FieldType::PixelType dPix;
@@ -510,7 +507,7 @@ int Jacobian(int argc, char *argv[])
   if( argc < 3 )
     {
     antscout << "Usage:   Jacobian gWarp outfile uselog maskfn normbytotalbool VectorToProjectWarpAgainst "
-              << std::endl;
+             << std::endl;
     antscout
     << " VectorToProjectWarpAgainst should be in the form 1.0x0.0x0.0 where x separates vector components "
     << std::endl;
@@ -567,55 +564,59 @@ int Jacobian(int argc, char *argv[])
 
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int ANTSJacobian( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int ANTSJacobian( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "ANTSJacobian" ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  args.insert( args.begin(), "ANTSJacobian" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
     antscout << "Usage: " << argv[0] << " ImageDim gWarp outfile uselog maskfn normbytotalbool projectionvector "
-              << std::endl;
+             << std::endl;
     antscout << " for example " << std::endl
-              << " ANTSJacobian 3  myWarp.nii   Output  1   templatebrainmask.nii   1 1x0 " << std::endl;
+             << " ANTSJacobian 3  myWarp.nii   Output  1   templatebrainmask.nii   1 1x0 " << std::endl;
     antscout
     <<
     " the last 1 normalizes the jacobian by the total in the mask.  use this to adjust for head size. 1x0 will project the warp along direction 1,0 --- don't add this option if you dont want to do this "
@@ -639,8 +640,4 @@ int ANTSJacobian( std::vector<std::string> args , std::ostream* out_stream = NUL
   return EXIT_SUCCESS;
 }
 
-
-
 } // namespace ants
-
-

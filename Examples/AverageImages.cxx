@@ -23,7 +23,6 @@
 // Note: could easily add variance computation
 // http://people.revoledu.com/kardi/tutorial/RecursiveStatistic/Time-Variance.htm
 
-
 #include "antsUtilities.h"
 #include <algorithm>
 
@@ -40,7 +39,6 @@
 
 namespace ants
 {
-
 
 template <unsigned int ImageDimension, unsigned int NVectorComponents>
 int AverageImages1(unsigned int argc, char *argv[])
@@ -86,7 +84,7 @@ int AverageImages1(unsigned int argc, char *argv[])
   averageimage = reader->GetOutput();
   unsigned int vectorlength = reader->GetImageIO()->GetNumberOfComponents();
   antscout << " Averaging " << numberofimages << " images with dim = " << ImageDimension << " vector components "
-            << vectorlength << std::endl;
+           << vectorlength << std::endl;
   PixelType meanval = 0;
   averageimage->FillBuffer(meanval);
   for( unsigned int j = 4; j < argc; j++ )
@@ -158,7 +156,7 @@ int AverageImages(unsigned int argc, char *argv[])
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
   typedef itk::ImageFileReader<ImageType>              ImageFileReader;
   typedef itk::ImageFileWriter<ImageType>              writertype;
- 
+
   //  bool  normalizei = atoi(argv[3]);
   float numberofimages = (float)argc - 4.;
   typename ImageType::Pointer averageimage = NULL;
@@ -171,7 +169,7 @@ int AverageImages(unsigned int argc, char *argv[])
     {
     // Get the image dimension
     std::string fn = std::string(argv[j]);
-    antscout << " fn " << fn << " " << ImageDimension << " "<< NVectorComponents << std::endl;
+    antscout << " fn " << fn << " " << ImageDimension << " " << NVectorComponents << std::endl;
     typename itk::ImageIOBase::Pointer imageIO =
       itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
     imageIO->SetFileName( fn.c_str() );
@@ -194,7 +192,7 @@ int AverageImages(unsigned int argc, char *argv[])
   averageimage = reader->GetOutput();
   unsigned int vectorlength = reader->GetImageIO()->GetNumberOfComponents();
   antscout << " Averaging " << numberofimages << " images with dim = " << ImageDimension << " vector components "
-            << vectorlength << std::endl;
+           << vectorlength << std::endl;
   typename ImageType::IndexType zindex; zindex.Fill(0);
   PixelType meanval = reader->GetOutput()->GetPixel(zindex);
   meanval.Fill(0);
@@ -206,21 +204,21 @@ int AverageImages(unsigned int argc, char *argv[])
     rdr->SetFileName(argv[j]);
     rdr->Update();
     image2 = rdr->GetOutput();
-    Iterator      vfIter2( image2,  image2->GetLargestPossibleRegion() ); 
+    Iterator vfIter2( image2,  image2->GetLargestPossibleRegion() );
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
       PixelType val = vfIter2.Get();
-      double valnorm = val.GetNorm();
-      if ( ! vnl_math_isnan( valnorm  ) &&  ! vnl_math_isinf( valnorm  )   )
-	{
-	val = val / (float)numberofimages;
+      double    valnorm = val.GetNorm();
+      if( !vnl_math_isnan( valnorm  ) &&  !vnl_math_isinf( valnorm  )   )
+        {
+        val = val / (float)numberofimages;
         PixelType oldval = averageimage->GetPixel( vfIter2.GetIndex() );
         averageimage->SetPixel(vfIter2.GetIndex(), val + oldval );
-	}
+        }
       }
-    
+
     }
-     
+
     {
     typename writertype::Pointer writer = writertype::New();
     writer->SetFileName(argv[2]);
@@ -231,48 +229,52 @@ int AverageImages(unsigned int argc, char *argv[])
   return 0;
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int AverageImages( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int AverageImages( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "AverageImages" ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  args.insert( args.begin(), "AverageImages" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
@@ -358,7 +360,7 @@ int AverageImages( std::vector<std::string> args , std::ostream* out_stream = NU
       break;
     default:
       antscout << " You passed ImageDimension: " << dim << " . Please use only image domains of 2, 3 or 4  "
-                << std::endl;
+               << std::endl;
       return EXIT_FAILURE;
     }
 
@@ -366,8 +368,4 @@ int AverageImages( std::vector<std::string> args , std::ostream* out_stream = NU
 
 }
 
-
-
 } // namespace ants
-
-

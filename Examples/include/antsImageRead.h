@@ -7,8 +7,8 @@
 namespace ants
 {
 
-  itk::Image< float , 3 >::Pointer antsImageRead( std::string // filename of the image to be read
-						  ) ;
+itk::Image<float, 3>::Pointer antsImageRead( std::string      // filename of the image to be read
+                                             );
 
 } // namespace ants
 

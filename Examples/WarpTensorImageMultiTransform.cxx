@@ -18,8 +18,8 @@ namespace ants
 {
 
 static bool WarpTensorImageMultiTransform_ParseInput(int argc, char * *argv, char *& moving_image_filename,
-                char *& output_image_filename,
-                TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
+                                                     char *& output_image_filename,
+                                                     TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
 {
 
   opt_queue.clear();
@@ -237,9 +237,10 @@ DirectionCorrect( typename TensorImageType::Pointer img_mov, typename ImageType:
 {
   itk::ImageRegionIteratorWithIndex<TensorImageType> it(img_mov, img_mov->GetLargestPossibleRegion() );
 
-  typename TensorImageType::DirectionType::InternalMatrixType direction = img_mov->GetDirection().GetTranspose() * img_ref->GetDirection().GetVnlMatrix();
+  typename TensorImageType::DirectionType::InternalMatrixType direction = img_mov->GetDirection().GetTranspose()
+    * img_ref->GetDirection().GetVnlMatrix();
 
-  if ( ! direction.is_identity( 0.00001 ) )
+  if( !direction.is_identity( 0.00001 ) )
     {
 
     while( !it.IsAtEnd() )
@@ -251,11 +252,11 @@ DirectionCorrect( typename TensorImageType::Pointer img_mov, typename ImageType:
       dt(1, 1) = it.Value()[3];
       dt(1, 2) = dt(2, 1) = it.Value()[4];
       dt(2, 2) = it.Value()[5];
-      
+
       dt = direction * dt * direction.transpose();
-      
+
       typename TensorImageType::PixelType outDt;
-      
+
       outDt[0] = dt(0, 0);
       outDt[1] = dt(0, 1);
       outDt[2] = dt(0, 2);
@@ -264,7 +265,7 @@ DirectionCorrect( typename TensorImageType::Pointer img_mov, typename ImageType:
       outDt[5] = dt(2, 2);
 
       it.Set( outDt );
-      
+
       ++it;
       }
     }
@@ -314,7 +315,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     }
 
   // Convert to reference image tensor basis
-  DirectionCorrect<TensorImageType,ImageType>(img_mov, img_ref);
+  DirectionCorrect<TensorImageType, ImageType>(img_mov, img_ref);
 
   typename TensorImageType::Pointer img_output = TensorImageType::New();
   img_output->SetLargestPossibleRegion( img_ref->GetLargestPossibleRegion() );
@@ -366,7 +367,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
       switch( opt.file_type )
         {
-        case AFFINE_FILE: {
+        case AFFINE_FILE:
+          {
           typename TranReaderType::Pointer tran_reader = TranReaderType::New();
           tran_reader->SetFileName(opt.filename);
           tran_reader->Update();
@@ -385,27 +387,26 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
             warper->SetOutputParametersFromImage( img_mov );
             }
           transcount++;
-          break;
           }
-
-        case IDENTITY_TRANSFORM: {
+          break;
+        case IDENTITY_TRANSFORM:
+          {
           typename AffineTransformType::Pointer aff;
           GetIdentityTransform<AffineTransformType>(aff);
           // antscout << " aff id" << transcount << std::endl;
           warper->PushBackAffineTransform(aff);
           transcount++;
-          break;
           }
-
-        case IMAGE_AFFINE_HEADER: {
-
+          break;
+        case IMAGE_AFFINE_HEADER:
+          {
           typename AffineTransformType::Pointer aff = AffineTransformType::New();
           typename ImageFileReaderType::Pointer reader_image_affine = ImageFileReaderType::New();
           reader_image_affine->SetFileName(opt.filename);
           reader_image_affine->Update();
           typename ImageType::Pointer img_affine = reader_image_affine->GetOutput();
 
-          GetAffineTransformFromImage<ImageType,AffineTransformType>(img_affine, aff);
+          GetAffineTransformFromImage<ImageType, AffineTransformType>(img_affine, aff);
 
           if( opt.do_affine_inv )
             {
@@ -422,23 +423,23 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           //            }
 
           transcount++;
-          break;
           }
-
-        case DEFORMATION_FILE: {
+          break;
+        case DEFORMATION_FILE:
+          {
           typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
           field_reader->SetFileName( opt.filename );
           field_reader->Update();
           typename DisplacementFieldType::Pointer field = field_reader->GetOutput();
-
           warper->PushBackDisplacementFieldTransform(field);
           warper->SetOutputParametersFromImage( field );
-
           transcount++;
-          break;
           }
+          break;
         default:
+          {
           antscout << "Unknown file type!" << std::endl;
+          }
         }
       }
 
@@ -456,7 +457,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
         typename ImageType::SizeType largest_size;
         typename ImageType::PointType origin_warped;
-        GetLargestSizeAfterWarp<WarperType,TensorImageType>(warper, img_mov, largest_size, origin_warped);
+        GetLargestSizeAfterWarp<WarperType, TensorImageType>(warper, img_mov, largest_size, origin_warped);
         warper->SetOutputParametersFromImage( img_mov );
         warper->SetOutputSize(largest_size);
         warper->SetOutputOrigin(origin_warped);
@@ -489,53 +490,57 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
     }
 
-  //DirectionCorrect<TensorImageType>(img_output, img_mov);
+  // DirectionCorrect<TensorImageType>(img_output, img_mov);
 
   WriteTensorImage<TensorImageType>(img_output, output_image_filename, true);
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int WarpTensorImageMultiTransform( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int WarpTensorImageMultiTransform( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "WarpTensorImageMultiTransform" ) ;
+  args.insert( args.begin(), "WarpTensorImageMultiTransform" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc <= 3 )
     {
@@ -569,22 +574,22 @@ int WarpTensorImageMultiTransform( std::vector<std::string> args , std::ostream*
     << "This is typically not used together with any other transforms. "
     << "--reslice-by-header is equvalient to -i -mh, or -fh -i -mh if used together with -R. " << std::endl;
     antscout << std::endl
-              << "For ANTS users:" << std::endl
-              << "To use with the deformation field and the affine transform files generated from ANTS:" << std::endl
-              << "--ANTS-prefix prefix-name" << std::endl
-              << "--ANTS-prefix-invert prefix-name" << std::endl
-              << "Example:" << std::endl
-              << "3 moving_image output_image -R reference_image --ANTS-prefix abcd.nii.gz" << std::endl
-              <<
+             << "For ANTS users:" << std::endl
+             << "To use with the deformation field and the affine transform files generated from ANTS:" << std::endl
+             << "--ANTS-prefix prefix-name" << std::endl
+             << "--ANTS-prefix-invert prefix-name" << std::endl
+             << "Example:" << std::endl
+             << "3 moving_image output_image -R reference_image --ANTS-prefix abcd.nii.gz" << std::endl
+             <<
     "Applies abcdWarpxvec.nii.gz/abcdWarpyvec.nii.gz/abcdWarpzvec.nii.gz and then abcdAffine.txt. Use this with ANTS to get the moving_image warped into the reference_image domain. "
-              << std::endl
-              << "3 reference_image output_image -R moving_image --ANTS-prefix-invert abcd.nii.gz --ANTS-invert"
-              << std::endl
-              <<
+             << std::endl
+             << "3 reference_image output_image -R moving_image --ANTS-prefix-invert abcd.nii.gz --ANTS-invert"
+             << std::endl
+             <<
     "Applies the inversion of abcdAffine.txt and then abcdInverseWarpxvec.nii.gz/abcdInverseWarpyvec.nii.gz/abcdInverseWarpzvec.nii.gz. Use this with ANTS to get the reference_image warped into the moving_image domain. "
-              << std::endl
-              << "Note: " << std::endl
-              << "prefix name \"abcd\" without any extension will use \".nii.gz\" by default" << std::endl;
+             << std::endl
+             << "Note: " << std::endl
+             << "prefix name \"abcd\" without any extension will use \".nii.gz\" by default" << std::endl;
 
     return EXIT_FAILURE;
     }
@@ -598,7 +603,10 @@ int WarpTensorImageMultiTransform( std::vector<std::string> args , std::ostream*
   bool is_parsing_ok = false;
   int  kImageDim = atoi(argv[1]);
 
-  is_parsing_ok = WarpTensorImageMultiTransform_ParseInput(argc - 2, argv + 2, moving_image_filename, output_image_filename, opt_queue, misc_opt);
+  is_parsing_ok =
+    WarpTensorImageMultiTransform_ParseInput(argc - 2, argv + 2, moving_image_filename, output_image_filename,
+                                             opt_queue,
+                                             misc_opt);
 
   if( is_parsing_ok )
     {
@@ -618,14 +626,12 @@ int WarpTensorImageMultiTransform( std::vector<std::string> args , std::ostream*
 
     switch( kImageDim )
       {
-      case 2: {
+      case 2:
         WarpImageMultiTransform<2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
         break;
-        }
-      case 3: {
+      case 3:
         WarpImageMultiTransform<3>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
         break;
-        }
       }
 
     }
@@ -638,8 +644,4 @@ int WarpTensorImageMultiTransform( std::vector<std::string> args , std::ostream*
 
 }
 
-
-
 } // namespace ants
-
-

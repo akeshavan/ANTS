@@ -14,7 +14,6 @@
 namespace ants
 {
 
-
 template <unsigned int ImageDimension>
 int LabelGeometryMeasures( int argc, char * argv[] )
 {
@@ -58,17 +57,17 @@ int LabelGeometryMeasures( int argc, char * argv[] )
 //   antscout << "Number of labels: " << labelGeometryFilter->GetNumberOfLabels() << std::endl;
 //   antscout << "Label geometry measures." << std::endl;
   antscout << std::left << std::setw( 7 )  << "Label"
-            << std::left << std::setw( 10 ) << "Volume"
-            << std::left << std::setw( 15 ) << "Eccentricity"
-            << std::left << std::setw( 15 ) << "Elongation"
-            << std::left << std::setw( 15 ) << "Orientation"
-            << std::left << std::setw( 30 ) << "Centroid"
-            << std::left << std::setw( 30 ) << "Axes Length"
-            << std::left << std::setw( 30 ) << "Bounding Box";
+           << std::left << std::setw( 10 ) << "Volume"
+           << std::left << std::setw( 15 ) << "Eccentricity"
+           << std::left << std::setw( 15 ) << "Elongation"
+           << std::left << std::setw( 15 ) << "Orientation"
+           << std::left << std::setw( 30 ) << "Centroid"
+           << std::left << std::setw( 30 ) << "Axes Length"
+           << std::left << std::setw( 30 ) << "Bounding Box";
   if( filter->GetIntensityInput() )
     {
     antscout << std::left << std::setw( 20 )  << "Integrated Int."
-              << std::left << std::setw( 30 ) << "Weighted Centroid";
+             << std::left << std::setw( 30 ) << "Weighted Centroid";
     }
   antscout << std::endl;
   for( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
@@ -114,53 +113,57 @@ int LabelGeometryMeasures( int argc, char * argv[] )
   return EXIT_SUCCESS;
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int LabelGeometryMeasures( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int LabelGeometryMeasures( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "LabelGeometryMeasures" ) ;
+  args.insert( args.begin(), "LabelGeometryMeasures" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
     antscout << "Usage: " << argv[0] << " imageDimension labelImage [intensityImage]"
-              << std::endl;
+             << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -179,8 +182,4 @@ int LabelGeometryMeasures( std::vector<std::string> args , std::ostream* out_str
   return EXIT_SUCCESS;
 }
 
-
-
 } // namespace ants
-
-

@@ -69,7 +69,6 @@
 namespace ants
 {
 
-
 /** \class antsRegistrationCommandIterationUpdate
  *  \brief change parameters between iterations of registration
  */
@@ -77,15 +76,16 @@ template <class TFilter>
 class antsRegistrationCommandIterationUpdate : public itk::Command
 {
 public:
-  typedef antsRegistrationCommandIterationUpdate  Self;
-  typedef itk::Command            Superclass;
-  typedef itk::SmartPointer<Self> Pointer;
+  typedef antsRegistrationCommandIterationUpdate Self;
+  typedef itk::Command                           Superclass;
+  typedef itk::SmartPointer<Self>                Pointer;
   itkNewMacro( Self );
 protected:
   antsRegistrationCommandIterationUpdate()
   {
     this->m_LogStream = &::ants::antscout;
   }
+
 public:
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
@@ -134,14 +134,19 @@ public:
     this->m_NumberOfIterations = iterations;
   }
 
-  void SetLogStream(std::ostream &logStream)
-    {
-      this->m_LogStream = &logStream;
-    }
+  void SetLogStream(std::ostream & logStream)
+  {
+    this->m_LogStream = &logStream;
+  }
+
 private:
-  std::ostream &Logger() const { return *m_LogStream; }
+  std::ostream & Logger() const
+  {
+    return *m_LogStream;
+  }
+
   std::vector<unsigned int> m_NumberOfIterations;
-  std::ostream             *m_LogStream;
+  std::ostream *            m_LogStream;
 };
 
 template <class T>
@@ -153,7 +158,6 @@ inline std::string ants_moco_to_string(const T& t)
   return ss.str();
 }
 
-
 template <class ImageType>
 typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
                                              typename ImageType::PixelType lowerScaleValue,
@@ -161,7 +165,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
                                              float winsorizeLowerQuantile, float winsorizeUpperQuantile,
                                              ImageType *histogramMatchSourceImage = NULL )
 {
-  typedef itk::Statistics::ImageToHistogramFilter<ImageType>        HistogramFilterType;
+  typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
   typedef typename HistogramFilterType::InputBooleanObjectType InputBooleanObjectType;
   typedef typename HistogramFilterType::HistogramSizeType      HistogramSizeType;
   typedef typename HistogramFilterType::HistogramType          HistogramType;
@@ -224,10 +228,12 @@ struct ants_moco_index_cmp
   ants_moco_index_cmp(const T _arr) : arr(_arr)
   {
   }
+
   bool operator()(const size_t a, const size_t b) const
   {
     return arr[a] < arr[b];
   }
+
   const T arr;
   };
 
@@ -270,7 +276,7 @@ public:
     antscout << "    shrink factor = " << shrinkFactors[currentLevel] << std::endl;
     antscout << "    smoothing sigma = " << smoothingSigmas[currentLevel] << std::endl;
     antscout << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
-              << std::endl;
+             << std::endl;
 
     typedef itk::ConjugateGradientLineSearchOptimizerv4 OptimizerType;
     OptimizerType * optimizer = reinterpret_cast<OptimizerType *>(
@@ -292,7 +298,6 @@ private:
 
   std::vector<unsigned int> m_NumberOfIterations;
 };
-
 
 // Transform traits to generalize the rigid transform
 //
@@ -534,17 +539,17 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     antscout << " nimagestoavg " << nimagestoavg << std::endl;
     }
 
-    bool                doEstimateLearningRateOnce(false);
-    OptionType::Pointer rateOption = parser->GetOption( "use-estimate-learning-rate-once" );
-    if( rateOption && rateOption->GetNumberOfValues() > 0 )
+  bool                doEstimateLearningRateOnce(false);
+  OptionType::Pointer rateOption = parser->GetOption( "use-estimate-learning-rate-once" );
+  if( rateOption && rateOption->GetNumberOfValues() > 0 )
+    {
+    std::string rateValue = rateOption->GetValue( 0 );
+    ConvertToLowerCase( rateValue );
+    if( rateValue.compare( "1" ) == 0 || rateValue.compare( "true" ) == 0 )
       {
-      std::string rateValue = rateOption->GetValue( 0 );
-      ConvertToLowerCase( rateValue );
-      if( rateValue.compare( "1" ) == 0 || rateValue.compare( "true" ) == 0 )
-        {
-        doEstimateLearningRateOnce = true;
-        }
+      doEstimateLearningRateOnce = true;
       }
+    }
 
   unsigned int   nparams = 2;
   itk::TimeProbe totalTimer;
@@ -718,33 +723,39 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
 
       bool directionmatricesok = true;
-      for ( unsigned int i = 0 ; i < ImageDimension; i++ )
-        for ( unsigned int j = 0 ; j < ImageDimension; j++ )
-	  if ( fabs( moving_time_slice->GetDirection()[i][j] - fixed_time_slice->GetDirection()[i][j] ) > 1.e-6 )
-	    directionmatricesok = false;
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        for( unsigned int j = 0; j < ImageDimension; j++ )
+          {
+          if( fabs( moving_time_slice->GetDirection()[i][j] - fixed_time_slice->GetDirection()[i][j] ) > 1.e-6 )
+            {
+            directionmatricesok = false;
+            }
+          }
+        }
 
-      if ( ! directionmatricesok )
-	{
-	antscout << " WARNING!" << std::endl;
-        antscout << " fixed and moving DirectionMatrices not the same "<< std::endl;
-	antscout << " Fixed Dir " << fixed_time_slice->GetDirection(  )  << std::endl;
-	antscout << " Moving Dir " << moving_time_slice->GetDirection(  )  << std::endl;
-        antscout << " setting moving direction matrix to equal fixed matrix "<< std::endl;
-	antscout << " WARNING END!" << std::endl;
-	antscout <<  std::endl;
-        moving_time_slice->SetDirection(  fixed_time_slice->GetDirection(  )  );
-	}
+      if( !directionmatricesok )
+        {
+        antscout << " WARNING!" << std::endl;
+        antscout << " fixed and moving DirectionMatrices not the same " << std::endl;
+        antscout << " Fixed Dir " << fixed_time_slice->GetDirection()  << std::endl;
+        antscout << " Moving Dir " << moving_time_slice->GetDirection()  << std::endl;
+        antscout << " setting moving direction matrix to equal fixed matrix " << std::endl;
+        antscout << " WARNING END!" << std::endl;
+        antscout <<  std::endl;
+        moving_time_slice->SetDirection(  fixed_time_slice->GetDirection()  );
+        }
 
-    typename FixedImageType::Pointer preprocessFixedImage =
-      PreprocessImage<FixedImageType>( fixed_time_slice, 0,
-                                  1, 0.001, 0.999,
-                                  NULL );
+      typename FixedImageType::Pointer preprocessFixedImage =
+        PreprocessImage<FixedImageType>( fixed_time_slice, 0,
+                                         1, 0.001, 0.999,
+                                         NULL );
 
-    typename FixedImageType::Pointer preprocessMovingImage =
+      typename FixedImageType::Pointer preprocessMovingImage =
         PreprocessImage<FixedImageType>( moving_time_slice,
-                                    0, 1,
-                                    0.001, 0.999,
-                                    preprocessFixedImage );
+                                         0, 1,
+                                         0.001, 0.999,
+                                         preprocessFixedImage );
 
       typedef itk::ImageToImageMetricv4<FixedImageType, FixedImageType> MetricType;
       typename MetricType::Pointer metric;
@@ -817,7 +828,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         antscout << "  using the global correlation metric." << std::endl;
         typedef itk::CorrelationImageToImageMetricv4<FixedImageType, FixedImageType> corrMetricType;
         typename corrMetricType::Pointer corrMetric = corrMetricType::New();
-	metric = corrMetric;
+        metric = corrMetric;
         antscout << " global corr metric set " << std::endl;
         }
       else
@@ -868,7 +879,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       optimizer->SetMaximumStepSizeInPhysicalUnits( learningRate );
       optimizer->SetDoEstimateLearningRateOnce( doEstimateLearningRateOnce );
-      optimizer->SetDoEstimateLearningRateAtEachIteration( ! doEstimateLearningRateOnce );
+      optimizer->SetDoEstimateLearningRateAtEachIteration( !doEstimateLearningRateOnce );
       //    optimizer->SetMaximumNewtonStepSizeInPhysicalUnits(sqrt(small_step)*learningR);
 
       // Set up the image registration methods along with the transforms
@@ -888,7 +899,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         scalesEstimator->SetMetric(metric);
         scalesEstimator->EstimateScales(scales);
         optimizer->SetScales(scales);
-        if(compositeTransform->GetNumberOfTransforms() > 0)
+        if( compositeTransform->GetNumberOfTransforms() > 0 )
           {
           affineRegistration->SetMovingInitialTransform( compositeTransform );
           }
@@ -955,7 +966,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           static_cast<typename RigidRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
         rigidRegistration->SetMetricSamplingPercentage( samplingPercentage );
         rigidRegistration->SetOptimizer( optimizer );
-        if(compositeTransform->GetNumberOfTransforms() > 0)
+        if( compositeTransform->GetNumberOfTransforms() > 0 )
           {
           rigidRegistration->SetMovingInitialTransform( compositeTransform );
           }
@@ -1006,10 +1017,12 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         displacementField->FillBuffer( zeroVector );
 
         typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransform<RealType,
-                                                                    ImageDimension> GaussianDisplacementFieldTransformType;
+                                                                         ImageDimension>
+        GaussianDisplacementFieldTransformType;
 
         typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType,
-                                          GaussianDisplacementFieldTransformType> DisplacementFieldRegistrationType;
+                                               GaussianDisplacementFieldTransformType>
+        DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
@@ -1018,8 +1031,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
         // Create the transform adaptors
 
-        typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<GaussianDisplacementFieldTransformType>
-          DisplacementFieldTransformAdaptorType;
+        typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
+          GaussianDisplacementFieldTransformType>
+        DisplacementFieldTransformAdaptorType;
         typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
 
         // Extract parameters
@@ -1067,7 +1081,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         displacementFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
         displacementFieldRegistration->SetOptimizer( optimizer );
         displacementFieldRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
-        if ( compositeTransform->GetNumberOfTransforms() > 0 )
+        if( compositeTransform->GetNumberOfTransforms() > 0 )
           {
           displacementFieldRegistration->SetMovingInitialTransform( compositeTransform );
           }
@@ -1075,7 +1089,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef antsRegistrationCommandIterationUpdate<DisplacementFieldRegistrationType> DisplacementFieldCommandType;
         typename DisplacementFieldCommandType::Pointer displacementFieldRegistrationObserver =
           DisplacementFieldCommandType::New();
-	//        displacementFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
+        //        displacementFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
         displacementFieldRegistrationObserver->SetNumberOfIterations( iterations );
 
         displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
@@ -1083,8 +1097,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         try
           {
           antscout << std::endl << "*** Running SyN registration (varianceForUpdateField = "
-                         << sigmaForUpdateField << ", varianceForTotalField = " << sigmaForTotalField << ") ***"
-                         << std::endl << std::endl;
+                   << sigmaForUpdateField << ", varianceForTotalField = " << sigmaForTotalField << ") ***"
+                   << std::endl << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
           displacementFieldRegistration->StartRegistration();
           }
@@ -1093,8 +1107,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           ::ants::antscout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
-
-
 
         compositeTransform->AddTransform( outputDisplacementFieldTransform );
         if( timedim == 0 )
@@ -1105,7 +1117,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       else if( std::strcmp( whichTransform.c_str(),
                             "SyN" ) == 0 ||  std::strcmp( whichTransform.c_str(), "syn" ) == 0 )
-	{
+        {
         RealType sigmaForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
         RealType sigmaForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
         typedef itk::Vector<RealType, ImageDimension> VectorType;
@@ -1122,7 +1134,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         inverseDisplacementField->SetRegions( fixed_time_slice->GetBufferedRegion() );
         inverseDisplacementField->Allocate();
         inverseDisplacementField->FillBuffer( zeroVector );
-        typedef itk::DisplacementFieldTransform<RealType, ImageDimension>        DisplacementFieldTransformType;
+        typedef itk::DisplacementFieldTransform<RealType, ImageDimension> DisplacementFieldTransformType;
         typedef itk::SyNImageRegistrationMethod<FixedImageType, FixedImageType,
                                                 DisplacementFieldTransformType> DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
@@ -1134,7 +1146,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         // Create the transform adaptors
 
         typedef itk::DisplacementFieldTransformParametersAdaptor<DisplacementFieldTransformType>
-          DisplacementFieldTransformAdaptorType;
+        DisplacementFieldTransformAdaptorType;
         typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
         // Create the transform adaptors
         // For the gaussian displacement field, the specified variances are in image spacing terms
@@ -1179,9 +1191,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         displacementFieldRegistration->SetFixedImage( preprocessFixedImage );
         displacementFieldRegistration->SetMovingImage( preprocessMovingImage );
 
-        if ( compositeTransform->GetNumberOfTransforms() > 0 )
+        if( compositeTransform->GetNumberOfTransforms() > 0 )
           {
-	  displacementFieldRegistration->SetMovingInitialTransform( compositeTransform );
+          displacementFieldRegistration->SetMovingInitialTransform( compositeTransform );
           }
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
         displacementFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
@@ -1200,15 +1212,15 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef antsRegistrationCommandIterationUpdate<DisplacementFieldRegistrationType> DisplacementFieldCommandType;
         typename DisplacementFieldCommandType::Pointer displacementFieldRegistrationObserver =
           DisplacementFieldCommandType::New();
-	//        displacementFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
+        //        displacementFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
         displacementFieldRegistrationObserver->SetNumberOfIterations( iterations );
 
         displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
         try
           {
           antscout << std::endl << "*** Running SyN registration (varianceForUpdateField = "
-                         << sigmaForUpdateField << ", varianceForTotalField = " << sigmaForTotalField << ") ***"
-                         << std::endl << std::endl;
+                   << sigmaForUpdateField << ", varianceForTotalField = " << sigmaForTotalField << ") ***"
+                   << std::endl << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
           displacementFieldRegistration->StartRegistration();
           }
@@ -1218,13 +1230,13 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           return EXIT_FAILURE;
           }
         // Add calculated transform to the composite transform
-	compositeTransform->AddTransform( outputDisplacementFieldTransform );
+        compositeTransform->AddTransform( outputDisplacementFieldTransform );
         if( timedim == 0 )
           {
           param_values.set_size(timedims, nparams);
           param_values.fill(0);
           }
-	}
+        }
       else
         {
         std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
@@ -1309,7 +1321,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       }
     }
   totalTimer.Stop();
-  antscout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << " averagemetric " << metricmean << std::endl;
+  antscout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << " averagemetric " << metricmean
+           << std::endl;
     {
     std::vector<std::string> ColumnHeaders;
     std::string              colname;
@@ -1354,7 +1367,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string( "turn on the option that lets you estimate the learning rate step size only at the beginning of each level.  * useful as a second stage of fine-scale registration." );
+    std::string description = std::string(
+        "turn on the option that lets you estimate the learning rate step size only at the beginning of each level.  * useful as a second stage of fine-scale registration." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "use-estimate-learning-rate-once" );
@@ -1362,7 +1376,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetDescription( description );
     parser->AddOption( option );
     }
-
 
     {
     std::string description =
@@ -1394,7 +1407,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       2,
-
 
       "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
@@ -1519,46 +1531,49 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 }
 
-//int main( int argc, char *argv[] )
+// int main( int argc, char *argv[] )
 
-int antsMotionCorr( std::vector<std::string> args , std::ostream* out_stream = NULL )
+int antsMotionCorr( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
 
-  args.insert( args.begin() , "antsMotionCorr" ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  args.insert( args.begin(), "antsMotionCorr" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser = itk::ants::CommandLineParser::New();
 
@@ -1602,7 +1617,7 @@ int antsMotionCorr( std::vector<std::string> args , std::ostream* out_stream = N
     }
 
   antscout << std::endl << "Running " << argv[0] << "  for " << dimension << "-dimensional images." << std::endl
-            << std::endl;
+           << std::endl;
 
   switch( dimension )
     {
@@ -1620,8 +1635,7 @@ int antsMotionCorr( std::vector<std::string> args , std::ostream* out_stream = N
   return EXIT_SUCCESS;
 }
 
-} //namespace ants
-
+} // namespace ants
 
 /*
 

@@ -16,55 +16,58 @@
 namespace ants
 {
 
-
 using namespace std;
 
 #define ITK_TEST_DIMENSION_MAX 6
 
 int RegressionTestImage(const char *, const char *, int, bool);
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int ImageCompare( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int ImageCompare( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "ImageCompare" ) ;
+  args.insert( args.begin(), "ImageCompare" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
@@ -114,7 +117,7 @@ int ImageCompare( std::vector<std::string> args , std::ostream* out_stream = NUL
     {
     antscout << "ITK test driver caught an ITK exception:\n";
     antscout << e.GetFile() << ":" << e.GetLine() << ":\n"
-              << e.GetDescription() << "\n";
+             << e.GetDescription() << "\n";
     bestBaselineStatus = -1;
     }
   catch( const std::exception& e )
@@ -178,9 +181,9 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
     {
     antscout << "The size of the Baseline image and Test image do not match!" << std::endl;
     antscout << "Baseline image: " << baselineImageFilename
-              << " has size " << baselineSize << std::endl;
+             << " has size " << baselineSize << std::endl;
     antscout << "Test image:     " << testImageFilename
-              << " has size " << testSize << std::endl;
+             << " has size " << testSize << std::endl;
     return 1;
     }
 
@@ -292,7 +295,7 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
     catch( ... )
       {
       antscout << "Error during rescale of " << testName.str()
-                << std::endl;
+               << std::endl;
       }
     try
       {
@@ -312,8 +315,4 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
   return (status != 0) ? 1 : 0;
 }
 
-
-
 } // namespace ants
-
-

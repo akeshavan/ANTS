@@ -21,7 +21,6 @@
 namespace ants
 {
 
-
 template <class TFilter>
 class CommandIterationUpdate : public itk::Command
 {
@@ -51,16 +50,16 @@ public:
       return;
       }
     antscout << "  Iteration " << filter->GetElapsedIterations()
-              << " (of "
-              << filter->GetMaximumNumberOfIterations()
-              << ").  ";
+             << " (of "
+             << filter->GetMaximumNumberOfIterations()
+             << ").  ";
     antscout << "Current energy = " << filter->GetCurrentEnergy() << ".  ";
     if( filter->GetElapsedIterations() >= filter->GetConvergenceWindowSize() )
       {
       antscout << "(convergence value = "
-                << filter->GetCurrentConvergenceMeasurement()
-                << ", threshold = " << filter->GetConvergenceThreshold()
-                << ")";
+               << filter->GetCurrentConvergenceMeasurement()
+               << ", threshold = " << filter->GetConvergenceThreshold()
+               << ")";
       }
     antscout << std::endl;
   }
@@ -171,7 +170,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   else
     {
     antscout << "  Grey matter probability image not specified. "
-              << "Creating one from the segmentation image." << std::endl;
+             << "Creating one from the segmentation image." << std::endl;
 
     typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType>
     ThresholderType;
@@ -215,7 +214,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   else
     {
     antscout << "  White matter probability image not specified. "
-              << "Creating one from the segmentation image." << std::endl << std::endl;
+             << "Creating one from the segmentation image." << std::endl << std::endl;
 
     typedef itk::BinaryThresholdImageFilter<LabelImageType, ImageType>
     ThresholderType;
@@ -495,48 +494,52 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int KellyKapowski( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int KellyKapowski( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "KellyKapowski" ) ;
+  args.insert( args.begin(), "KellyKapowski" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
@@ -598,7 +601,7 @@ int KellyKapowski( std::vector<std::string> args , std::ostream* out_stream = NU
     else
       {
       antscout << "No input images were specified.  Specify an input "
-                << " segmentation image with the -s option" << std::endl;
+               << " segmentation image with the -s option" << std::endl;
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
@@ -611,29 +614,19 @@ int KellyKapowski( std::vector<std::string> args , std::ostream* out_stream = NU
   switch( dimension )
     {
     case 2:
-      {
       DiReCT<2>( parser );
       break;
-      }
     case 3:
-      {
       DiReCT<3>( parser );
       break;
-      }
     case 4:
-      {
       DiReCT<4>( parser );
       break;
-      }
     default:
-      {
       antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
-      }
     }
   return EXIT_SUCCESS;
 }
 
 } // namespace ants
-
-

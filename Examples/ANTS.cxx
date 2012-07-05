@@ -16,7 +16,6 @@
 
 =========================================================================*/
 
-
 #include "antsUtilities.h"
 #include <algorithm>
 
@@ -28,7 +27,6 @@
 
 namespace ants
 {
-
 
 template <unsigned int ImageDimension>
 int ANTSex(int argc, char *argv[])
@@ -51,7 +49,7 @@ int ANTSex(int argc, char *argv[])
     antscout << "Non-standard exception caught in ANTS. No more information available." << std::endl;
     return EXIT_FAILURE;
     }
-    
+
   registration->GetTransformationModel()->SetWriteComponentImages(true);
   registration->GetTransformationModel()->Write();
 
@@ -59,48 +57,52 @@ int ANTSex(int argc, char *argv[])
 
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int ANTS( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int ANTS( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "ANTS" ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  args.insert( args.begin(), "ANTS" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   int dim = 2;
 
@@ -110,9 +112,9 @@ int ANTS( std::vector<std::string> args , std::ostream* out_stream = NULL )
     antscout <<  " \n " << std::endl;
     antscout <<  "Example usage: \n " << std::endl;
     antscout << argv[0]
-              <<
+             <<
     " ImageDimension -m MI[fixedimage.nii.gz,movingimage.nii.gz,1,32] -o Outputfname.nii.gz -i 30x20x0 -r Gauss[3,1] -t Elast[3] \n \n "
-              << std::endl;
+             << std::endl;
     antscout << " Compulsory arguments:\n " << std::endl;
     antscout << " ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)\n " << std::endl;
     antscout << " -m:    Type of similarity model used for registration. \n " << std::endl;
@@ -168,7 +170,7 @@ int ANTS( std::vector<std::string> args , std::ostream* out_stream = NULL )
   if( dim <= 1 || dim > 3 )
     {
     antscout << " You passed ImageDimension: " << dim
-              << " . Please use only 2 or 3 (for 2 or 3 Dimensional registration)  " << std::endl;
+             << " . Please use only 2 or 3 (for 2 or 3 Dimensional registration)  " << std::endl;
     argv[1] = (char *)("--help");
     ANTSex<2>( argc, argv );
     return EXIT_FAILURE;
@@ -205,8 +207,8 @@ int ANTS( std::vector<std::string> args , std::ostream* out_stream = NULL )
     if( fdim != mdim )
       {
       antscout << "Fixed image dimension does not equal "
-                << "the moving image dimension (" << fdim << " != " << mdim << ")"
-                << std::endl;
+               << "the moving image dimension (" << fdim << " != " << mdim << ")"
+               << std::endl;
       return EXIT_FAILURE;
       }
     if( fdim != 2 && fdim != 3 )
@@ -346,8 +348,4 @@ int ANTS( std::vector<std::string> args , std::ostream* out_stream = NULL )
   return EXIT_FAILURE;
 }
 
-
-
 } // namespace ants
-
-

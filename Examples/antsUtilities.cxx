@@ -134,6 +134,7 @@ bool get_a_double_number(const char * const str, double & v)
 void DisplayOptQueue(const TRAN_OPT_QUEUE & opt_queue)
 {
   const int kQueueSize = opt_queue.size();
+
   for( int i = 0; i < kQueueSize; i++ )
     {
     ants::antscout << "[" << i << "/" << kQueueSize << "]: ";

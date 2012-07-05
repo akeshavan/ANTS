@@ -19,7 +19,6 @@ namespace ants
 // Needed for the LabelImageGaussianInterpolateImageFunction to work on
 // vector images
 
-
 static bool IsInverseDeformation(const char *str)
 {
   std::string            filename = str;
@@ -36,9 +35,9 @@ static bool IsInverseDeformation(const char *str)
 }
 
 static bool WarpImageMultiTransform_ParseInput(int argc, char * *argv, char *& moving_image_filename,
-                char *& output_image_filename,
-                TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt,
-                int NDimensions)
+                                               char *& output_image_filename,
+                                               TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt,
+                                               int NDimensions)
 {
 
   opt_queue.clear();
@@ -315,8 +314,6 @@ void GetIdentityTransform(AffineTransformPointer & aff)
   aff->SetIdentity();
 }
 
-
-
 template <int ImageDimension, unsigned int NVectorComponents>
 void WarpImageMultiTransform(char *moving_image_filename, char *output_image_filename,
                              TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
@@ -473,7 +470,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         reader_image_affine->Update();
         typename ImageType::Pointer img_affine = reader_image_affine->GetOutput();
 
-        GetAffineTransformFromImage<ImageType,AffineTransformType>(img_affine, aff);
+        GetAffineTransformFromImage<ImageType, AffineTransformType>(img_affine, aff);
 
         if( opt.do_affine_inv )
           {
@@ -577,8 +574,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
       typename ImageType::SizeType largest_size;
       typename ImageType::PointType origin_warped;
-      GetLargestSizeAfterWarp<WarperType,ImageType>(warper, img_mov, largest_size, origin_warped);
-      //Use img_mov as initial template space, then overwrite individual components as desired
+      GetLargestSizeAfterWarp<WarperType, ImageType>(warper, img_mov, largest_size, origin_warped);
+      // Use img_mov as initial template space, then overwrite individual components as desired
       warper->SetOutputParametersFromImage( img_mov );
 
       warper->SetOutputSize(largest_size);
@@ -634,48 +631,52 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
   writer_img->Update();
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int WarpImageMultiTransform( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int WarpImageMultiTransform( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "WarpImageMultiTransform" ) ;
+  args.insert( args.begin(), "WarpImageMultiTransform" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc <= 3 )
     {
@@ -688,11 +689,11 @@ int WarpImageMultiTransform( std::vector<std::string> args , std::ostream* out_s
     // InverseAffineTransform.txt | --Id | [-i] --moving-image-header / -mh  | [-i] --reference-image-header / -rh]} \n"
     // << std::endl;
     antscout << argv[0]
-              <<
+             <<
     " ImageDimension moving_image output_image  -R reference_image --use-NN   SeriesOfTransformations--(See Below) "
-              << std::endl;
+             << std::endl;
     antscout << " SeriesOfTransformations --- " << argv[0]
-              <<  " can apply, via concatenation, an unlimited number of transformations to your data ." << std::endl;
+             <<  " can apply, via concatenation, an unlimited number of transformations to your data ." << std::endl;
     antscout
     <<
     " Thus, SeriesOfTransformations may be  an Affine transform followed by a warp  another affine and then another warp. "
@@ -708,7 +709,7 @@ int WarpImageMultiTransform( std::vector<std::string> args , std::ostream* out_s
     << std::endl;
 
     antscout << argv[0] <<  " 3 moving_image output_image -R reference_image abcdWarp.nii.gz abcdAffine.txt\n"
-              << std::endl;
+             << std::endl;
 
     antscout
     <<
@@ -716,8 +717,8 @@ int WarpImageMultiTransform( std::vector<std::string> args , std::ostream* out_s
     << std::endl;
 
     antscout << argv[0]
-              << " 3 reference_image output_image -R moving_image -i  abcdAffine.txt abcdInverseWarp.nii.gz \n \n"
-              << std::endl;
+             << " 3 reference_image output_image -R moving_image -i  abcdAffine.txt abcdInverseWarp.nii.gz \n \n"
+             << std::endl;
     antscout
     <<
     "  Note that the inverse maps (Ex. 2) are passed to this program in the reverse order of the forward maps (Ex. 1). "
@@ -805,8 +806,8 @@ int WarpImageMultiTransform( std::vector<std::string> args , std::ostream* out_s
   int  kImageDim = atoi(argv[1]);
 
   is_parsing_ok = WarpImageMultiTransform_ParseInput(argc - 2, argv + 2,
-    moving_image_filename, output_image_filename,
-    opt_queue, misc_opt, kImageDim);
+                                                     moving_image_filename, output_image_filename,
+                                                     opt_queue, misc_opt, kImageDim);
 
   if( is_parsing_ok )
     {
@@ -833,48 +834,48 @@ int WarpImageMultiTransform( std::vector<std::string> args , std::ostream* out_s
       {
       switch( kImageDim )
         {
-      case 2:
-
-        switch( ncomponents )
-          {
         case 2:
-          WarpImageMultiTransform<2, 2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-          break;
-        default:
-          WarpImageMultiTransform<2, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-          break;
-          }
-        break;
-      case 3:
 
-        switch( ncomponents )
-          {
+          switch( ncomponents )
+            {
+            case 2:
+              WarpImageMultiTransform<2, 2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            default:
+              WarpImageMultiTransform<2, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            }
+          break;
         case 3:
-          WarpImageMultiTransform<3, 3>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-          break;
-        case 6:
-          WarpImageMultiTransform<3, 6>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-          break;
-        default:
-          WarpImageMultiTransform<3, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-          break;
-          }
-        break;
-      case 4:
 
-        switch( ncomponents )
-          {
+          switch( ncomponents )
+            {
+            case 3:
+              WarpImageMultiTransform<3, 3>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            case 6:
+              WarpImageMultiTransform<3, 6>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            default:
+              WarpImageMultiTransform<3, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            }
+          break;
         case 4:
-          WarpImageMultiTransform<4, 4>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+
+          switch( ncomponents )
+            {
+            case 4:
+              WarpImageMultiTransform<4, 4>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            default:
+              WarpImageMultiTransform<4, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            }
           break;
         default:
-          WarpImageMultiTransform<4, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-          break;
-          }
-        break;
-      default:
-        antscout << " not supported " << kImageDim  << std::endl;
-        return EXIT_FAILURE;
+          antscout << " not supported " << kImageDim  << std::endl;
+          return EXIT_FAILURE;
         }
       }
     catch( itk::ExceptionObject & e )
@@ -894,8 +895,4 @@ int WarpImageMultiTransform( std::vector<std::string> args , std::ostream* out_s
   return EXIT_SUCCESS;
 }
 
-
-
 } // namespace ants
-
-

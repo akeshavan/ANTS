@@ -26,7 +26,6 @@
 #include "itkGrayscaleDilateImageFilter.h"
 #include "itkGrayscaleErodeImageFilter.h"
 
-
 // We need to ensure that only one of these exists!
 namespace ants
 {
@@ -227,9 +226,9 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
 }
 
 #if 0
-//TODO:  I am pretty sure that this can be completely
-//replaced by the Morphological template above
-//with option = true, flase, and 
+// TODO:  I am pretty sure that this can be completely
+// replaced by the Morphological template above
+// with option = true, flase, and
 template <class TImage>
 typename TImage::Pointer  MorphologicalBinary( typename TImage::Pointer input, float rad, bool option)
 {
@@ -312,6 +311,7 @@ typename TImage::Pointer  MorphologicalBinary( typename TImage::Pointer input, f
   return temp;
 
 }
+
 #endif
 
 template <class TImage>
@@ -375,10 +375,10 @@ template <class ImageType, class AffineTransform>
 void GetAffineTransformFromImage(const typename ImageType::Pointer& img,
                                  typename AffineTransform::Pointer & aff)
 {
-  typedef typename ImageType::DirectionType                            DirectionType;
-  typedef typename ImageType::PointType                                PointType;
-  typedef typename ImageType::SpacingType                              SpacingType;
-  typedef typename AffineTransform::TranslationType                    VectorType;
+  typedef typename ImageType::DirectionType         DirectionType;
+  typedef typename ImageType::PointType             PointType;
+  typedef typename ImageType::SpacingType           SpacingType;
+  typedef typename AffineTransform::TranslationType VectorType;
 
   DirectionType direction = img->GetDirection();
 
@@ -405,7 +405,7 @@ void GetLargestSizeAfterWarp(typename WarperType::Pointer & warper,
                              typename ImageType::SizeType & largest_size,
                              typename ImageType::PointType & origin_warped)
 {
-  typedef typename ImageType::SizeType SizeType;
+  typedef typename ImageType::SizeType  SizeType;
   typedef typename ImageType::PointType PointType;
 
   const int ImageDimension = ImageType::GetImageDimension();

@@ -15,7 +15,6 @@
 namespace ants
 {
 
-
 template <unsigned int ImageDimension>
 int LabelOverlapMeasures( int argc, char * argv[] )
 {
@@ -45,14 +44,14 @@ int LabelOverlapMeasures( int argc, char * argv[] )
   filter->Update();
 
   antscout << "                                          "
-            << "************ All Labels *************" << std::endl;
+           << "************ All Labels *************" << std::endl;
   antscout << std::setw( 10 ) << "   "
-            << std::setw( 17 ) << "Total"
-            << std::setw( 17 ) << "Union (jaccard)"
-            << std::setw( 17 ) << "Mean (dice)"
-            << std::setw( 17 ) << "Volume sim."
-            << std::setw( 17 ) << "False negative"
-            << std::setw( 17 ) << "False positive" << std::endl;
+           << std::setw( 17 ) << "Total"
+           << std::setw( 17 ) << "Union (jaccard)"
+           << std::setw( 17 ) << "Mean (dice)"
+           << std::setw( 17 ) << "Volume sim."
+           << std::setw( 17 ) << "False negative"
+           << std::setw( 17 ) << "False positive" << std::endl;
   antscout << std::setw( 10 ) << "   ";
   antscout << std::setw( 17 ) << filter->GetTotalOverlap();
   antscout << std::setw( 17 ) << filter->GetUnionOverlap();
@@ -63,14 +62,14 @@ int LabelOverlapMeasures( int argc, char * argv[] )
   antscout << std::endl;
 
   antscout << "                                       "
-            << "************ Individual Labels *************" << std::endl;
+           << "************ Individual Labels *************" << std::endl;
   antscout << std::setw( 10 ) << "Label"
-            << std::setw( 17 ) << "Target"
-            << std::setw( 17 ) << "Union (jaccard)"
-            << std::setw( 17 ) << "Mean (dice)"
-            << std::setw( 17 ) << "Volume sim."
-            << std::setw( 17 ) << "False negative"
-            << std::setw( 17 ) << "False positive"
+           << std::setw( 17 ) << "Target"
+           << std::setw( 17 ) << "Union (jaccard)"
+           << std::setw( 17 ) << "Mean (dice)"
+           << std::setw( 17 ) << "Volume sim."
+           << std::setw( 17 ) << "False negative"
+           << std::setw( 17 ) << "False positive"
 //            << std::setw( 17 ) << "Hausdorff"
 //            << std::setw( 17 ) << "Avg. Hausdorff"
 //            << std::setw( 17 ) << "Min. dist. sum"
@@ -189,53 +188,57 @@ int LabelOverlapMeasures( int argc, char * argv[] )
   return EXIT_SUCCESS;
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int LabelOverlapMeasures( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int LabelOverlapMeasures( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "LabelOverlapMeasures" ) ;
+  args.insert( args.begin(), "LabelOverlapMeasures" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc < 4 )
     {
     antscout << "Usage: " << argv[0] << " imageDimension sourceImage "
-              << "targetImage" << std::endl;
+             << "targetImage" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -254,8 +257,4 @@ int LabelOverlapMeasures( std::vector<std::string> args , std::ostream* out_stre
   return EXIT_SUCCESS;
 }
 
-
-
 } // namespace ants
-
-

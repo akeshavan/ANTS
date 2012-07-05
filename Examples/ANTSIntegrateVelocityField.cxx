@@ -27,7 +27,6 @@
 namespace ants
 {
 
-
 template <unsigned int ImageDimension>
 int IntegrateVelocityField(int argc, char *argv[])
 {
@@ -59,17 +58,17 @@ int IntegrateVelocityField(int argc, char *argv[])
   antscout << " time-0 " << timezero << " dt " << dT << " time-1 " << timeone << std::endl;
   PixelType starttime = timezero;
   PixelType finishtime = timeone;
-  typedef float                                                          PixelType;
-  typedef itk::Vector<PixelType, ImageDimension>                         VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                         DisplacementFieldType;
-  typedef itk::Image<VectorType, ImageDimension + 1>                     TimeVaryingVelocityFieldType;
-  typedef itk::Image<PixelType, ImageDimension>                          ImageType;
-  typedef typename  ImageType::IndexType                                 IndexType;
-  typedef typename  ImageType::SizeType                                  SizeType;
-  typedef typename  ImageType::SpacingType                               SpacingType;
-  typedef TimeVaryingVelocityFieldType                                   tvt;
-  typedef itk::ImageFileReader<tvt>                                      readertype;
-  typedef itk::ImageFileWriter<DisplacementFieldType>                    writertype;
+  typedef float                                       PixelType;
+  typedef itk::Vector<PixelType, ImageDimension>      VectorType;
+  typedef itk::Image<VectorType, ImageDimension>      DisplacementFieldType;
+  typedef itk::Image<VectorType, ImageDimension + 1>  TimeVaryingVelocityFieldType;
+  typedef itk::Image<PixelType, ImageDimension>       ImageType;
+  typedef typename  ImageType::IndexType              IndexType;
+  typedef typename  ImageType::SizeType               SizeType;
+  typedef typename  ImageType::SpacingType            SpacingType;
+  typedef TimeVaryingVelocityFieldType                tvt;
+  typedef itk::ImageFileReader<tvt>                   readertype;
+  typedef itk::ImageFileWriter<DisplacementFieldType> writertype;
   typename ImageType::Pointer image;
   ReadImage<ImageType>(image, imgfn.c_str() );
   typename tvt::Pointer timeVaryingVelocity;
@@ -112,69 +111,71 @@ int IntegrateVelocityField(int argc, char *argv[])
     finishtime = 1;
     }
 
-
   typedef itk::TimeVaryingVelocityFieldIntegrationImageFilter
-    <TimeVaryingVelocityFieldType, DisplacementFieldType> IntegratorType;
+  <TimeVaryingVelocityFieldType, DisplacementFieldType> IntegratorType;
   typename IntegratorType::Pointer integrator = IntegratorType::New();
   integrator->SetInput( timeVaryingVelocity );
   integrator->SetLowerTimeBound( starttime );
   integrator->SetUpperTimeBound( finishtime );
-  integrator->SetNumberOfIntegrationSteps( (unsigned int ) 1/dT );
+  integrator->SetNumberOfIntegrationSteps( (unsigned int ) 1 / dT );
   integrator->Update();
 
-
-  WriteImage<DisplacementFieldType>( integrator->GetOutput() , outname.c_str() );
+  WriteImage<DisplacementFieldType>( integrator->GetOutput(), outname.c_str() );
   return 0;
 
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int ANTSIntegrateVelocityField( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int ANTSIntegrateVelocityField( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "ANTSIntegrateVelocityField" ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  args.insert( args.begin(), "ANTSIntegrateVelocityField" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc < 4 )
     {
     antscout << "Usage:   " << argv[0]
-              << " reference_image  VelocityIn.mhd DeformationOut.nii.gz  time0 time1 dT  " << std::endl;
+             << " reference_image  VelocityIn.mhd DeformationOut.nii.gz  time0 time1 dT  " << std::endl;
     return 1;
     }
   antscout << " start " << std::endl;
@@ -206,8 +207,4 @@ int ANTSIntegrateVelocityField( std::vector<std::string> args , std::ostream* ou
 
 }
 
-
-
 } // namespace ants
-
-

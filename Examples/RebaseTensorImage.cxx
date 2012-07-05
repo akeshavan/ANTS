@@ -28,70 +28,74 @@
 namespace ants
 {
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int RebaseTensorImage( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int RebaseTensorImage( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "RebaseTensorImage" ) ;
+  args.insert( args.begin(), "RebaseTensorImage" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
 
+  antscout->set_stream( out_stream );
 
   if( argc < 5 )
     {
-    antscout << "Usage: " << argv[0] << " Dimension infile.nii outfile.nii <PHYSICAL/LOCAL/reference.nii.gz> " << std::endl;
+    antscout << "Usage: " << argv[0] << " Dimension infile.nii outfile.nii <PHYSICAL/LOCAL/reference.nii.gz> "
+             << std::endl;
     return 1;
     }
 
-  int  dim = atoi(argv[1]);
-  
-  char *         moving_image_filename = argv[2];
-  char *         output_image_filename = argv[3];
+  int dim = atoi(argv[1]);
+
+  char * moving_image_filename = argv[2];
+  char * output_image_filename = argv[3];
 
   if( dim != 3 )
     {
     antscout << "RebaseTensorImage only supports 3D image volumes" << std::endl;
-    return 1 ;
+    return 1;
     }
 
-  typedef itk::DiffusionTensor3D<double>                            PixelType;
-  typedef itk::Image<PixelType, 3>                                  TensorImageType;
-  typedef itk::Image<float, 3>                                      ImageType;
+  typedef itk::DiffusionTensor3D<double> PixelType;
+  typedef itk::Image<PixelType, 3>       TensorImageType;
+  typedef itk::Image<float, 3>           ImageType;
 
   typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
   TensorImageType::Pointer img_mov;
@@ -104,15 +108,15 @@ int RebaseTensorImage( std::vector<std::string> args , std::ostream* out_stream 
 
   antscout << "Transforming space of " << moving_image_filename;
 
-  //antscout << i << " = " << argv[i-1] << std::endl;
+  // antscout << i << " = " << argv[i-1] << std::endl;
   char * convert = argv[4];
-  
-  if ( strcmp( convert, "PHYSICAL" ) == 0 )
+
+  if( strcmp( convert, "PHYSICAL" ) == 0 )
     {
     antscout << " -> physical space";
     direction = img_mov->GetDirection().GetVnlMatrix();
     }
-  else if ( strcmp( convert, "LOCAL" ) == 0 )
+  else if( strcmp( convert, "LOCAL" ) == 0 )
     {
     antscout << " -> local space";
     direction = img_mov->GetDirection().GetTranspose();
@@ -125,17 +129,17 @@ int RebaseTensorImage( std::vector<std::string> args , std::ostream* out_stream 
     direction =  img_mov->GetDirection().GetTranspose() * target->GetDirection().GetVnlMatrix();
     }
 
-  //direction = direction.transpose(); // to accomodate for how
-                                     // eigenvectors are stored
+  // direction = direction.transpose(); // to accomodate for how
+  // eigenvectors are stored
 
   antscout << std::endl;
   antscout << "Final rebasing matrix: " << std::endl << direction << std::endl;
 
-  if ( ! direction.is_identity(0.00001) )
+  if( !direction.is_identity(0.00001) )
     {
-    
+
     itk::ImageRegionIteratorWithIndex<TensorImageType> it( img_mov, img_mov->GetLargestPossibleRegion() );
-    while ( ! it.IsAtEnd() )
+    while( !it.IsAtEnd() )
       {
 
       /*
@@ -143,16 +147,16 @@ int RebaseTensorImage( std::vector<std::string> args , std::ostream* out_stream 
       PixelType::EigenValuesArrayType evalues;
       PixelType::EigenVectorsMatrixType evectors;
       dt.ComputeEigenAnalysis( evalues, evectors );
-      
+
       evectors = evectors * direction;
-      
+
       PixelType::EigenVectorsMatrixType emat;
       emat.Fill( 0.0 );
       for (unsigned int i=0; i<3; i++)
         {
         emat(i,i) = evalues[i];
         }
-      
+
       PixelType::EigenVectorsMatrixType::InternalMatrixType matrixDT = evectors.GetTranspose() * emat.GetVnlMatrix() * evectors.GetVnlMatrix();
       */
 
@@ -162,20 +166,20 @@ int RebaseTensorImage( std::vector<std::string> args , std::ostream* out_stream 
       dt(0, 2) = dt(2, 0) = it.Value()[2];
       dt(1, 1) = it.Value()[3];
       dt(1, 2) = dt(2, 1) = it.Value()[4];
-      dt(2, 2) = it.Value()[5];      
-      
-      if ( ( it.Value()[0] + it.Value()[3] + it.Value()[5] ) > 0.00001 )
+      dt(2, 2) = it.Value()[5];
+
+      if( ( it.Value()[0] + it.Value()[3] + it.Value()[5] ) > 0.00001 )
         {
 
         PixelType::EigenVectorsMatrixType::InternalMatrixType matrixDT = direction * dt * direction.transpose();
-        
+
         PixelType outDT;
-        outDT[0] = matrixDT(0,0);
-        outDT[1] = matrixDT(1,0);
-        outDT[2] = matrixDT(2,0);
-        outDT[3] = matrixDT(1,1);
-        outDT[4] = matrixDT(2,1);
-        outDT[5] = matrixDT(2,2);
+        outDT[0] = matrixDT(0, 0);
+        outDT[1] = matrixDT(1, 0);
+        outDT[2] = matrixDT(2, 0);
+        outDT[3] = matrixDT(1, 1);
+        outDT[4] = matrixDT(2, 1);
+        outDT[5] = matrixDT(2, 2);
         it.Set( outDT );
         }
 
@@ -186,7 +190,7 @@ int RebaseTensorImage( std::vector<std::string> args , std::ostream* out_stream 
     {
     antscout << "Identity transform detected.. image unmodified" << std::endl;
     }
-    
+
   // No reason to use log-euclidean space here
   WriteTensorImage<TensorImageType>(img_mov, output_image_filename, false);
 

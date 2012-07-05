@@ -145,7 +145,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
         }
       typename PointSetType::PointType movingPoint;
       movingImage->TransformIndexToPhysicalPoint( ItM.GetIndex(), movingPoint );
-      //added below due to a compilation error on windows
+      // added below due to a compilation error on windows
       const typename LabelImageType::PointType::VectorType tmpFixVector = fixedOrigin.GetVectorFromOrigin();
       movingPoint -= tmpFixVector;
       movingPoint = fixedDirectionInverse * movingPoint;
@@ -289,6 +289,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
     ++mItD;
     ++mIt;
     }
+
   bool enforceStationaryBoundary = true;
   if( argc > 7 )
     {
@@ -459,6 +460,7 @@ public:
     Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
     {
     }
+
     ~Cleanup_argv()
     {
       for( unsigned int i = 0; i < argc_plus_one; ++i )

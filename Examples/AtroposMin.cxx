@@ -17,7 +17,6 @@
 namespace ants
 {
 
-
 template <unsigned int ImageDimension>
 int AtroposSegmentation( itk::ants::CommandLineParser *parser )
 {
@@ -56,7 +55,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
   else
     {
     antscout << "An image mask is required.  Specify a mask image"
-              << " with the -x option." << std::endl;
+             << " with the -x option." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -98,7 +97,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
   else
     {
     antscout << "No input images were specified.  Specify an input image"
-              << " with the -a option." << std::endl;
+             << " with the -a option." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -126,7 +125,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       JointHistogramParzenShapeAndOrientationListSampleFunction
       <SampleType, float, float> LikelihoodType;
 
-           float shapeSigma = 1.0;
+      float shapeSigma = 1.0;
       if( likelihoodOption->GetNumberOfParameters() > 0 )
         {
         shapeSigma = parser->Convert<float>(
@@ -139,18 +138,17 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
             likelihoodOption->GetParameter( 1 ) );
         }
       float orientationSigma = 2.0;
-      if (likelihoodOption->GetNumberOfParameters() > 2 )
-      {
-          orientationSigma = parser->Convert<float>(
+      if( likelihoodOption->GetNumberOfParameters() > 2 )
+        {
+        orientationSigma = parser->Convert<float>(
             likelihoodOption->GetParameter( 2 ) );
-      }
+        }
       unsigned int numberOfOrientationBins = 64;
-      if( likelihoodOption -> GetNumberOfParameters() > 3)
-      {
-          numberOfOrientationBins = parser->Convert<unsigned int>(
+      if( likelihoodOption->GetNumberOfParameters() > 3 )
+        {
+        numberOfOrientationBins = parser->Convert<unsigned int>(
             likelihoodOption->GetParameter(3) );
-      }
-
+        }
       for( unsigned int n = 0; n < segmenter->GetNumberOfTissueClasses(); n++ )
         {
         typename LikelihoodType::Pointer hpwLikelihood =
@@ -302,48 +300,52 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int AtroposMin( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int AtroposMin( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "AtroposMin" ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  args.insert( args.begin(), "AtroposMin" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
@@ -407,7 +409,7 @@ int AtroposMin( std::vector<std::string> args , std::ostream* out_stream = NULL 
     else
       {
       antscout << "No input images were specified.  Specify an input image"
-                << " with the -a option" << std::endl;
+               << " with the -a option" << std::endl;
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
@@ -416,7 +418,7 @@ int AtroposMin( std::vector<std::string> args , std::ostream* out_stream = NULL 
     }
 
   antscout << std::endl << "Running Atropos for "
-            << dimension << "-dimensional images." << std::endl;
+           << dimension << "-dimensional images." << std::endl;
 
   switch( dimension )
     {
@@ -437,5 +439,3 @@ int AtroposMin( std::vector<std::string> args , std::ostream* out_stream = NULL 
 }
 
 } // namespace ants
-
-

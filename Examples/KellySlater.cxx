@@ -34,7 +34,6 @@
 namespace ants
 {
 
-
 template <class TField, class TImage>
 typename TImage::Pointer
 GetVectorComponent(typename TField::Pointer field, unsigned int index)
@@ -240,7 +239,6 @@ LabelSurface(typename TImage::PixelType foreground,
 
   return Image;
 }
-
 
 template <class TImage, class TField>
 typename TField::Pointer
@@ -732,7 +730,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   //  WriteImage<ImageType>(bsurf,"surfdefwm.nii.gz");
 
   typedef   DisplacementFieldType
-                                                                                            TimeVaryingVelocityFieldType;
+  TimeVaryingVelocityFieldType;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType>                          FieldIterator;
   typedef typename DisplacementFieldType::IndexType                                         DIndexType;
   typedef typename DisplacementFieldType::PointType                                         DPointType;
@@ -781,8 +779,8 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   disp.Fill(0.0);
   incdisp.Fill(0.0);
   IteratorType Iterator( wm, wm->GetLargestPossibleRegion().GetSize() );
-  RealType totalerr = 1.e8, lasterr = 1.e10;
-  unsigned its = 0;
+  RealType     totalerr = 1.e8, lasterr = 1.e10;
+  unsigned     its = 0;
   wmgrow->FillBuffer(0);
   RealType      dmag = 0;
   RealType      thicknesserror = 0;
@@ -1063,7 +1061,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       if( thkval > 10 )
         {
         antscout << "thkval " << thkval << " hitval " << hitval << " total " << totalimage->GetPixel(velind)
-                  << std::endl;
+                 << std::endl;
         }
       if( thkval < 0 )
         {
@@ -1110,7 +1108,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       thickerrct = 1;
       }
     antscout << " error " << totalerr << " at it " << its  << " th-err " << thicknesserror / (RealType)thickerrct
-              << " max thick " << maxth << std::endl;
+             << " max thick " << maxth << std::endl;
 //    std::string sulcthickname =outname + "sulcthick.nii";
     //    if (ImageDimension==2) WriteJpg<ImageType>(finalthickimage,"thick.jpg");
     //    std::string velofieldname = outname + "velofield";
@@ -1152,55 +1150,59 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
-int KellySlater( std::vector<std::string> args , std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int KellySlater( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin() , "KellySlater" ) ;
+  args.insert( args.begin(), "KellySlater" );
 
-  std::remove( args.begin() , args.end() , std::string( "" ) ) ;
-  int argc = args.size() ;
-  char** argv = new char*[args.size()+1] ;
-  for( unsigned int i = 0 ; i < args.size() ; ++i )
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length()+1] ;
-      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0' ;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0 ;
+  argv[argc] = 0;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-  public:
-    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
-    {}
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
-	{
-	  delete[] argv[i] ;
-	}
-      delete[] argv ;
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
     }
-  private:
-    char** argv ;
-    unsigned int argc_plus_one ;
-  } ;
-  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-  antscout->set_stream( out_stream ) ;
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
 
   if( argc < 6 )
     {
     antscout << "Usage:   " << argv[0]
-              <<
+             <<
     " ImageDimension Segmentation.nii.gz WMProb.nii.gz GMProb.nii.gz   Out.nii {GradStep-1-2D,2-3D}   {#Its-~50}  {ThickPriorValue-6} {Bool-use-curvature-prior} {smoothing} {BoolUseEuclidean?}"
-              << std::endl;
+             << std::endl;
     antscout << " this is a kind of binary image registration thing with diffeomorphisms " << std::endl;
     antscout
     << " Segmentation.nii.gz -- should contain the value 3 where WM exists and the value 2 where GM exists "
@@ -1227,8 +1229,4 @@ int KellySlater( std::vector<std::string> args , std::ostream* out_stream = NULL
   return EXIT_SUCCESS;
 }
 
-
-
 } // namespace ants
-
-
