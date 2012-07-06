@@ -176,7 +176,7 @@ template <>
 class RigidTransformTraits<3>
 {
 public:
-  // typedef itk::VersorRigid3DTransform<double> TransformType;
+  // typedef itk::VersorRigid3DTransform<double>    TransformType;
   // typedef itk::QuaternionRigidTransform<double>  TransformType;
   typedef itk::Euler3DTransform<double> TransformType;
 };
@@ -228,20 +228,23 @@ public:
 template <unsigned VImageDimension>
 RegistrationHelper<VImageDimension>
 ::RegistrationHelper() :
-  m_CompositeTransform(NULL),
-  m_FixedInitialTransform(NULL),
-  m_NumberOfStages(0),
+  m_CompositeTransform( NULL ),
+  m_FixedInitialTransform( NULL ),
+  m_NumberOfStages( 0 ),
   m_Metrics(),
   m_TransformMethods(),
   m_Iterations(),
   m_SmoothingSigmas(),
   m_ShrinkFactors(),
-  m_UseHistogramMatching(true),
-  m_WinsorizeImageIntensities(false),
-  m_DoEstimateLearningRateAtEachIteration(true),
-  m_LowerQuantile(0.0),
-  m_UpperQuantile(1.0),
-  m_LogStream(&::ants::antscout)
+  m_UseHistogramMatching( true ),
+  m_WinsorizeImageIntensities( false ),
+  m_DoEstimateLearningRateAtEachIteration( true ),
+  m_LowerQuantile( 0.0 ),
+  m_UpperQuantile( 1.0 ),
+  m_LogStream( &::ants::antscout ),
+  m_ApplyLinearTransformsToMovingImageHeader( true ),
+  m_AllPreviousTransformsAreLinear( true ),
+  m_CompositeLinearTransformForMovingImageHeader( NULL )
 {
   typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
   typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
@@ -792,22 +795,15 @@ RegistrationHelper<VImageDimension>
   this->Logger() << "Registration using " << this->m_NumberOfStages << " total stages." << std::endl;
 
   // NOTE:  the -1 is to ignore the initial identity identity transform
-  const size_t numberOfInitialMovingTransforms =
-    (this->m_CompositeTransform.IsNull() ?
-     0 :
-     this->m_CompositeTransform->GetNumberOfTransforms() );
-
-  if( numberOfInitialMovingTransforms == 0 )
+  if( this->m_CompositeTransform.IsNull() )
     {
     this->m_CompositeTransform = CompositeTransformType::New();
     }
-
-  const size_t numberOfInitialFixedTransforms =
-    (this->m_FixedInitialTransform.IsNull() ?
-     0 :
-     this->m_FixedInitialTransform->GetNumberOfTransforms() );
-
-  if( numberOfInitialFixedTransforms == 0 )
+  if( this->m_CompositeLinearTransformForMovingImageHeader.IsNull() )
+    {
+    this->m_CompositeLinearTransformForMovingImageHeader = CompositeTransformType::New();
+    }
+  if( this->m_FixedInitialTransform.IsNull() )
     {
     this->m_FixedInitialTransform = CompositeTransformType::New();
     }
@@ -861,6 +857,12 @@ RegistrationHelper<VImageDimension>
                                     lowerScaleValue, upperScaleValue,
                                     this->m_LowerQuantile, this->m_UpperQuantile,
                                     NULL );
+      }
+
+    if( this->m_ApplyLinearTransformsToMovingImageHeader )
+      {
+      this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForMovingImageHeader,
+                                                        preprocessMovingImage );
       }
 
     this->Logger() << outputPreprocessingString << std::flush;
@@ -1086,7 +1088,7 @@ RegistrationHelper<VImageDimension>
         {
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
 
-        typedef itk::AffineTransform<double, VImageDimension> AffineTransformType;
+        typedef itk::AffineTransform<RealType, VImageDimension> AffineTransformType;
 
         affineRegistration->SetFixedImage( preprocessFixedImage );
         affineRegistration->SetMovingImage( preprocessMovingImage );
@@ -1126,9 +1128,18 @@ RegistrationHelper<VImageDimension>
           return EXIT_FAILURE;
           }
 
-        // Add calculated transform to the composite transform
-        this->m_CompositeTransform->AddTransform( const_cast<AffineTransformType *>( affineRegistration->GetOutput()->
-                                                                                     Get() ) );
+        // Add calculated transform to the composite transform or add it to the composite transform
+        // which is incorporated into the moving image header.
+        if( this->m_ApplyLinearTransformsToMovingImageHeader && this->m_AllPreviousTransformsAreLinear )
+          {
+          this->m_CompositeLinearTransformForMovingImageHeader->AddTransform( const_cast<AffineTransformType *>(
+                                                                                affineRegistration->GetOutput()->Get() ) );
+          }
+        else
+          {
+          this->m_CompositeTransform->AddTransform( const_cast<AffineTransformType *>( affineRegistration->GetOutput()
+                                                                                       ->Get() ) );
+          }
         }
         break;
       case Rigid:
@@ -1176,8 +1187,19 @@ RegistrationHelper<VImageDimension>
           ::ants::antscout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
-        // Add calculated transform to the composite transform
-        this->m_CompositeTransform->AddTransform( const_cast<RigidTransformType *>( rigidRegistration->GetOutput()->Get() ) );
+
+        // Add calculated transform to the composite transform or add it to the composite transform
+        // which is incorporated into the moving image header.
+        if( this->m_ApplyLinearTransformsToMovingImageHeader && this->m_AllPreviousTransformsAreLinear )
+          {
+          this->m_CompositeLinearTransformForMovingImageHeader->AddTransform( const_cast<RigidTransformType *>(
+                                                                                rigidRegistration->GetOutput()->Get() ) );
+          }
+        else
+          {
+          this->m_CompositeTransform->AddTransform( const_cast<RigidTransformType *>( rigidRegistration->GetOutput()->
+                                                                                      Get() ) );
+          }
         }
         break;
       case CompositeAffine:
@@ -1226,10 +1248,19 @@ RegistrationHelper<VImageDimension>
           ::ants::antscout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
-        // Add calculated transform to the composite transform
-        this->m_CompositeTransform->AddTransform( const_cast<CompositeAffineTransformType *>( affineRegistration->
-                                                                                              GetOutput()->
-                                                                                              Get() ) );
+
+        // Add calculated transform to the composite transform or add it to the composite transform
+        // which is incorporated into the moving image header.
+        if( this->m_ApplyLinearTransformsToMovingImageHeader && this->m_AllPreviousTransformsAreLinear )
+          {
+          this->m_CompositeLinearTransformForMovingImageHeader->AddTransform( const_cast<CompositeAffineTransformType *>(
+                                                                                affineRegistration->GetOutput()->Get() ) );
+          }
+        else
+          {
+          this->m_CompositeTransform->AddTransform( const_cast<CompositeAffineTransformType *>( affineRegistration->
+                                                                                                GetOutput()->Get() ) );
+          }
         }
         break;
       case Similarity:
@@ -1278,9 +1309,20 @@ RegistrationHelper<VImageDimension>
           ::ants::antscout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
-        // Add calculated transform to the composite transform
-        this->m_CompositeTransform->AddTransform( const_cast<SimilarityTransformType *>( similarityRegistration->
-                                                                                         GetOutput()->Get() ) );
+
+        // Add calculated transform to the composite transform or add it to the composite transform
+        // which is incorporated into the moving image header.
+        if( this->m_ApplyLinearTransformsToMovingImageHeader && this->m_AllPreviousTransformsAreLinear )
+          {
+          this->m_CompositeLinearTransformForMovingImageHeader->AddTransform( const_cast<SimilarityTransformType *>(
+                                                                                similarityRegistration->GetOutput()->
+                                                                                Get() ) );
+          }
+        else
+          {
+          this->m_CompositeTransform->AddTransform( const_cast<SimilarityTransformType *>( similarityRegistration->
+                                                                                           GetOutput()->Get() ) );
+          }
         }
         break;
       case Translation:
@@ -1329,10 +1371,20 @@ RegistrationHelper<VImageDimension>
           ::ants::antscout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
-        // Add calculated transform to the composite transform
-        this->m_CompositeTransform->AddTransform( const_cast<TranslationTransformType *>( translationRegistration->
-                                                                                          GetOutput()->
-                                                                                          Get() ) );
+
+        // Add calculated transform to the composite transform or add it to the composite transform
+        // which is incorporated into the moving image header.
+        if( this->m_ApplyLinearTransformsToMovingImageHeader && this->m_AllPreviousTransformsAreLinear )
+          {
+          this->m_CompositeLinearTransformForMovingImageHeader->AddTransform( const_cast<TranslationTransformType *>(
+                                                                                translationRegistration->GetOutput()->
+                                                                                Get() ) );
+          }
+        else
+          {
+          this->m_CompositeTransform->AddTransform( const_cast<TranslationTransformType *>( translationRegistration->
+                                                                                            GetOutput()->Get() ) );
+          }
         }
         break;
       case GaussianDisplacementField:
@@ -1448,6 +1500,8 @@ RegistrationHelper<VImageDimension>
 
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputDisplacementFieldTransform );
+
+        this->m_AllPreviousTransformsAreLinear = false;
         }
         break;
       case BSplineDisplacementField:
@@ -1587,6 +1641,8 @@ RegistrationHelper<VImageDimension>
 
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputDisplacementFieldTransform );
+
+        this->m_AllPreviousTransformsAreLinear = false;
         }
         break;
       case BSpline:
@@ -1686,6 +1742,8 @@ RegistrationHelper<VImageDimension>
           }
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputBSplineTransform );
+
+        this->m_AllPreviousTransformsAreLinear = false;
         }
         break;
       case TimeVaryingVelocityField:
@@ -1865,6 +1923,8 @@ RegistrationHelper<VImageDimension>
           }
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputTransform );
+
+        this->m_AllPreviousTransformsAreLinear = false;
         }
         break;
       case TimeVaryingBSplineVelocityField:
@@ -2047,6 +2107,8 @@ RegistrationHelper<VImageDimension>
           }
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputTransform );
+
+        this->m_AllPreviousTransformsAreLinear = false;
         }
         break;
       case SyN:
@@ -2169,6 +2231,8 @@ RegistrationHelper<VImageDimension>
 
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputDisplacementFieldTransform );
+
+        this->m_AllPreviousTransformsAreLinear = false;
         }
         break;
       case BSplineSyN:
@@ -2326,6 +2390,8 @@ RegistrationHelper<VImageDimension>
 
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputDisplacementFieldTransform );
+
+        this->m_AllPreviousTransformsAreLinear = false;
         }
         break;
       default:
@@ -2336,6 +2402,13 @@ RegistrationHelper<VImageDimension>
     this->Logger() << "  Elapsed time (stage " << stageNumber << "): " << timer.GetMean() << std::endl << std::endl;
     }
 
+  if( this->m_ApplyLinearTransformsToMovingImageHeader &&
+      this->m_CompositeLinearTransformForMovingImageHeader->GetNumberOfTransforms() > 0 )
+    {
+    this->m_CompositeTransform->PrependTransform( this->m_CompositeLinearTransformForMovingImageHeader );
+    this->m_CompositeTransform->FlattenTransformQueue();
+    }
+
   totalTimer.Stop();
   this->Logger() << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
   return EXIT_SUCCESS;
@@ -2344,34 +2417,56 @@ RegistrationHelper<VImageDimension>
 template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
-::SetMovingInitialTransform(const TransformType *initialTransform)
+::SetMovingInitialTransform( const TransformType *initialTransform )
 {
+  // Since the initial transform might be linear (or a composition of
+  // linear transforms), we might want to add those initial transforms
+  // to the moving image header for faster processing.
+
   typename CompositeTransformType::Pointer compToAdd;
 
   typename CompositeTransformType::ConstPointer compXfrm =
-    dynamic_cast<const CompositeTransformType *>(initialTransform);
+    dynamic_cast<const CompositeTransformType *>( initialTransform );
   if( compXfrm.IsNotNull() )
     {
     compToAdd = compXfrm->Clone();
+
+    if( this->m_ApplyLinearTransformsToMovingImageHeader && compXfrm->IsLinear() )
+      {
+      this->m_CompositeLinearTransformForMovingImageHeader = compToAdd;
+      }
+    else
+      {
+      this->m_CompositeTransform = compToAdd;
+      this->m_AllPreviousTransformsAreLinear = false;
+      }
     }
   else
     {
     compToAdd = CompositeTransformType::New();
     typename TransformType::Pointer xfrm = initialTransform->Clone();
-    compToAdd->AddTransform(xfrm);
+    compToAdd->AddTransform( xfrm );
+    if( this->m_ApplyLinearTransformsToMovingImageHeader && initialTransform->IsLinear() )
+      {
+      this->m_CompositeLinearTransformForMovingImageHeader = compToAdd;
+      }
+    else
+      {
+      this->m_CompositeTransform = compToAdd;
+      this->m_AllPreviousTransformsAreLinear = false;
+      }
     }
-  this->m_CompositeTransform = compToAdd;
 }
 
 template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
-::SetFixedInitialTransform(const TransformType *initialTransform)
+::SetFixedInitialTransform( const TransformType *initialTransform  )
 {
   typename CompositeTransformType::Pointer compToAdd;
 
   typename CompositeTransformType::ConstPointer compXfrm =
-    dynamic_cast<const CompositeTransformType *>(initialTransform);
+    dynamic_cast<const CompositeTransformType *>( initialTransform );
   if( compXfrm.IsNotNull() )
     {
     compToAdd = compXfrm->Clone();
@@ -2380,9 +2475,68 @@ RegistrationHelper<VImageDimension>
     {
     compToAdd = CompositeTransformType::New();
     typename TransformType::Pointer xfrm = initialTransform->Clone();
-    compToAdd->AddTransform(xfrm);
+    compToAdd->AddTransform( xfrm );
     }
   this->m_FixedInitialTransform = compToAdd;
+}
+
+template <unsigned VImageDimension>
+void
+RegistrationHelper<VImageDimension>
+::ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType * compositeTransform, ImageType * image )
+{
+  if( !compositeTransform->IsLinear() )
+    {
+    itkExceptionMacro( "The composite transform is not linear.  Cannot collapse it to the image header." );
+    }
+
+  typedef itk::AffineTransform<RealType, VImageDimension>      AffineTransformType;
+  typedef typename AffineTransformType::Superclass             MatrixOffsetTransformBaseType;
+  typedef itk::TranslationTransform<RealType, VImageDimension> TranslationTransformType;
+
+  typename MatrixOffsetTransformBaseType::Pointer totalTransform = MatrixOffsetTransformBaseType::New();
+  for( unsigned int n = 0; n < compositeTransform->GetNumberOfTransforms(); n++ )
+    {
+    typename TransformType::Pointer transform = compositeTransform->GetNthTransform( n );
+
+    typename MatrixOffsetTransformBaseType::Pointer nthTransform = MatrixOffsetTransformBaseType::New();
+
+    typename TranslationTransformType::Pointer translationTransform =
+      dynamic_cast<TranslationTransformType *>( transform.GetPointer() );
+    if( translationTransform.IsNotNull() )
+      {
+      nthTransform->SetOffset( translationTransform->GetOffset() );
+      }
+    else
+      {
+      typename MatrixOffsetTransformBaseType::Pointer matrixOffsetTransform =
+        dynamic_cast<MatrixOffsetTransformBaseType *>( transform.GetPointer() );
+      nthTransform->SetMatrix( matrixOffsetTransform->GetMatrix() );
+      nthTransform->SetOffset( matrixOffsetTransform->GetOffset() );
+      }
+    totalTransform->Compose( nthTransform, false );
+    }
+
+  typename ImageType::PointType origin = image->GetOrigin();
+
+  typename MatrixOffsetTransformBaseType::Pointer imageTransform = MatrixOffsetTransformBaseType::New();
+  imageTransform->SetMatrix( image->GetDirection() );
+  imageTransform->SetOffset( origin.GetVectorFromOrigin() );
+  typename MatrixOffsetTransformBaseType::Pointer inverseImageTransform = MatrixOffsetTransformBaseType::New();
+  inverseImageTransform->SetMatrix( imageTransform->GetInverseMatrix() );
+  inverseImageTransform->SetOffset( -( inverseImageTransform->GetMatrix() * imageTransform->GetOffset() ) );
+
+  totalTransform->Compose( inverseImageTransform, false );
+
+  typename MatrixOffsetTransformBaseType::MatrixType inverseMatrix = totalTransform->GetInverseMatrix();
+  typename MatrixOffsetTransformBaseType::OffsetType inverseOffset = -( inverseMatrix * totalTransform->GetOffset() );
+  for( unsigned int d = 0; d < VImageDimension; d++ )
+    {
+    origin[d] = inverseOffset[d];
+    }
+
+  image->SetDirection( inverseMatrix );
+  image->SetOrigin( origin );
 }
 
 template <unsigned VImageDimension>
@@ -2392,10 +2546,10 @@ RegistrationHelper<VImageDimension>
 {
   this->Logger() << "Dimension = " << Self::ImageDimension << std::endl
                  << "Number of stages = " << this->m_NumberOfStages << std::endl
-                 << "Use Histogram Matching " << (this->m_UseHistogramMatching ? "true" : "false")
+                 << "Use Histogram Matching " << ( this->m_UseHistogramMatching ? "true" : "false" )
                  << std::endl
                  << "Winsorize Image Intensities "
-                 << (this->m_WinsorizeImageIntensities ? "true" : "false") << std::endl
+                 << ( this->m_WinsorizeImageIntensities ? "true" : "false" ) << std::endl
                  << "Lower Quantile = " << this->m_LowerQuantile << std::endl
                  << "Upper Quantile = " << this->m_UpperQuantile << std::endl;;
   for( unsigned i = 0; i < this->m_NumberOfStages; i++ )
