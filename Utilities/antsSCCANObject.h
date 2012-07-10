@@ -134,7 +134,7 @@ public:
 
   VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = NULL,  MatrixType* projecterV = NULL )
   {
-    if( !projecterM && !projecterV )
+    if( ( !projecterM ) &&  ( !projecterV ) )
       {
       double     ipv   = inner_product(V, V);
       if ( ipv == 0 ) return Mvec;
@@ -142,13 +142,13 @@ public:
       VectorType ortho = Mvec - V * ratio;
       return ortho;
       }
-    else if( !projecterM &&  projecterV )
+    else if( ( !projecterM ) && ( projecterV ) )
       {
       double     ratio = inner_product(Mvec, *projecterV * V) / inner_product(*projecterV * V, *projecterV * V);
       VectorType ortho = Mvec - V * ratio;
       return ortho;
       }
-    else if( !projecterV  &&  projecterM )
+    else if( ( !projecterV ) && ( projecterM ) )
       {
       double     ratio = inner_product(*projecterM * Mvec, V) / inner_product(V, V);
       VectorType ortho = (*projecterM * Mvec) - V * ratio;
@@ -289,10 +289,13 @@ public:
   RealType SparseConjGrad( VectorType &, VectorType, RealType, unsigned int );
   RealType ConjGrad( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit, unsigned int  );
   RealType SparseConjGradRidgeRegression( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit, unsigned int , bool );
+  RealType MatchingPursuit( MatrixType& A, VectorType& x_k, RealType convcrit, unsigned int );
 
   RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos , bool makeprojsparse = false , unsigned int loorth =  0, unsigned int hiorth = 0 );
   RealType SparseNLPreConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int );
-  RealType RidgeRegression( MatrixType & A,  VectorType & x_k, VectorType  b, RealType lambda );
+  RealType RidgeRegression( MatrixType & A,  VectorType & x_k, VectorType  b, RealType lambda , unsigned int);
+  /** Return Rayleigh quotient */
+  RealType PowerIteration( MatrixType & A,  VectorType & x_k, unsigned int, bool);
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );
@@ -552,8 +555,10 @@ protected:
     if ( x_k1[i] < 0 ) x_k1[i] = 0;
   }
 
-  void SparsifyP( VectorType& x_k1, bool keeppos )
+  void SparsifyP( VectorType& x_k1, bool keeppos , RealType factor = 1 )
   {
+    RealType fnp = this->m_FractionNonZeroP * factor;
+    if ( vnl_math_abs( fnp ) >= 1 ) return;
     bool negate = false;
 
     if( x_k1.max_value() <= 0 )
@@ -564,7 +569,6 @@ protected:
       {
       x_k1 = x_k1 * ( -1 );
       }
-    RealType fnp = this->m_FractionNonZeroP;
     this->ReSoftThreshold( x_k1, fnp, keeppos );
     this->ClusterThresholdVariate( x_k1, this->m_MaskImageP, this->m_MinClusterSizeP );
     if( negate )
@@ -681,6 +685,23 @@ protected:
     return m_out;
    }
   */
+  void GetSubMatrix( MatrixType& A  , MatrixType& submatout )
+    {
+    VectorType diag = this->m_Indicator.diagonal();
+    unsigned int nzct = ( unsigned int ) diag.sum();
+    MatrixType submat( A.rows() , nzct , 0 );
+    nzct = 0;
+    for ( unsigned int i = 0; i < diag.size(); i++ )
+      {
+      if ( diag( i ) > 0 )
+	{
+        submat.set_column( nzct , A.get_column( i ) );
+        nzct++;
+	}
+      }
+    submatout = submat;
+    }
+
   antsSCCANObject();
   ~antsSCCANObject()
   {
@@ -786,6 +807,7 @@ private:
   unsigned int              m_KeptClusterSize;
   unsigned int              m_GoldenSectionCounter;
   VectorType                m_ClusterSizes;
+  VectorType                m_OriginalB;
   vnl_diag_matrix<RealType> m_Indicator;
   vnl_diag_matrix<TRealType> m_PreC; // preconditioning
 
@@ -799,3 +821,22 @@ private:
 #endif
 
 #endif
+
+
+
+/*
+
+  RealType SparseRayleighQuotientIteration( MatrixType& A, VectorType& x)
+    {
+    if ( x.two_norm() == 0 ) return; 
+    x = x / x.two_norm();
+    for ( unsigned int i = 0 ; i < 5; i++)
+      {
+      VectorType Ax = A * x;
+      RealType lambda = inner_product( Ax , Ax ); 
+      vnl_diag_matrix<double> diag( A , lambda );
+      this->RidgeRegression( A, x, 1.e2, 10, diag );
+      }
+    } 
+
+*/
