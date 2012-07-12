@@ -679,10 +679,9 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   imageReader->SetFileName( fn1.c_str() );
   imageReader->Update();
 
-  typename ImageType::Pointer mask = NULL;
+  typename ImageType::Pointer mask;
   if( argc > argct )
     {
-    mask = ImageType::New();
     try
       {
       typedef itk::ImageFileReader<ImageType> LabelReaderType;
@@ -699,7 +698,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
     ;
     }
   //  antscout << " Mask " << std::endl;
-  if( !mask )
+  if( mask.IsNull() )
     {
     mask = ImageType::New();
     mask->SetOrigin( imageReader->GetOutput()->GetOrigin() );
@@ -2517,8 +2516,8 @@ int MTR(int argc, char *argv[])
 
   typedef itk::Image<float, ImageDimension> ImageType;
 
-  typename ImageType::Pointer M0 = ImageType::New();
-  typename ImageType::Pointer M1 = ImageType::New();
+  typename ImageType::Pointer M0;
+  typename ImageType::Pointer M1;
   ReadImage<ImageType>(M0, argv[4] );
   ReadImage<ImageType>(M1, argv[5] );
 
@@ -2528,13 +2527,14 @@ int MTR(int argc, char *argv[])
   MTR->Allocate();
   MTR->FillBuffer( 0 );
 
-  typename ImageType::Pointer mask = ImageType::New();
+  typename ImageType::Pointer mask;
   if( argc > 6 )
     {
     ReadImage<ImageType>(mask, argv[6]);
     }
   else
     {
+    mask = ImageType::New();
     mask->CopyInformation( M0 );
     mask->SetRegions( M0->GetLargestPossibleRegion() );
     mask->Allocate();
@@ -9488,7 +9488,6 @@ int MajorityVoting( int argc, char *argv[] )
   typename std::vector<typename ImageType::Pointer> images(argc - 4);
   for( int i = 4; i < argc; i++ )
     {
-    images[i - 4] = ImageType::New();
     ReadImage<ImageType>( images[i - 4], argv[i] );
     }
 
@@ -9577,19 +9576,17 @@ int CorrelationVoting( int argc, char *argv[] )
     radius = atoi( argv[5 + 2 * nImages] );
     }
 
-  typename ImageType::Pointer target = ImageType::New();
+  typename ImageType::Pointer target;
   ReadImage<ImageType>( target, argv[4] );
 
   typename std::vector<typename ImageType::Pointer>      images(nImages);
   typename std::vector<typename LabelImageType::Pointer> labels(nImages);
   for( int i = 5; i < (5 + nImages); i++ )
     {
-    images[i - 5] = ImageType::New();
     ReadImage<ImageType>( images[i - 5], argv[i] );
     }
   for( int i = 5 + nImages; i < (5 + 2 * nImages); i++ )
     {
-    labels[i - 5 - nImages] = LabelImageType::New();
     ReadImage<LabelImageType>( labels[i - 5 - nImages], argv[i] );
     }
 
@@ -9745,10 +9742,10 @@ int ImageMetrics( int argc, char *argv[] )
     return 1;
     }
 
-  typename ImageType::Pointer img1 = ImageType::New();
+  typename ImageType::Pointer img1;
   ReadImage<ImageType>( img1, argv[4] );
 
-  typename ImageType::Pointer img2 = ImageType::New();
+  typename ImageType::Pointer img2;
   ReadImage<ImageType>( img2, argv[5] );
 
   float value = 0.0;
@@ -9839,13 +9836,13 @@ int PearsonCorrelation( int argc, char *argv[] )
     return 1;
     }
 
-  typename ImageType::Pointer img1 = ImageType::New();
+  typename ImageType::Pointer img1;
   ReadImage<ImageType>( img1, argv[4] );
 
-  typename ImageType::Pointer img2 = ImageType::New();
+  typename ImageType::Pointer img2;
   ReadImage<ImageType>( img2, argv[5] );
 
-  typename ImageType::Pointer mask = ImageType::New();
+  typename ImageType::Pointer mask;
 
   if( argc > 6 )
     {
@@ -9853,6 +9850,7 @@ int PearsonCorrelation( int argc, char *argv[] )
     }
   else
     {
+    mask = ImageType::New();
     mask->SetRegions( img1->GetLargestPossibleRegion() );
     mask->SetSpacing( img1->GetSpacing() );
     mask->SetOrigin( img1->GetOrigin() );

@@ -103,7 +103,7 @@ private:
   //  reader->SetUseAvantsNamingConvention( true );
   reader->Update();
 
-  MaskImageType::Pointer mask = MaskImageType::New();
+  MaskImageType::Pointer mask;
   if( argc >= 4 )
     {
     typedef itk::ImageFileReader<MaskImageType> MaskReaderType;
@@ -114,6 +114,7 @@ private:
     }
   else
     {
+    mask = MaskImageType::New();
     mask->SetOrigin( reader->GetOutput()->GetOrigin() );
     mask->SetSpacing( reader->GetOutput()->GetSpacing() );
     mask->SetRegions( reader->GetOutput()->GetLargestPossibleRegion() );

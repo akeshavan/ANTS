@@ -97,7 +97,7 @@ void ComposeMultiTransform(char *output_image_filename,
   typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
   typename ImageFileReaderType::Pointer reader_img =
     ImageFileReaderType::New();
-  typename ImageType::Pointer img_ref = ImageType::New();
+  typename ImageType::Pointer img_ref;
 
   typename ImageFileReaderType::Pointer reader_img_ref =
     ImageFileReaderType::New();
