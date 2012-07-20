@@ -1456,11 +1456,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     matrixB.set_row( a  , lmsolv );
     }
   RealType rr = ( onenorm - reconerr ) / onenorm;
-  this->m_VariatesQ = matrixB;
-  this->SortResults( n_vecs );
-  matrixB = this->m_VariatesQ;
   ::ants::antscout << overit << ": %var " << rr << " raw-reconerr " << reconerr << std::endl;
   }
+  this->m_VariatesQ = matrixB;
+  this->SortResults( n_vecs );
   this->m_Softer = false;
   return 1.0 / reconerr;
 }
@@ -2382,9 +2381,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   //  for( unsigned int loop = 0; loop < maxloop; loop++ )
   unsigned int loop = 0;
-  bool energydecreases = true;
+  bool energyincreases = true;
   RealType energy = 0, lastenergy = 0;
-  while ( loop < maxloop && energydecreases )
+  while ( loop < maxloop && energyincreases || loop < 20 )
     {
     for( unsigned int k = 0; k < nvecs; k++ )
       {
@@ -2428,9 +2427,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     this->SortResults( nvecs );
     lastenergy = energy;
-    energy = this->m_CanonicalCorrelations.mean();
+    energy = this->m_CanonicalCorrelations.one_norm() / nvecs ;
     ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations <<" CorrMean : " << energy << std::endl;
-    if ( energy < lastenergy ) energydecreases = false;
+    if ( energy < lastenergy ) energyincreases = false; else energyincreases = true;
     loop++;
     } // outer loop
   double ccasum = 0; 
@@ -3593,10 +3592,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     maxloop = 25;
     }
-  for( unsigned int loop = 0; loop < maxloop; loop++ )
+
+  unsigned int loop = 0;
+  bool energyincreases = true;
+  RealType energy = 0, lastenergy = 0;
+  while ( loop < maxloop && energyincreases || loop < 20 )
     {
-    RealType fnp = this->m_FractionNonZeroP;
-    RealType fnq = this->m_FractionNonZeroQ;
 // Arnoldi Iteration SCCA
     for( unsigned int k = 0; k < n_vecs; k++ )
       {
@@ -3635,13 +3636,17 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       if ( hkkm1 > 0 ) this->m_VariatesP.set_column(k, pveck / hkkm1);
       hkkm1 = qveck.two_norm();
       if ( hkkm1 > 0 ) this->m_VariatesQ.set_column(k, qveck / hkkm1);
-      this->NormalizeWeightsByCovariance(k);
+      this->NormalizeWeightsByCovariance( k , 1 , 1 );
       VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
       VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
       this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1 , proj2  );
       }
-    if ( loop > 0 ) this->SortResults(n_vecs);
-    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " sparp " << fnp << " sparq " << fnq << std::endl;
+    this->SortResults( n_vecs );
+    lastenergy = energy;
+    energy = this->m_CanonicalCorrelations.one_norm() / n_vecs ;
+    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations <<" CorrMean : " << energy << std::endl;
+    if ( energy < lastenergy ) energyincreases = false; else energyincreases = true;
+    loop++;
     } // outer loop
   this->SortResults(n_vecs);
   //  this->RunDiagnostics(n_vecs);
