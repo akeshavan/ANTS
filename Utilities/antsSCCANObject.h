@@ -100,7 +100,7 @@ public:
   itkSetMacro( SCCANFormulation, SCCANFormulationType );
   itkGetConstMacro( SCCANFormulation, SCCANFormulationType );
 
-  void NormalizeWeightsByCovariance(unsigned int, RealType, RealType);
+  void NormalizeWeightsByCovariance(const unsigned int k, const TRealType taup = 0, const TRealType tauq = 0);
 
   void WhitenDataSetForRunSCCANMultiple(unsigned int nvecs = 0);
 
@@ -115,19 +115,33 @@ public:
   }
 
   MatrixType VNLPseudoInverse( MatrixType,  bool take_sqrt = false );
-  
-  void ZeroProduct( VectorType& v1 , VectorType& v2 )
+
+  void ZeroProduct( VectorType& v1, VectorType& v2 )
   {
-    for ( unsigned int i = 0; i < v1.size(); i++ ) 
-      if ( fabs( v2( i ) ) > 0 ) v1( i ) = 0;
+    for( unsigned int i = 0; i < v1.size(); i++ )
+      {
+      if( fabs( v2( i ) ) > 0 )
+        {
+        v1( i ) = 0;
+        }
+      }
   }
 
-  void DeleteRow( MatrixType& , unsigned int );
-  void PosNegVector( VectorType& v1 , bool pos  )
+  void DeleteRow( MatrixType &, unsigned int );
+
+  void PosNegVector( VectorType& v1, bool pos  )
   {
-    for ( unsigned int i = 0; i < v1.size(); i++ ) 
-      if ( v1( i ) < 0 && pos ) v1( i ) = 0;
-      else if ( v1( i ) > 0 && !pos ) v1( i ) = 0;
+    for( unsigned int i = 0; i < v1.size(); i++ )
+      {
+      if( v1( i ) < 0 && pos )
+        {
+        v1( i ) = 0;
+        }
+      else if( v1( i ) > 0 && !pos )
+        {
+        v1( i ) = 0;
+        }
+      }
   }
 
   RealType ReconstructionError( MatrixType, MatrixType );
@@ -136,8 +150,11 @@ public:
   {
     if( ( !projecterM ) &&  ( !projecterV ) )
       {
-      double     ipv   = inner_product(V, V);
-      if ( ipv == 0 ) return Mvec;
+      double ipv   = inner_product(V, V);
+      if( ipv == 0 )
+        {
+        return Mvec;
+        }
       double     ratio = inner_product(Mvec, V) / ipv;
       VectorType ortho = Mvec - V * ratio;
       return ortho;
@@ -185,6 +202,7 @@ public:
   MatrixType RankifyMatrixColumns(MatrixType M )
   {
     RealType rows = (RealType)M.rows();
+
     for( unsigned long j = 0; j < M.cols(); j++ )
       {
       VectorType Mvec = M.get_column(j);
@@ -217,6 +235,7 @@ public:
   {
     this->m_MaskImageP = mask;
   }
+
   void SetMatrixP(  MatrixType matrix )
   {
     this->m_OriginalMatrixP.set_size(matrix.rows(), matrix.cols() );  this->m_MatrixP.set_size(
@@ -231,6 +250,7 @@ public:
   {
     this->m_MaskImageQ = mask;
   }
+
   void SetMatrixQ(  MatrixType  matrix )
   {
     this->m_OriginalMatrixQ.set_size(matrix.rows(), matrix.cols() );  this->m_MatrixQ.set_size(
@@ -243,6 +263,7 @@ public:
   {
     this->m_MaskImageR = mask;
   }
+
   void SetMatrixR(  MatrixType matrix )
   {
     this->m_OriginalMatrixR.set_size(matrix.rows(), matrix.cols() );  this->m_MatrixR.set_size(
@@ -253,22 +274,27 @@ public:
   {
     return this->m_MatrixP;
   }
+
   MatrixType GetMatrixQ()
   {
     return this->m_MatrixQ;
   }
+
   MatrixType GetMatrixR()
   {
     return this->m_MatrixR;
   }
+
   MatrixType GetOriginalMatrixP()
   {
     return this->m_OriginalMatrixP;
   }
+
   MatrixType GetOriginalMatrixQ()
   {
     return this->m_OriginalMatrixQ;
   }
+
   MatrixType GetOriginalMatrixR()
   {
     return this->m_OriginalMatrixR;
@@ -280,32 +306,44 @@ public:
 
   RealType RunSCCAN3();
 
-  RealType LineSearch( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, RealType minalph,
+  RealType LineSearch( MatrixType & A, VectorType &  x_k, VectorType &  p_k, VectorType &  b, RealType minalph,
                        RealType maxalph,
                        RealType );
 
-  RealType EvaluateEnergy( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, RealType minalph,  RealType );
+  RealType EvaluateEnergy( MatrixType & A, VectorType &  x_k, VectorType &  p_k, VectorType &  b, RealType minalph,
+                           RealType );
 
   RealType SparseConjGrad( VectorType &, VectorType, RealType, unsigned int );
   RealType ConjGrad( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit, unsigned int  );
-  RealType SparseConjGradRidgeRegression( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit, unsigned int , bool );
+
+  RealType SparseConjGradRidgeRegression( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit,
+                                          unsigned int,
+                                          bool );
+
   RealType MatchingPursuit( MatrixType& A, VectorType& x_k, RealType convcrit, unsigned int );
 
-  RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos , bool makeprojsparse = false , unsigned int loorth =  0, unsigned int hiorth = 0 );
+  RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos,
+                             bool makeprojsparse = false, unsigned int loorth =  0,
+                             unsigned int hiorth = 0 );
   RealType SparseNLPreConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int );
-  RealType RidgeRegression( MatrixType & A,  VectorType & x_k, VectorType  b, RealType lambda , unsigned int, bool makesparse = false );
+  RealType RidgeRegression( MatrixType & A,  VectorType & x_k, VectorType  b, RealType lambda, unsigned int,
+                            bool makesparse = false );
+
   /** Return Rayleigh quotient */
   RealType PowerIteration( MatrixType & A,  VectorType & x_k, unsigned int, bool);
+
   RealType HTPowerIteration( MatrixType & A,  VectorType & x_k, unsigned int );
+
   RealType IHT( MatrixType & A,  VectorType & x_k, unsigned int );
+
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );
 
   VectorType InitializeV( MatrixType p, bool random = false);
 
-  VectorType ComputeVectorLaplacian( VectorType , ImagePointer );
-  VectorType ComputeVectorGradMag( VectorType , ImagePointer );
+  VectorType ComputeVectorLaplacian( VectorType, ImagePointer );
+  VectorType ComputeVectorGradMag( VectorType, ImagePointer );
 
   MatrixType NormalizeMatrix(MatrixType p);
 
@@ -341,9 +379,9 @@ public:
     bool       debug = false;
     if( debug )
       {
-	::ants::antscout << " cov " << std::endl;   ::ants::antscout << cov << std::endl;
-	::ants::antscout << " invcov " << std::endl;   ::ants::antscout << invcov << std::endl;
-	::ants::antscout << " id? " << std::endl;   ::ants::antscout << cov * invcov << std::endl;
+      ::ants::antscout << " cov " << std::endl;   ::ants::antscout << cov << std::endl;
+      ::ants::antscout << " invcov " << std::endl;   ::ants::antscout << invcov << std::endl;
+      ::ants::antscout << " id? " << std::endl;   ::ants::antscout << cov * invcov << std::endl;
       }
     if( p.rows() < p.columns() )
       {
@@ -354,7 +392,6 @@ public:
       return p * invcov;
       }
   }
-
 
   MatrixType WhitenMatrixByAnotherMatrix(MatrixType p, MatrixType op, RealType regularization = 1.e-2)
   {
@@ -416,14 +453,17 @@ public:
   {
     return this->m_WeightsP;
   }
+
   VectorType GetQWeights()
   {
     return this->m_WeightsQ;
   }
+
   VectorType GetRWeights()
   {
     return this->m_WeightsR;
   }
+
   RealType GetCorrelationForSignificanceTest()
   {
     return this->CorrelationForSignificanceTest;
@@ -498,6 +538,7 @@ public:
   }
 
   RealType SparseCCA(unsigned int nvecs);
+
   RealType RidgeCCA(unsigned int nvecs);
 
   RealType SparsePartialCCA(unsigned int nvecs);
@@ -518,28 +559,44 @@ public:
   RealType BasicSVD();
 
   RealType CGSPCA( unsigned int );
+
   RealType NetworkDecomposition(unsigned int nvecs);
 
-  RealType LASSO_Cross( );
+  RealType LASSO_Cross();
+
   RealType LASSO( unsigned int nvecs );
-  void LASSO_alg( MatrixType & X,  VectorType & y, VectorType & beta, RealType gamma , unsigned int its );
 
-  inline RealType LASSOSoft( RealType beta , RealType gamma )
-    {
-    if ( beta > 0 && gamma < beta ) return ( beta - gamma );
-    else if ( beta > 0 && gamma > beta ) return 0;
-    else if ( beta < 0 && gamma < ( beta * (-1) ) ) return ( beta + gamma );
+  void LASSO_alg( MatrixType & X,  VectorType & y, VectorType & beta, RealType gamma, unsigned int its );
+
+  inline RealType LASSOSoft( RealType beta, RealType gamma )
+  {
+    if( beta > 0 && gamma < beta )
+      {
+      return beta - gamma;
+      }
+    else if( beta > 0 && gamma > beta )
+      {
+      return 0;
+      }
+    else if( beta < 0 && gamma < ( beta * (-1) ) )
+      {
+      return beta + gamma;
+      }
     return 0;
-    }
+  }
 
-  inline RealType SimpleRegression(  VectorType y , VectorType ypred  ) 
-    {
-      RealType corr = this->PearsonCorr( y, ypred );
-      double     sdy = sqrt(  ( y - y.mean() ).squared_magnitude() /  ( y.size() - 1) );
-      double     sdyp = sqrt(  ( ypred - ypred.mean() ).squared_magnitude() /  ( y.size() - 1) );
-      if ( sdyp == 0 ) return 0;
-      return corr * sdy / sdyp;
-    }
+  inline RealType SimpleRegression(  VectorType y, VectorType ypred  )
+  {
+    RealType corr = this->PearsonCorr( y, ypred );
+    double   sdy = sqrt(  ( y - y.mean() ).squared_magnitude() /  ( y.size() - 1) );
+    double   sdyp = sqrt(  ( ypred - ypred.mean() ).squared_magnitude() /  ( y.size() - 1) );
+
+    if( sdyp == 0 )
+      {
+      return 0;
+      }
+    return corr * sdy / sdyp;
+  }
 
   MatrixType GetCovMatEigenvectors( MatrixType p );
 
@@ -552,16 +609,25 @@ protected:
 // for pscca
   void UpdatePandQbyR();
 
-  void PositivePart( VectorType& x_k1 ) 
+  void PositivePart( VectorType& x_k1 )
   {
-  for ( unsigned int i = 0 ; i < x_k1.size(); i++) 
-    if ( x_k1[i] < 0 ) x_k1[i] = 0;
+    for( unsigned int i = 0; i < x_k1.size(); i++ )
+      {
+      if( x_k1[i] < 0 )
+        {
+        x_k1[i] = 0;
+        }
+      }
   }
 
-  void SparsifyP( VectorType& x_k1, bool keeppos , RealType factor = 1 )
+  void SparsifyP( VectorType& x_k1, bool keeppos, RealType factor = 1 )
   {
     RealType fnp = this->m_FractionNonZeroP * factor;
-    if ( vnl_math_abs( fnp ) >= 1 ) return;
+
+    if( vnl_math_abs( fnp ) >= 1 )
+      {
+      return;
+      }
     bool negate = false;
 
     if( x_k1.mean() <= 0 )
@@ -580,10 +646,14 @@ protected:
       }
   }
 
-  void SparsifyQ( VectorType& x_k1, bool keeppos , RealType factor = 1 )
+  void SparsifyQ( VectorType& x_k1, bool keeppos, RealType factor = 1 )
   {
     RealType fnp = this->m_FractionNonZeroQ * factor;
-    if ( vnl_math_abs( fnp ) >= 1 ) return;
+
+    if( vnl_math_abs( fnp ) >= 1 )
+      {
+      return;
+      }
     bool negate = false;
 
     if( x_k1.mean() <= 0 )
@@ -601,7 +671,6 @@ protected:
       x_k1 = x_k1 * ( -1 );
       }
   }
-
 
   void SparsifyP( VectorType& x_k1, VectorType& refvec  )
   {
@@ -642,6 +711,7 @@ protected:
   RealType CountNonZero( VectorType v )
   {
     unsigned long ct = 0;
+
     for( unsigned int i = 0; i < v.size(); i++ )
       {
       if( v[i] != 0 )
@@ -655,6 +725,7 @@ protected:
   RealType PearsonCorr(VectorType v1, VectorType v2 )
   {
     double xysum = 0;
+
     for( unsigned int i = 0; i < v1.size(); i++ )
       {
       xysum += v1(i) * v2(i);
@@ -672,8 +743,9 @@ protected:
     return numer / denom;
   }
 
-  RealType GoldenSection( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  bsol, RealType a, RealType b, RealType c,
-                          RealType tau , RealType lambda);
+  RealType GoldenSection( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  bsol, RealType a, RealType b,
+                          RealType c, RealType tau,
+                          RealType lambda);
 
   //  VectorType vEtoV( eVector v ) {
   //   VectorType v_out( v.data() , v.size() );
@@ -711,22 +783,23 @@ protected:
     return m_out;
    }
   */
-  void GetSubMatrix( MatrixType& A  , MatrixType& submatout )
-    {
-    VectorType diag = this->m_Indicator.diagonal();
+  void GetSubMatrix( MatrixType& A, MatrixType& submatout )
+  {
+    VectorType   diag = this->m_Indicator.diagonal();
     unsigned int nzct = ( unsigned int ) diag.sum();
-    MatrixType submat( A.rows() , nzct , 0 );
+    MatrixType   submat( A.rows(), nzct, 0 );
+
     nzct = 0;
-    for ( unsigned int i = 0; i < diag.size(); i++ )
+    for( unsigned int i = 0; i < diag.size(); i++ )
       {
-      if ( diag( i ) > 0 )
-	{
-        submat.set_column( nzct , A.get_column( i ) );
+      if( diag( i ) > 0 )
+        {
+        submat.set_column( nzct, A.get_column( i ) );
         nzct++;
-	}
+        }
       }
     submatout = submat;
-    }
+  }
 
   antsSCCANObject();
   ~antsSCCANObject()
@@ -751,26 +824,33 @@ protected:
 
   void RunDiagnostics(unsigned int);
 
-  void AddColumnsToMatrix( MatrixType& mat_to_add_to , MatrixType& mat_to_take_from , unsigned int col0 , unsigned int coln )
-    {
-      MatrixType outmat( mat_to_add_to.rows() ,  mat_to_add_to.cols() +  ( coln - col0 ) + 1 , 0 );
-      for ( unsigned int i = 0; i < mat_to_add_to.cols(); i++ ) outmat.set_column( i ,  mat_to_add_to.get_column( i ) );
-      unsigned int ct = mat_to_add_to.cols();
-      for ( unsigned int i = col0; i <= coln; i++ )
-	{
-	outmat.set_column( ct ,   mat_to_take_from.get_column( i ) );
-	ct++;
-	}
-      mat_to_add_to = outmat;
-    }
+  void AddColumnsToMatrix( MatrixType& mat_to_add_to, MatrixType& mat_to_take_from, unsigned int col0,
+                           unsigned int coln )
+  {
+    MatrixType outmat( mat_to_add_to.rows(),  mat_to_add_to.cols() +  ( coln - col0 ) + 1, 0 );
 
-  RealType CurvatureSparseness( VectorType& x , RealType sparsenessgoal  , unsigned int maxit );
-				// , MatrixType& A, VectorType& b );
+    for( unsigned int i = 0; i < mat_to_add_to.cols(); i++ )
+      {
+      outmat.set_column( i,  mat_to_add_to.get_column( i ) );
+      }
+    unsigned int ct = mat_to_add_to.cols();
+    for( unsigned int i = col0; i <= coln; i++ )
+      {
+      outmat.set_column( ct,   mat_to_take_from.get_column( i ) );
+      ct++;
+      }
+    mat_to_add_to = outmat;
+  }
 
+  RealType CurvatureSparseness( VectorType& x, RealType sparsenessgoal, unsigned int maxit );
+
+  // , MatrixType& A, VectorType& b );
 private:
 
   ImagePointer ConvertVariateToSpatialImage( VectorType variate, ImagePointer mask, bool threshold_at_zero = false );
+
   VectorType ConvertImageToVariate(  ImagePointer image, ImagePointer mask );
+
   VectorType ClusterThresholdVariate( VectorType &, ImagePointer mask, unsigned int);
 
   bool       m_Debug;
@@ -820,7 +900,7 @@ private:
   MatrixType m_MatrixRp;
   MatrixType m_MatrixRq;
 
-  /** softer = true will compute the update  : if ( beta > thresh )  beta <- beta - thresh 
+  /** softer = true will compute the update  : if ( beta > thresh )  beta <- beta - thresh
    *     rather than the default update      : if ( beta > thresh )  beta <- beta  */
   bool     m_Softer;
   bool     m_AlreadyWhitened;
@@ -828,13 +908,13 @@ private:
   RealType m_CorrelationForSignificanceTest;
   RealType m_Intercept;
 
-  unsigned int              m_MinClusterSizeP;
-  unsigned int              m_MinClusterSizeQ;
-  unsigned int              m_KeptClusterSize;
-  unsigned int              m_GoldenSectionCounter;
-  VectorType                m_ClusterSizes;
-  VectorType                m_OriginalB;
-  vnl_diag_matrix<RealType> m_Indicator;
+  unsigned int               m_MinClusterSizeP;
+  unsigned int               m_MinClusterSizeQ;
+  unsigned int               m_KeptClusterSize;
+  unsigned int               m_GoldenSectionCounter;
+  VectorType                 m_ClusterSizes;
+  VectorType                 m_OriginalB;
+  vnl_diag_matrix<RealType>  m_Indicator;
   vnl_diag_matrix<TRealType> m_PreC; // preconditioning
 
 };
@@ -848,21 +928,19 @@ private:
 
 #endif
 
-
-
 /*
 
   RealType SparseRayleighQuotientIteration( MatrixType& A, VectorType& x)
     {
-    if ( x.two_norm() == 0 ) return; 
+    if ( x.two_norm() == 0 ) return;
     x = x / x.two_norm();
     for ( unsigned int i = 0 ; i < 5; i++)
       {
       VectorType Ax = A * x;
-      RealType lambda = inner_product( Ax , Ax ); 
+      RealType lambda = inner_product( Ax , Ax );
       vnl_diag_matrix<double> diag( A , lambda );
       this->RidgeRegression( A, x, 1.e2, 10, diag );
       }
-    } 
+    }
 
 */
