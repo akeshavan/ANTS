@@ -2343,6 +2343,97 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
+::RidgeCCA(unsigned int nvecs)
+{
+  RealType taup = vnl_math_abs( this->m_FractionNonZeroP );
+  RealType tauq = vnl_math_abs( this->m_FractionNonZeroQ );
+  ::ants::antscout  <<" ridge cca : taup " << taup << " tauq " << tauq << std::endl;
+  this->m_CanonicalCorrelations.set_size( nvecs );
+  this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
+  this->m_MatrixQ = this->NormalizeMatrix( this->m_OriginalMatrixQ );
+
+  vnl_diag_matrix<double> regdiagp( this->m_MatrixP.rows() , taup );
+  vnl_diag_matrix<double> regdiagq( this->m_MatrixP.rows() , tauq );
+  MatrixType inviewcovmatP = ( this->m_MatrixP * this->m_MatrixP.transpose() ) * ( 1 - taup ) 
+                             + regdiagp ;
+  MatrixType inviewcovmatQ = ( this->m_MatrixQ * this->m_MatrixQ.transpose() ) * ( 1 - tauq ) 
+                             + regdiagq ;
+
+  /** dual / ridge cca */
+  MatrixType CppInv = this->PseudoInverse( inviewcovmatP , true );
+  MatrixType CqqInv = this->PseudoInverse( inviewcovmatQ , true );
+  // this->m_MatrixP = CppInv * this->m_MatrixP ;
+  //  this->m_MatrixQ = CqqInv * this->m_MatrixQ ;
+  this->m_VariatesP.set_size( this->m_MatrixP.cols(), nvecs );
+  this->m_VariatesQ.set_size( this->m_MatrixQ.cols(), nvecs );
+  ::ants::antscout <<" begin " << std::endl;
+  for( unsigned int kk = 0; kk < nvecs; kk++ )
+    {
+    this->m_VariatesP.set_column( kk, this->InitializeV( this->m_MatrixP ) );
+    this->m_VariatesQ.set_column( kk, this->InitializeV( this->m_MatrixQ ) );
+    }
+  unsigned int maxloop = this->m_MaximumNumberOfIterations;
+  if( maxloop < 25 )
+    {
+    maxloop = 25;
+    }
+  for( unsigned int loop = 0; loop < maxloop; loop++ )
+    {
+    for( unsigned int k = 0; k < nvecs; k++ )
+      {
+      VectorType                 ptemp = this->m_VariatesP.get_column(k);
+      VectorType                 qtemp = this->m_VariatesQ.get_column(k);
+      VectorType pveck = this->m_MatrixQ * qtemp;
+      VectorType qveck = this->m_MatrixP * ptemp;
+      pveck = this->m_MatrixP.transpose() * pveck;
+      qveck = this->m_MatrixQ.transpose() * qveck;
+      if( k > 0 )
+        {
+        for( unsigned int j = 0; j < k; j++ )
+          {
+          VectorType qj = this->m_VariatesP.get_column( j );
+          RealType   ip = inner_product( qj, qj );
+	  RealType   hjk = 0;
+          if( ip > 0 ) hjk = inner_product( qj, pveck ) / ip;
+          pveck = pveck - hjk * qj;
+
+          qj = this->m_VariatesQ.get_column( j );
+          ip = inner_product( qj, qj );
+          hjk = 0;
+	  if ( ip > 0 ) hjk = inner_product( qj, qveck ) / ip;
+          qveck = qveck - hjk * qj;
+          }
+        }
+      RealType hkkm1 = pveck.two_norm();
+      if( hkkm1 > 0 ) this->m_VariatesP.set_column( k, pveck / hkkm1 );
+      hkkm1 = qveck.two_norm();
+      if( hkkm1 > 0 ) this->m_VariatesQ.set_column( k, qveck / hkkm1 );
+      this->NormalizeWeightsByCovariance( k );
+      VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
+      VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
+      this->m_CanonicalCorrelations[ k ] = this->PearsonCorr( proj1 , proj2  );
+      }
+    this->SortResults( nvecs );
+    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << std::endl;
+    } // outer loop
+  double ccasum = 0; 
+  for( unsigned int i = 0; i < this->m_CanonicalCorrelations.size(); i++ )
+    {
+    ccasum += fabs(this->m_CanonicalCorrelations[i]);
+    }
+  if( nvecs > 1 )
+    {
+    return ccasum;                   
+    }
+  else
+    {
+    return fabs(this->m_CanonicalCorrelations[0]);
+    }
+  return this->m_CanonicalCorrelations[0];
+}
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
 ::RidgeRegression( typename antsSCCANObject<TInputImage,
                                              TRealType>::MatrixType& A,
                     typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
@@ -3492,56 +3583,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 // Arnoldi Iteration SCCA
     for( unsigned int k = 0; k < n_vecs; k++ )
       {
-      VectorType                 ptemp = this->m_VariatesP.get_column(k);
-      VectorType                 qtemp = this->m_VariatesQ.get_column(k);
-      vnl_diag_matrix<TRealType> indicatorp(this->m_MatrixP.cols(), 1);
-      vnl_diag_matrix<TRealType> indicatorq(this->m_MatrixQ.cols(), 1);
-      bool                       condition2 = ( loop > ( maxloop - 10 ) );
-      if( condition2  )
-        {
-        if( !this->m_KeepPositiveP )
-          {
-          for( unsigned int j = 0; j < ptemp.size(); j++ )
-            {
-            if( fabs(ptemp(j) ) < this->m_Epsilon )
-              {
-              indicatorp(j, j) = 0;
-              }
-            }
-          }
-        if( !this->m_KeepPositiveQ )
-          {
-          for( unsigned int j = 0; j < qtemp.size(); j++ )
-            {
-            if( fabs(qtemp(j) ) < this->m_Epsilon )
-              {
-              indicatorq(j, j) = 0;
-              }
-            }
-          }
-        if(    this->m_KeepPositiveP )
-          {
-          for( unsigned int j = 0; j < ptemp.size(); j++ )
-            {
-            if( fabs(ptemp(j) ) < this->m_Epsilon )
-              {
-              indicatorp(j, j) = 0;
-              }
-            }
-          fnp = 1;
-          }
-        if(    this->m_KeepPositiveQ )
-          {
-          for( unsigned int j = 0; j < qtemp.size(); j++ )
-            {
-            if( fabs(qtemp(j) ) < this->m_Epsilon )
-              {
-              indicatorq(j, j) = 0;
-              }
-            }
-          fnp = 1;
-          }
-        }
+      VectorType ptemp = this->m_VariatesP.get_column(k);
+      VectorType qtemp = this->m_VariatesQ.get_column(k);
       VectorType pveck = this->m_MatrixQ * qtemp;
       VectorType qveck = this->m_MatrixP * ptemp;
       pveck = this->m_MatrixP.transpose() * pveck;
@@ -3551,81 +3594,32 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         for( unsigned int j = 0; j < k; j++ )
           {
           VectorType qj = this->m_VariatesP.get_column(j);
-          VectorType pmqj = qj; // pmqj=pmod*qj;
-          RealType   ip = inner_product(pmqj, pmqj);
-          if( ip < this->m_Epsilon )
-            {
-            ip = 1;
-            }
-          RealType hjk = inner_product(pmqj, pveck) / ip;
+          RealType   ip = inner_product( qj, qj );
+          RealType hjk = 0;
+	  if ( ip > 0 ) hjk = inner_product( qj, pveck ) / ip;
           pveck = pveck - hjk * qj;
 
           qj = this->m_VariatesQ.get_column(j);
-          pmqj = qj; //      pmqj=qmod*qj;
-          ip = inner_product(pmqj, pmqj);
-          if( ip < this->m_Epsilon )
-            {
-            ip = 1;
-            }
-          hjk = inner_product(pmqj, qveck) / ip;
+          ip = inner_product( qj, qj );
+	  hjk = 0; 
+          if ( ip > 0 ) hjk = inner_product( qj, qveck ) / ip;
           qveck = qveck - hjk * qj;
           }
         }
-      if( this->m_KeepPositiveP )
-        {
-        this->ConstantProbabilityThreshold( pveck, fnp, this->m_KeepPositiveP );
-        }
-      else
-        {
-        this->ReSoftThreshold( pveck, fnp, !this->m_KeepPositiveP );
-        }
-      if( this->m_KeepPositiveQ )
-        {
-        this->ConstantProbabilityThreshold( qveck, fnq, this->m_KeepPositiveQ );
-        }
-      else
-        {
-        this->ReSoftThreshold( qveck, fnq, !this->m_KeepPositiveQ );
-        }
-      if( condition2 && this->m_KeepPositiveP )
-        {
-        pveck = indicatorp * pveck;
-        }
-      if( condition2 && this->m_KeepPositiveQ )
-        {
-        qveck = indicatorq * qveck;
-        }
-      if( loop > 2 )
-        {
-        if( this->m_MaskImageP )
-          {
-          this->ClusterThresholdVariate( pveck, this->m_MaskImageP, this->m_MinClusterSizeP );
-          }
-        if( this->m_MaskImageQ )
-          {
-          this->ClusterThresholdVariate( qveck, this->m_MaskImageQ, this->m_MinClusterSizeQ );
-          }
-        }
-      RealType hkkm1 = pveck.two_norm();
-      if( hkkm1 > this->m_Epsilon )
-        {
-        this->m_VariatesP.set_column(k, pveck / hkkm1);
-        }
+      this->SparsifyP( pveck, true );
+      this->SparsifyQ( qveck, true );
+      RealType hkkm1 = 0;
+      hkkm1 = pveck.two_norm();
+      if ( hkkm1 > 0 ) this->m_VariatesP.set_column(k, pveck / hkkm1);
       hkkm1 = qveck.two_norm();
-      if( hkkm1 > this->m_Epsilon )
-        {
-        this->m_VariatesQ.set_column(k, qveck / hkkm1);
-        }
+      if ( hkkm1 > 0 ) this->m_VariatesQ.set_column(k, qveck / hkkm1);
       this->NormalizeWeightsByCovariance(k);
       VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
       VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
       this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1 , proj2  );
-      //      ::ants::antscout << " proj1 " << proj1 << std::endl;
-      //      ::ants::antscout << " proj2 " << proj2 << std::endl;
       }
     if ( loop > 0 ) this->SortResults(n_vecs);
-    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " sparp " << fnp << " sparq "
-              << fnq << std::endl;
+    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " sparp " << fnp << " sparq " << fnq << std::endl;
     } // outer loop
   this->SortResults(n_vecs);
   //  this->RunDiagnostics(n_vecs);
@@ -3635,7 +3629,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   if( n_vecs_in > 1 )
     {
-    return ccasum;                    // fabs(this->m_CanonicalCorrelations[1])+fabs(this->m_CanonicalCorrelations[0]);
+    return ccasum; 
     }
   else
     {
@@ -3807,8 +3801,8 @@ void antsSCCANObject<TInputImage, TRealType>
 {
 //  for ( unsigned int k=0; k<this->m_VariatesP.cols(); k++)
     {
-    this->m_WeightsP = this->m_VariatesP.get_column(k);
-    this->m_WeightsQ = this->m_VariatesQ.get_column(k);
+    this->m_WeightsP = this->m_VariatesP.get_column( k );
+    this->m_WeightsQ = this->m_VariatesQ.get_column( k );
     VectorType w = this->m_MatrixP * this->m_WeightsP;
     RealType   normP = 0;
     if( this->m_MatrixRp.size() > 0 )
@@ -3817,9 +3811,9 @@ void antsSCCANObject<TInputImage, TRealType>
       }
     else
       {
-      normP = inner_product(w, w);
+      normP = inner_product( w, w );
       }
-    if( normP > this->m_Epsilon )
+    if( normP > 0 )
       {
       this->m_WeightsP = this->m_WeightsP / sqrt(normP);
       }
@@ -3834,7 +3828,7 @@ void antsSCCANObject<TInputImage, TRealType>
       {
       normQ = inner_product(w, w);
       }
-    if( normQ > this->m_Epsilon )
+    if( normQ > 0 )
       {
       this->m_WeightsQ = this->m_WeightsQ / sqrt(normQ);
       }

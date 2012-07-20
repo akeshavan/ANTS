@@ -498,6 +498,7 @@ public:
   }
 
   RealType SparseCCA(unsigned int nvecs);
+  RealType RidgeCCA(unsigned int nvecs);
 
   RealType SparsePartialCCA(unsigned int nvecs);
 
@@ -578,6 +579,29 @@ protected:
       x_k1 = x_k1 * ( -1 );
       }
   }
+
+  void SparsifyQ( VectorType& x_k1, bool keeppos , RealType factor = 1 )
+  {
+    RealType fnp = this->m_FractionNonZeroQ * factor;
+    if ( vnl_math_abs( fnp ) >= 1 ) return;
+    bool negate = false;
+
+    if( x_k1.mean() <= 0 )
+      {
+      negate = true;
+      }
+    if( negate )
+      {
+      x_k1 = x_k1 * ( -1 );
+      }
+    this->ReSoftThreshold( x_k1, fnp, keeppos );
+    this->ClusterThresholdVariate( x_k1, this->m_MaskImageQ, this->m_MinClusterSizeQ );
+    if( negate )
+      {
+      x_k1 = x_k1 * ( -1 );
+      }
+  }
+
 
   void SparsifyP( VectorType& x_k1, VectorType& refvec  )
   {
