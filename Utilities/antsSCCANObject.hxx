@@ -3606,9 +3606,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           qveck = qveck - hjk * qj;
           }
         }
+      RealType hkkm1 = pveck.two_norm();
+      if ( hkkm1 > 0 ) pveck = pveck / hkkm1;
+      hkkm1 = qveck.two_norm();
+      if ( hkkm1 > 0 ) qveck = qveck / hkkm1;
+      pveck = ptemp + pveck;
+      qveck = qtemp + qveck;
       this->SparsifyP( pveck, true );
       this->SparsifyQ( qveck, true );
-      RealType hkkm1 = 0;
       hkkm1 = pveck.two_norm();
       if ( hkkm1 > 0 ) this->m_VariatesP.set_column(k, pveck / hkkm1);
       hkkm1 = qveck.two_norm();
