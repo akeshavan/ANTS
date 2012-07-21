@@ -298,7 +298,7 @@ int PrintHeader(int argc, char *argv[])
       }
 
     }
-  return 1;
+  return EXIT_FAILURE;
 }
 
 bool FileExists(string strFilename)
@@ -376,17 +376,21 @@ private:
 
   antscout->set_stream( out_stream );
 
-  if( argc < 2  || ( (argc == 2) && strcmp(argv[1], "--help") == 0) )
+  if( argc < 2  || ( (argc == 2) && ( strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0 )) )
     {
     antscout << "Usage:  " << argv[0] << " image.ext " << std::endl;
-    return 1;
+    if( argc < 2 )
+      {
+      return EXIT_FAILURE;
+      }
+    return EXIT_SUCCESS;
     }
   // Get the image dimension
   std::string fn = std::string(argv[1]);
   if( !FileExists(fn) )
     {
     antscout << " file " << fn << " does not exist . " << std::endl;
-    return 1;
+    return EXIT_FAILURE;
     }
   itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(
@@ -399,7 +403,7 @@ private:
   catch( ... )
     {
     antscout << " cant read " << fn << std::endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
   switch( imageIO->GetNumberOfDimensions() )
@@ -421,7 +425,7 @@ private:
       return EXIT_FAILURE;
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 } // namespace ants

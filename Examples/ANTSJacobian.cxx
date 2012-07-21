@@ -511,7 +511,11 @@ int Jacobian(int argc, char *argv[])
     antscout
     << " VectorToProjectWarpAgainst should be in the form 1.0x0.0x0.0 where x separates vector components "
     << std::endl;
-    return 1;
+    if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
   typedef float                                                  PixelType;
   typedef itk::Vector<float, ImageDimension>                     VectorType;
@@ -560,7 +564,7 @@ int Jacobian(int argc, char *argv[])
 //  DiffeomorphicJacobian<ImageType,ImageType,FieldType>(gWarp,1,argv[2]);
 //  if (argc > 3) DiffeomorphicMetric<ImageType,ImageType,FieldType>(gWarp,argv[2]);
 
-  return 0;
+  return EXIT_SUCCESS;
 
 }
 
@@ -621,7 +625,11 @@ private:
     <<
     " the last 1 normalizes the jacobian by the total in the mask.  use this to adjust for head size. 1x0 will project the warp along direction 1,0 --- don't add this option if you dont want to do this "
     << std::endl;
-    return 1;
+    if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   switch( atoi( argv[1] ) )

@@ -1207,7 +1207,11 @@ private:
     antscout
     << " Segmentation.nii.gz -- should contain the value 3 where WM exists and the value 2 where GM exists "
     << std::endl;
-    return 1;
+    if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   unsigned int dim = atoi(argv[1]);
@@ -1225,7 +1229,6 @@ private:
       antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
-
   return EXIT_SUCCESS;
 }
 

@@ -391,7 +391,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
 int LandmarkBasedTransformInitializer2D(int, char * [])
 {
   antscout << " not implemented " << std::endl;
-  return 1;
+  return EXIT_FAILURE;
 
   /*
 typedef  float PixelType;
@@ -467,7 +467,11 @@ private:
     antscout << " register and (3 ) to have the same landmark points defined within them ... " << std::endl;
     antscout << " landmarks will be defined from the center of mass of the labels in the input images . " << std::endl;
     antscout << " You can use ITK-snap to generate the label images. " << std::endl;
-    return 1;
+    if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   // Get the image dimension
@@ -489,8 +493,7 @@ private:
       std::cerr << "Unsupported dimension" << std::endl;
       exit( EXIT_FAILURE );
     }
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 } // namespace ants

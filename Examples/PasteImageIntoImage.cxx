@@ -132,7 +132,7 @@ int PasteImageIntoImage( unsigned int argc, char *argv[] )
   writer->SetInput( reader1->GetOutput() );
   writer->Update();
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -197,6 +197,10 @@ private:
     << std::endl;
     antscout << "     paintOverNonBackgroundVoxels = 2 -> replace canvas voxel walue with conflictLabel"  << std::endl;
 
+    if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
     return EXIT_FAILURE;
     }
 

@@ -145,7 +145,7 @@ int AverageImages1(unsigned int argc, char *argv[])
     writer->Update();
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 template <unsigned int ImageDimension, unsigned int NVectorComponents>
@@ -225,8 +225,7 @@ int AverageImages(unsigned int argc, char *argv[])
     writer->SetInput( averageimage );
     writer->Update();
     }
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -291,7 +290,11 @@ private:
     antscout << " Example Usage:\n" << std::endl;
     antscout << argv[0] << " 3 average.nii.gz  1  *.nii.gz \n" << std::endl;
     antscout << " \n" << std::endl;
-    return 1;
+    if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   int                       dim = atoi( argv[1] );
@@ -363,9 +366,7 @@ private:
                << std::endl;
       return EXIT_FAILURE;
     }
-
-  return 0;
-
+  return EXIT_SUCCESS;
 }
 
 } // namespace ants

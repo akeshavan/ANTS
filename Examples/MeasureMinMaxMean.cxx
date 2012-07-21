@@ -138,9 +138,7 @@ int MeasureMinMaxMean(int argc, char *argv[])
     logfile.close();
 
     }
-
-  return 0;
-
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -195,7 +193,11 @@ private:
     antscout << "Basic useage ex: " << std::endl;
     antscout << argv[0] << " ImageDimension  image.nii {log.txt} {take-absolute-value}  {mask-name} " << std::endl;
     antscout << "  log.txt is optional  - take-abs-val reports min-max-mean of abs val image " << std::endl;
-    return 1;
+    if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
   int                       dim = atoi( argv[1] );
   itk::ImageIOBase::Pointer imageIO =
@@ -268,8 +270,7 @@ private:
       antscout << " not supported " << dim  << std::endl;
       return EXIT_FAILURE;
     }
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 } // namespace ants
