@@ -27,6 +27,7 @@
 #include "itkANTSCenteredAffine2DTransform.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkAffineTransform.h"
+#include "itkBSplineExponentialDiffeomorphicTransform.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransform.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 #include "itkBSplineSyNImageRegistrationMethod.h"
@@ -39,6 +40,7 @@
 #include "itkDisplacementFieldTransform.h"
 #include "itkEuler2DTransform.h"
 #include "itkEuler3DTransform.h"
+#include "itkGaussianExponentialDiffeomorphicTransform.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransform.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 #include "itkHistogramMatchingImageFilter.h"
@@ -181,7 +183,9 @@ public:
     TimeVaryingBSplineVelocityField = 9,
     SyN = 10,
     BSplineSyN = 11,
-    UnknownXfrm = 12
+    Exponential = 12,
+    BSplineExponential = 13,
+    UnknownXfrm = 14
     };
 
   class TransformMethod
@@ -215,6 +219,8 @@ public:
         case TimeVaryingBSplineVelocityField: return std::string("TimeVaryingBSplineVelocityField");
         case SyN: return std::string("SyN");
         case BSplineSyN: return std::string("BSplineSyN");
+        case Exponential: return std::string("Exponential");
+        case BSplineExponential: return std::string("BSplineExponential");
         case UnknownXfrm: return std::string("UnknownXfrm");
         }
       return std::string("Impossible");
@@ -357,6 +363,19 @@ public:
   void AddBSplineSyNTransform(double GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
                               std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel,
                               unsigned int SplineOrder);
+
+  /**
+   * add an exponential transform
+   */
+  void AddExponentialTransform(double GradientStep, double UpdateFieldVarianceInVarianceSpace,
+                               double TotalFieldVarianceInVarianceSpace);
+
+  /**
+   * add a B-spline exponential transform
+   */
+  void AddBSplineExponentialTransform(double GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
+                                      std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel,
+                                      unsigned int SplineOrder);
 
   /**
    * Add the collected iterations list
