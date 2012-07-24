@@ -922,7 +922,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         try
           {
           antscout << std::endl << "*** Running affine registration ***" << timedim << std::endl << std::endl;
-          affineRegistration->StartRegistration();
+          affineRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -978,7 +978,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         try
           {
           antscout << std::endl << "*** Running rigid registration ***" << timedim  << std::endl << std::endl;
-          rigidRegistration->StartRegistration();
+          rigidRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -1100,7 +1100,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
                    << sigmaForUpdateField << ", varianceForTotalField = " << sigmaForTotalField << ") ***"
                    << std::endl << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
-          displacementFieldRegistration->StartRegistration();
+          displacementFieldRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -1222,7 +1222,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
                    << sigmaForUpdateField << ", varianceForTotalField = " << sigmaForTotalField << ") ***"
                    << std::endl << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
-          displacementFieldRegistration->StartRegistration();
+          displacementFieldRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
