@@ -3,6 +3,8 @@
 #include "itkRegistrationParameterScalesFromPhysicalShift.h"
 #include "itkDemonsImageToImageMetricv4.h"
 #include "itkConjugateGradientLineSearchOptimizerv4.h"
+#include "antsAllocImage.h"
+
 namespace ants
 {
 
@@ -1439,11 +1441,11 @@ RegistrationHelper<VImageDimension>
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
         typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
-        typename DisplacementFieldType::Pointer displacementField = DisplacementFieldType::New();
-        displacementField->CopyInformation( fixedImage );
-        displacementField->SetRegions( fixedImage->GetBufferedRegion() );
-        displacementField->Allocate();
-        displacementField->FillBuffer( zeroVector );
+        // ORIENTATION ALERT: Original code set image size to
+        // fixedImage buffered region, & if fixedImage BufferedRegion
+        // != LargestPossibleRegion, this code would be wrong.
+        typename DisplacementFieldType::Pointer displacementField =
+          AllocImage<DisplacementFieldType>(fixedImage,zeroVector);
 
         typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransform<RealType,
                                                                          VImageDimension>
@@ -1556,11 +1558,9 @@ RegistrationHelper<VImageDimension>
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
         typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
-        typename DisplacementFieldType::Pointer displacementField = DisplacementFieldType::New();
-        displacementField->CopyInformation( fixedImage );
-        displacementField->SetRegions( fixedImage->GetBufferedRegion() );
-        displacementField->Allocate();
-        displacementField->FillBuffer( zeroVector );
+        // ORIENTATION ALERT -- see comment above.
+        typename DisplacementFieldType::Pointer displacementField =
+          AllocImage<DisplacementFieldType>(fixedImage,zeroVector);
 
         typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransform<RealType,
                                                                         VImageDimension>
@@ -1801,7 +1801,6 @@ RegistrationHelper<VImageDimension>
         // Determine the parameters (size, spacing, etc) for the time-varying velocity field
 
         typedef itk::Image<VectorType, VImageDimension + 1> TimeVaryingVelocityFieldType;
-        typename TimeVaryingVelocityFieldType::Pointer velocityField = TimeVaryingVelocityFieldType::New();
 
         typename TimeVaryingVelocityFieldType::IndexType velocityFieldIndex;
         typename TimeVaryingVelocityFieldType::SizeType velocityFieldSize;
@@ -1837,13 +1836,12 @@ RegistrationHelper<VImageDimension>
 
         velocityFieldRegion.SetSize( velocityFieldSize );
         velocityFieldRegion.SetIndex( velocityFieldIndex );
-
-        velocityField->SetOrigin( velocityFieldOrigin );
-        velocityField->SetSpacing( velocityFieldSpacing );
-        velocityField->SetDirection( velocityFieldDirection );
-        velocityField->SetRegions( velocityFieldRegion );
-        velocityField->Allocate();
-        velocityField->FillBuffer( zeroVector );
+        typename TimeVaryingVelocityFieldType::Pointer velocityField = 
+          AllocImage<TimeVaryingVelocityFieldType>(velocityFieldRegion,
+                                                   velocityFieldSpacing,
+                                                   velocityFieldOrigin,
+                                                   velocityFieldDirection,
+                                                   zeroVector);
 
         // Extract parameters
 
@@ -1994,8 +1992,6 @@ RegistrationHelper<VImageDimension>
         unsigned int splineOrder = this->m_TransformMethods[currentStage].m_SplineOrder;
 
         typedef itk::Image<VectorType, VImageDimension + 1> TimeVaryingVelocityFieldControlPointLatticeType;
-        typename TimeVaryingVelocityFieldControlPointLatticeType::Pointer velocityFieldLattice =
-          TimeVaryingVelocityFieldControlPointLatticeType::New();
 
         typename ImageType::SizeType fixedImageSize = fixedImage->GetBufferedRegion().GetSize();
         typename ImageType::PointType fixedImageOrigin = fixedImage->GetOrigin();
@@ -2068,12 +2064,14 @@ RegistrationHelper<VImageDimension>
         initialFieldTransformAdaptor->SetRequiredTransformDomainMeshSize( transformDomainMeshSize );
         initialFieldTransformAdaptor->SetRequiredTransformDomainDirection( transformDomainDirection );
 
-        velocityFieldLattice->SetOrigin( initialFieldTransformAdaptor->GetRequiredControlPointLatticeOrigin() );
-        velocityFieldLattice->SetSpacing( initialFieldTransformAdaptor->GetRequiredControlPointLatticeSpacing() );
-        velocityFieldLattice->SetDirection( initialFieldTransformAdaptor->GetRequiredControlPointLatticeDirection() );
-        velocityFieldLattice->SetRegions( initialFieldTransformAdaptor->GetRequiredControlPointLatticeSize() );
-        velocityFieldLattice->Allocate();
-        velocityFieldLattice->FillBuffer( zeroVector );
+        typename TimeVaryingVelocityFieldControlPointLatticeType::Pointer
+          velocityFieldLattice =
+          AllocImage<TimeVaryingVelocityFieldControlPointLatticeType>
+          (initialFieldTransformAdaptor->GetRequiredControlPointLatticeSize(),
+           initialFieldTransformAdaptor->GetRequiredControlPointLatticeSpacing(),
+           initialFieldTransformAdaptor->GetRequiredControlPointLatticeOrigin(),
+           initialFieldTransformAdaptor->GetRequiredControlPointLatticeDirection(),
+           zeroVector);
 
         typename OutputTransformType::VelocityFieldPointType        sampledVelocityFieldOrigin;
         typename OutputTransformType::VelocityFieldSpacingType      sampledVelocityFieldSpacing;
@@ -2163,17 +2161,11 @@ RegistrationHelper<VImageDimension>
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
         typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
-        typename DisplacementFieldType::Pointer displacementField = DisplacementFieldType::New();
-        displacementField->CopyInformation( fixedImage );
-        displacementField->SetRegions( fixedImage->GetBufferedRegion() );
-        displacementField->Allocate();
-        displacementField->FillBuffer( zeroVector );
+        typename DisplacementFieldType::Pointer displacementField =
+          AllocImage<DisplacementFieldType>(fixedImage,zeroVector);
 
-        typename DisplacementFieldType::Pointer inverseDisplacementField = DisplacementFieldType::New();
-        inverseDisplacementField->CopyInformation( fixedImage );
-        inverseDisplacementField->SetRegions( fixedImage->GetBufferedRegion() );
-        inverseDisplacementField->Allocate();
-        inverseDisplacementField->FillBuffer( zeroVector );
+        typename DisplacementFieldType::Pointer inverseDisplacementField =
+          AllocImage<DisplacementFieldType>(fixedImage,zeroVector);
 
         typedef itk::SyNImageRegistrationMethod<ImageType, ImageType,
                                                 DisplacementFieldTransformType> DisplacementFieldRegistrationType;
@@ -2287,17 +2279,11 @@ RegistrationHelper<VImageDimension>
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
         typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
-        typename DisplacementFieldType::Pointer displacementField = DisplacementFieldType::New();
-        displacementField->CopyInformation( fixedImage );
-        displacementField->SetRegions( fixedImage->GetBufferedRegion() );
-        displacementField->Allocate();
-        displacementField->FillBuffer( zeroVector );
+        typename DisplacementFieldType::Pointer displacementField =
+          AllocImage<DisplacementFieldType>(fixedImage,zeroVector);
 
-        typename DisplacementFieldType::Pointer inverseDisplacementField = DisplacementFieldType::New();
-        inverseDisplacementField->CopyInformation( fixedImage );
-        inverseDisplacementField->SetRegions( fixedImage->GetBufferedRegion() );
-        inverseDisplacementField->Allocate();
-        inverseDisplacementField->FillBuffer( zeroVector );
+        typename DisplacementFieldType::Pointer inverseDisplacementField =
+          AllocImage<DisplacementFieldType>(fixedImage,zeroVector);
 
         typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransform<RealType,
                                                                         VImageDimension>

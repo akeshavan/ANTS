@@ -238,13 +238,11 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   /**
    * Provide an initial log bias field of zeros
    */
-  typename RealImageType::Pointer logBiasField = RealImageType::New();
+  typename RealImageType::Pointer logBiasField =
+    AllocImage<RealImageType>(this->GetInput()->GetRequestedRegion(),0.0);
   logBiasField->SetOrigin( this->GetInput()->GetOrigin() );
-  logBiasField->SetRegions( this->GetInput()->GetRequestedRegion() );
   logBiasField->SetSpacing( this->GetInput()->GetSpacing() );
   logBiasField->SetDirection( this->GetInput()->GetDirection() );
-  logBiasField->Allocate();
-  logBiasField->FillBuffer( 0.0 );
 
   /**
    * Iterate until convergence or iterative exhaustion.
@@ -514,13 +512,8 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   /**
    * Sharpen the image with the new mapping, E(u|v)
    */
-  typename RealImageType::Pointer sharpenedImage = RealImageType::New();
-  sharpenedImage->SetOrigin( unsharpenedImage->GetOrigin() );
-  sharpenedImage->SetSpacing( unsharpenedImage->GetSpacing() );
-  sharpenedImage->SetRegions( unsharpenedImage->GetLargestPossibleRegion() );
-  sharpenedImage->SetDirection( unsharpenedImage->GetDirection() );
-  sharpenedImage->Allocate();
-  sharpenedImage->FillBuffer( 0.0 );
+  typename RealImageType::Pointer sharpenedImage =
+    AllocImage<RealImageType>(unsharpenedImage,0.0);
 
   ImageRegionIterator<RealImageType> ItC( sharpenedImage,
                                           sharpenedImage->GetLargestPossibleRegion() );
@@ -628,13 +621,11 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
    */
   this->m_LogBiasFieldControlPointLattice = bspliner->GetPhiLattice();
 
-  typename RealImageType::Pointer smoothField = RealImageType::New();
+  typename RealImageType::Pointer smoothField =
+    AllocImage<RealImageType>(fieldEstimate->GetLargestPossibleRegion());
   smoothField->SetOrigin( fieldEstimate->GetOrigin() );
   smoothField->SetSpacing( fieldEstimate->GetSpacing() );
-  smoothField->SetRegions(
-    fieldEstimate->GetLargestPossibleRegion().GetSize() );
   smoothField->SetDirection( direction );
-  smoothField->Allocate();
 
   ImageRegionIterator<ScalarImageType> ItB( bspliner->GetOutput(),
                                             bspliner->GetOutput()->GetLargestPossibleRegion() );
