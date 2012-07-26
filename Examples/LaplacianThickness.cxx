@@ -116,7 +116,7 @@ LabelSurface(typename TImage::PixelType foreground,
   // ORIENTATION ALERT -- original code set spacing & origin without
   // also setting orientation.
   typename   ImageType::Pointer     Image =
-    AllocImage<ImageType>(Image);
+    AllocImage<ImageType>(input);
 
   typedef itk::NeighborhoodIterator<ImageType> iteratorType;
 
@@ -340,7 +340,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
   typedef typename GradientImageFilterType::Pointer GradientImageFilterPointer;
 
   typename TField::Pointer sfield =
-    AllocImage<TField>(sfield);
+    AllocImage<TField>(wm);
 
   typename TImage::Pointer laplacian = SmoothImage<TImage>(wm, 1);
   laplacian->FillBuffer(0);
