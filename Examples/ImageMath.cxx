@@ -1808,7 +1808,7 @@ int TimeSeriesDisassemble(int argc, char *argv[])
 
   return 0;
 }
-  
+
 template <unsigned int ImageDimension>
 int TimeSeriesAssemble(int argc, char *argv[])
 {
@@ -1859,7 +1859,7 @@ int TimeSeriesAssemble(int argc, char *argv[])
         outSize[d] = image1->GetLargestPossibleRegion().GetSize()[d];
         outSpacing[d] = image1->GetSpacing()[d];
         outOrigin[d] = image1->GetOrigin()[d];
-        
+
         for ( unsigned int e=0; e<(ImageDimension-1); e++)
           {
           outDirection(e,d) = image1->GetDirection()(e,d);
@@ -1885,7 +1885,7 @@ int TimeSeriesAssemble(int argc, char *argv[])
       outimage->SetDirection( outDirection );
       outimage->Allocate();
       }
-    
+
     ImageIt it( image1, image1->GetLargestPossibleRegion() );
     while ( ! it.IsAtEnd() )
       {
@@ -1898,7 +1898,7 @@ int TimeSeriesAssemble(int argc, char *argv[])
       outimage->SetPixel(index, it.Value() );
       ++it;
       }
-    
+
 
     }
 
@@ -9603,7 +9603,7 @@ int MostLikely( int argc, char *argv[] )
 
   // Read input segmentations
   const unsigned long nImages = argc-4;
-  typename ImageType::Pointer images[argc-4];
+  std::vector<typename ImageType::Pointer> images(argc-4,NULL);
   for (int i=4; i<argc; i++)
     {
     images[i-4] = ImageType::New();
@@ -9621,14 +9621,14 @@ int MostLikely( int argc, char *argv[] )
   IteratorType it( output, output->GetLargestPossibleRegion() );
   itk::Array<unsigned long> votes;
   votes.SetSize( nImages );
-  
-  while ( !it.IsAtEnd() ) 
+
+  while ( !it.IsAtEnd() )
     {
-    
+
     votes.Fill(0);
     float maxVotes = 0.0;
     unsigned long votedLabel = 0;
- 
+
     for ( unsigned long i=0; i<nImages; i++)
       {
       unsigned long label = images[i]->GetPixel( it.GetIndex() );
@@ -9640,14 +9640,14 @@ int MostLikely( int argc, char *argv[] )
         votedLabel = i;
         }
       }
-    
+
     it.Set( votedLabel );
     ++it;
     }
 
   WriteImage<LabeledImageType>( output, outputName.c_str() );
   return 0;
-  
+
 }
 
 
@@ -9657,7 +9657,7 @@ int STAPLE( int argc, char *argv[] )
   typedef int                                    PixelType;
   typedef itk::Image<PixelType, ImageDimension>            ImageType;
   typedef itk::Image<float, ImageDimension>                OutputImageType;
-  
+
   typedef itk::MinimumMaximumImageCalculator<ImageType>    CalculatorType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>     IteratorType;
   typedef itk::STAPLEImageFilter<ImageType,OutputImageType>      StapleFilterType;
@@ -9670,13 +9670,13 @@ int STAPLE( int argc, char *argv[] )
 
   std::string outputName = std::string( argv[2] );
   typename StapleFilterType::Pointer stapler = StapleFilterType::New();
-  
+
 
   int foreground = atoi( argv[4] );
   float confidence = atof( argv[5] );
- 
+
   // Read input segmentations
-  typename ImageType::Pointer images[argc-6];
+  std::vector<typename ImageType::Pointer> images(argc-6,NULL);
   for (int i=6; i<argc; i++)
     {
     images[i-6] = ImageType::New();
@@ -9688,7 +9688,7 @@ int STAPLE( int argc, char *argv[] )
 
   WriteImage<OutputImageType>( stapler->GetOutput(), outputName.c_str() );
   return 0;
-  
+
 }
 
 
@@ -10079,11 +10079,11 @@ int MinMaxMean( int argc, char *argv[] )
     {
     mean /= image->GetLargestPossibleRegion().GetSize()[i];
     }
-  
+
   antscout << calc->GetMinimum() << " " << calc->GetMaximum() << " " << mean << std::endl;
 
   return 0;
-      
+
 }
 
 
@@ -11122,7 +11122,7 @@ private:
       else if( strcmp(operation.c_str(), "MajorityVoting") == 0 )
         {
         MajorityVoting<3>(argc, argv);
-        }      
+        }
       else if ( strcmp(operation.c_str(), "MostLikely") == 0 )
         {
         MostLikely<3>(argc, argv);
