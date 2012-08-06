@@ -1844,7 +1844,7 @@ RegistrationHelper<VImageDimension>
 
         velocityFieldRegion.SetSize( velocityFieldSize );
         velocityFieldRegion.SetIndex( velocityFieldIndex );
-        typename TimeVaryingVelocityFieldType::Pointer velocityField = 
+        typename TimeVaryingVelocityFieldType::Pointer velocityField =
           AllocImage<TimeVaryingVelocityFieldType>(velocityFieldRegion,
                                                    velocityFieldSpacing,
                                                    velocityFieldOrigin,
@@ -2703,9 +2703,6 @@ RegistrationHelper<VImageDimension>
     this->m_CompositeTransform->PrependTransform( this->m_CompositeLinearTransformForFixedImageHeader );
     this->m_CompositeTransform->FlattenTransformQueue();
     }
-
-  std::cout << "Composite Transform:" << std::endl;
-  this->m_CompositeTransform->Print( std::cout, 10 );
 
   totalTimer.Stop();
   this->Logger() << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
