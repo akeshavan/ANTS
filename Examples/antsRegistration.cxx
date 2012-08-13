@@ -208,8 +208,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption(  9, "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
     option->SetUsageOption( 10, "SyN[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
     option->SetUsageOption( 11, "BSplineSyN[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
-    option->SetUsageOption( 12, "Exponential[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
-    option->SetUsageOption( 13, "BSplineExponential[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+    option->SetUsageOption( 12, "Exponential[gradientStep,updateFieldVarianceInVoxelSpace,velocityFieldVarianceInVoxelSpace,<numberOfIntegrationSteps>]" );
+    option->SetUsageOption( 13, "BSplineExponential[gradientStep,updateFieldMeshSizeAtBaseLevel,velocityFieldMeshSizeAtBaseLevel,<numberOfIntegrationSteps>,<splineOrder=3>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -330,7 +330,9 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
       str == "timevaryingbsplinevelocityfield" ||
       str == "tvdmffd" ||
       str == "timevaryingvelocityfield" ||
-      str == "tvf" )
+      str == "tvf"  ||
+      str == "exponential" ||
+      str == "bsplineexponential" )
     {
     writeInverse = true;
     }
@@ -883,8 +885,13 @@ DoRegistration(typename ParserType::Pointer & parser)
       case RegistrationHelperType::Exponential:
         {
         const float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
-        const float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
-        regHelper->AddExponentialTransform( learningRate, varianceForUpdateField, varianceForTotalField );
+        const float varianceForVelocityField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
+        unsigned int numberOfIntegrationSteps = 0;  // If the number of integration steps = 0, compute steps automatically
+        if( transformOption->GetNumberOfParameters( currentStage ) > 3 )
+          {
+          numberOfIntegrationSteps = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 3 ) );
+          }
+        regHelper->AddExponentialTransform( learningRate, varianceForUpdateField, varianceForVelocityField, numberOfIntegrationSteps );
         }
         break;
       case RegistrationHelperType::BSplineExponential:
@@ -892,29 +899,34 @@ DoRegistration(typename ParserType::Pointer & parser)
         std::vector<unsigned int> meshSizeForTheUpdateField =
           parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 1 ) );
 
-        std::vector<unsigned int> meshSizeForTheTotalField;
+        std::vector<unsigned int> meshSizeForTheVelocityField;
         if( transformOption->GetNumberOfParameters( currentStage ) > 2 )
           {
-          meshSizeForTheTotalField =
+          meshSizeForTheVelocityField =
             parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 2 ) );
           }
         else
           {
           for( unsigned int d = 0; d < VImageDimension; d++ )
             {
-            meshSizeForTheTotalField.push_back( 0 );
+            meshSizeForTheVelocityField.push_back( 0 );
             }
           }
 
-        unsigned int splineOrder = 3;
+        unsigned int numberOfIntegrationSteps = 0;  // If the number of integration steps = 0, compute steps automatically
         if( transformOption->GetNumberOfParameters( currentStage ) > 3 )
           {
-          splineOrder = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 3 ) );
+          numberOfIntegrationSteps = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 3 ) );
+          }
+
+        unsigned int splineOrder = 3;
+        if( transformOption->GetNumberOfParameters( currentStage ) > 4 )
+          {
+          splineOrder = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 4 ) );
           }
 
         regHelper->AddBSplineExponentialTransform( learningRate, meshSizeForTheUpdateField,
-                                                   meshSizeForTheTotalField, splineOrder );
-
+                                                   meshSizeForTheVelocityField, numberOfIntegrationSteps, splineOrder );
         }
         break;
       default:
@@ -973,6 +985,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     std::stringstream curFileName;
     curFileName << outputPrefix << i << transformTemplateName;
+
     // WriteTransform will spit all sorts of error messages if it
     // fails, and we want to keep going even if it does so ignore its
     // return value.
