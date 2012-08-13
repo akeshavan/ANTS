@@ -1,9 +1,5 @@
 #ifndef __itkantsRegistrationHelper_hxx
 #define __itkantsRegistrationHelper_hxx
-#include "itkRegistrationParameterScalesFromPhysicalShift.h"
-#include "itkDemonsImageToImageMetricv4.h"
-#include "itkConjugateGradientLineSearchOptimizerv4.h"
-#include "antsAllocImage.h"
 
 namespace ants
 {
@@ -53,7 +49,7 @@ public:
       this->Logger() << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
                      << std::endl;
 
-      typedef itk::ConjugateGradientLineSearchOptimizerv4 GradientDescentOptimizerType;
+      typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
       GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>(
           const_cast<typename TFilter::OptimizerType *>( const_cast<TFilter *>( filter )->GetOptimizer() ) );
 
@@ -1113,8 +1109,8 @@ RegistrationHelper<VImageDimension>
     scalesEstimator->SetMetric( metric );
     scalesEstimator->SetTransformForward( true );
 
-    typedef itk::ConjugateGradientLineSearchOptimizerv4 GradientDescentOptimizerType;
-    typename GradientDescentOptimizerType::Pointer optimizer = GradientDescentOptimizerType::New();
+    typedef itk::ConjugateGradientLineSearchOptimizerv4 ConjugateGradientDescentOptimizerType;
+    typename ConjugateGradientDescentOptimizerType::Pointer optimizer = ConjugateGradientDescentOptimizerType::New();
     optimizer->SetLowerLimit( 0 );
     optimizer->SetUpperLimit( 2 );
     optimizer->SetEpsilon( 0.2 );
@@ -1127,10 +1123,25 @@ RegistrationHelper<VImageDimension>
     optimizer->SetConvergenceWindowSize( convergenceWindowSize );
     optimizer->SetDoEstimateLearningRateAtEachIteration( this->m_DoEstimateLearningRateAtEachIteration );
     optimizer->SetDoEstimateLearningRateOnce( !this->m_DoEstimateLearningRateAtEachIteration );
-    typedef antsRegistrationOptimizerCommandIterationUpdate<GradientDescentOptimizerType> OptimizerCommandType;
+    typedef antsRegistrationOptimizerCommandIterationUpdate<ConjugateGradientDescentOptimizerType> OptimizerCommandType;
     typename OptimizerCommandType::Pointer optimizerObserver = OptimizerCommandType::New();
     optimizerObserver->SetLogStream( *this->m_LogStream );
     optimizerObserver->SetOptimizer( optimizer );
+
+    typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
+    typename GradientDescentOptimizerType::Pointer optimizer2 = GradientDescentOptimizerType::New();
+    optimizer2->SetLearningRate( learningRate );
+    optimizer2->SetMaximumStepSizeInPhysicalUnits( learningRate );
+    optimizer2->SetNumberOfIterations( currentStageIterations[0] );
+    optimizer2->SetScalesEstimator( scalesEstimator );
+    optimizer2->SetMinimumConvergenceValue( convergenceThreshold );
+    optimizer2->SetConvergenceWindowSize( convergenceWindowSize );
+    optimizer2->SetDoEstimateLearningRateAtEachIteration( this->m_DoEstimateLearningRateAtEachIteration );
+    optimizer2->SetDoEstimateLearningRateOnce( !this->m_DoEstimateLearningRateAtEachIteration );
+    typedef antsRegistrationOptimizerCommandIterationUpdate<GradientDescentOptimizerType> OptimizerCommandType2;
+    typename OptimizerCommandType2::Pointer optimizerObserver2 = OptimizerCommandType2::New();
+    optimizerObserver2->SetLogStream( *this->m_LogStream );
+    optimizerObserver2->SetOptimizer( optimizer2 );
 
     // Set up the image registration methods along with the transforms
     XfrmMethod whichTransform = this->m_TransformMethods[currentStage].m_XfrmMethod;
@@ -2523,7 +2534,7 @@ RegistrationHelper<VImageDimension>
         displacementFieldRegistration->SetMetricSamplingStrategy(
           static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
         displacementFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
-        displacementFieldRegistration->SetOptimizer( optimizer );
+        displacementFieldRegistration->SetOptimizer( optimizer2 );
         displacementFieldRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
@@ -2537,7 +2548,7 @@ RegistrationHelper<VImageDimension>
         typedef antsRegistrationCommandIterationUpdate<DisplacementFieldRegistrationType> DisplacementFieldCommandType;
         typename DisplacementFieldCommandType::Pointer displacementFieldRegistrationObserver =
           DisplacementFieldCommandType::New();
-        displacementFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
+        displacementFieldRegistrationObserver->SetLogStream(*this->m_LogStream );
         displacementFieldRegistrationObserver->SetNumberOfIterations( currentStageIterations );
 
         displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
@@ -2679,7 +2690,7 @@ RegistrationHelper<VImageDimension>
         displacementFieldRegistration->SetMetricSamplingStrategy(
           static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
         displacementFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
-        displacementFieldRegistration->SetOptimizer( optimizer );
+        displacementFieldRegistration->SetOptimizer( optimizer2 );
         displacementFieldRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
 
         typedef antsRegistrationCommandIterationUpdate<DisplacementFieldRegistrationType> DisplacementFieldCommandType;
