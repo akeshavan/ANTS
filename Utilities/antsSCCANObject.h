@@ -342,7 +342,7 @@ public:
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );
 
-  VectorType InitializeV( MatrixType p, bool random = false);
+  VectorType InitializeV( MatrixType p, unsigned long seed = 0 );
 
   VectorType ComputeVectorLaplacian( VectorType, ImagePointer );
   VectorType ComputeVectorGradMag( VectorType, ImagePointer );
@@ -547,6 +547,8 @@ public:
   RealType SparsePartialCCA(unsigned int nvecs);
 
   RealType SparsePartialArnoldiCCA(unsigned int nvecs);
+
+  RealType SparseReconB( MatrixType& , VectorType& );
 
   RealType SparseRecon(unsigned int nvecs);
 
