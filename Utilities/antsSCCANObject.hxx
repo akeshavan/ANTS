@@ -3521,10 +3521,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   RealType regbeta = this->SimpleRegression(  this->m_CanonicalCorrelations, this->m_OriginalMatrixR.get_column( 0 )  );
   RealType intercept = this->m_OriginalMatrixR.get_column( 0 ).mean() - this->m_CanonicalCorrelations.mean() * regbeta;
+  VectorType predicted = this->m_CanonicalCorrelations * regbeta + intercept;
   RealType predictionerror =
-    (  this->m_CanonicalCorrelations * regbeta + intercept
+    (  predicted
        - this->m_OriginalMatrixR.get_column( 0 ) ).one_norm() / this->m_OriginalMatrixR.rows();
-  ::ants::antscout << " overall-mean-abs-prediction-error: " << predictionerror << std::endl;
+  ::ants::antscout << " overall-mean-abs-prediction-error: " << predictionerror << " correlation " <<  this->PearsonCorr(  predicted , this->m_OriginalMatrixR.get_column( 0 ) )  << std::endl;
   this->m_VariatesP = this->m_VariatesQ;
 
   /*
