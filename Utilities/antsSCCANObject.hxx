@@ -3217,7 +3217,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
          || ( ct < 4 ) )
     {
     VectorType x_k1  = x_k + alpha_k * p_k;
-    this->CurvatureSparseness( x_k1 ,  ( 1 - this->m_FractionNonZeroP ) * 100, 10 );
+    // this->CurvatureSparseness( x_k1 ,  ( 1 - this->m_FractionNonZeroP ) * 100, 10 );
     this->SparsifyP( x_k1, true );
     VectorType update = At * (A * x_k1 );
     RealType dataterm =  (b - update ).two_norm();
@@ -3319,6 +3319,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   ::ants::antscout << " network decomposition using nlcg & normal equations " << std::endl;
   this->m_CanonicalCorrelations.set_size( this->m_OriginalMatrixP.rows() );
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
+  this->m_MatrixP = this->m_MatrixP - this->m_MatrixP.min_value();
   this->m_MatrixR = this->NormalizeMatrix( this->m_OriginalMatrixR );
   this->m_MatrixR = this->m_OriginalMatrixR;
   if( this->m_OriginalMatrixR.size() <=  0 )
@@ -3426,7 +3427,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           this->AddColumnsToMatrix( A, matrixR, 1, this->m_MatrixR.cols() - 1 );
           }
         VectorType lmsolv( A.cols(), 1 );
-        (void)this->ConjGrad( A, lmsolv, original_b, 0, 10000 );
+        (void) this->ConjGrad( A, lmsolv, original_b, 0, 10000 );
         VectorType v = ( A * lmsolv + this->m_Intercept );
         b = this->Orthogonalize( b, v );
         }
@@ -3434,7 +3435,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       b = b - b.mean();
       for( unsigned int cl = colind; cl < colind + 2; cl++ )
         {
-        VectorType randv = this->InitializeV( matrixP, false );
+        VectorType randv = this->InitializeV( matrixP, 0 );
         VectorType bp = b * matrixP;
         VectorType bpneg( bp );
         this->PosNegVector( bp, true );
@@ -3444,14 +3445,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           bp = bpneg;
           }
         // minerr1 = this->ConjGrad(  matrixP ,  randv, b , 0, 10000 );
-        // minerr1 = this->SparseNLPreConjGrad( matrixP, randv, bp, 1.e-1, 100 );
-        // minerr1 = this->SparseNLConjGrad( matrixP, randv, bp, 1.e-5, 500, true , true  );
-        // minerr1 = this->RidgeRegression(  matrixP ,  randv, bp, 1.e4 );
-	// minerr1 = this->MatchingPursuit(  matrixP ,  randv,  0, 90  );
-	// minerr1 = this->SparseConjGradRidgeRegression(  matrixP,  randv, bp, 0, 150, true );
+        // minerr1 = this->SparseNLPreConjGrad( matrixP, randv, bp, 1.e-1, 100 ); /**/
+        // minerr1 = this->SparseNLConjGrad( matrixP, randv, bp, 1.e-5, 500, true , true  ); /** miccai good? */
+        // minerr1 = this->RidgeRegression(  matrixP ,  randv, bp, 1.e4 );/** biased but ok */
+	// minerr1 = this->MatchingPursuit(  matrixP ,  randv,  0, 90  );/** bad */
+	// minerr1 = this->SparseConjGradRidgeRegression(  matrixP,  randv, bp, 0, 150, true );/** good */
 	randv.fill( 0 );
-	minerr1 = this->IHTRegression(  matrixP,  randv, bp, 0, 150 );
-        
+	minerr1 = this->IHTRegression(  matrixP,  randv, bp, 0, 150 ); /** good */       
         if( cl < this->m_VariatesP.cols() )
           {
           this->m_VariatesP.set_column( cl, randv );
