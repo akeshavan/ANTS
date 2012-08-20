@@ -1049,6 +1049,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   ReadMatrixFromCSVorImageSet<Scalar>(pmatname, p);
   if( robustify > 0 )
     {
+    ::ants::antscout << " make robust " << std::endl;
     p = sccanobj->RankifyMatrixColumns(p);
     }
 
@@ -1114,6 +1115,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   sccanobj->SetMinClusterSizeP( p_cluster_thresh );
   if( robustify > 0 )
     {
+    ::ants::antscout << " make robust " << std::endl;
     p = sccanobj->RankifyMatrixColumns(p);
     }
   sccanobj->SetMatrixP( p );
@@ -1288,6 +1290,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   sccanobj->SetMinClusterSizeQ( q_cluster_thresh );
   if( robustify > 0 )
     {
+    ::ants::antscout << " make robust " << std::endl;
     p = sccanobj->RankifyMatrixColumns(p);
     q = sccanobj->RankifyMatrixColumns(q);
     }
@@ -1545,6 +1548,7 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
     sccanobj->SetMinClusterSizeQ( q_cluster_thresh );
     if( robustify > 0 )
       {
+      ::ants::antscout << " make robust " << std::endl;
       p = sccanobj->RankifyMatrixColumns(p);
       q = sccanobj->RankifyMatrixColumns(q);
       r = sccanobj->RankifyMatrixColumns(r);
@@ -1894,7 +1898,7 @@ int sccan( itk::ants::CommandLineParser *parser )
     evec_ct = parser->Convert<unsigned int>( evec_option->GetValue() );
     }
 
-  unsigned int                                      robustify = 1;
+  unsigned int                                      robustify = 0;
   itk::ants::CommandLineParser::OptionType::Pointer robust_option =
     parser->GetOption( "robustify" );
   if( !robust_option || robust_option->GetNumberOfValues() == 0 )
