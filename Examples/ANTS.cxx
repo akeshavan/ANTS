@@ -168,7 +168,12 @@ private:
       }
     return EXIT_SUCCESS;
     }
-  int dim = atoi( argv[1] );
+
+  int dim = 0;
+  if( argc >= 1 )
+    dim = atoi( argv[1] );
+    }
+
   if( dim <= 1 || dim > 3 )
     {
     antscout << " You passed ImageDimension: " << dim
