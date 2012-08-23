@@ -170,7 +170,7 @@ private:
     }
 
   int dim = 0;
-  if( argc >= 1 )
+  if( argc > 1 )
     {
     dim = atoi( argv[1] );
     }
