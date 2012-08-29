@@ -3967,7 +3967,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparsePartialArnoldiCCA(unsigned int n_vecs_in)
 {
   unsigned int n_vecs = n_vecs_in;
-  //  this->m_UseL1 = true;
+  this->m_UseL1 = true;
+  //  this->m_UseL1 = false;
   if( n_vecs < 1)
     {
     n_vecs = 1;
