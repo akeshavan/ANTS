@@ -15,7 +15,7 @@
 namespace ants
 {
 
-bool MatOffRegistered[2] = { false, false };
+static bool MatOffRegistered[2] = { false, false };
 
 template <unsigned int VImageDimension>
 void RegisterMatOff()
@@ -29,7 +29,6 @@ void RegisterMatOff()
                                            VImageDimension> MatrixOffsetTransformType;
     itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
     }
-
 }
 
 /**
@@ -57,8 +56,7 @@ Disassemble(itk::TransformBase *transform, const std::string & transformName, co
   typedef typename itk::DisplacementFieldTransform<double, VImageDimension> DisplacementFieldTransformType;
   typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
 
-  CompositeTransformType *composite =
-    dynamic_cast<CompositeTransformType *>(transform);
+  CompositeTransformType *composite = dynamic_cast<CompositeTransformType *>(transform);
   if( composite == 0 )
     {
     antscout << "Transform File " << transformName << " is a "
@@ -67,7 +65,7 @@ Disassemble(itk::TransformBase *transform, const std::string & transformName, co
     return EXIT_FAILURE;
     }
 
-  unsigned int numTransforms = composite->GetNumberOfTransforms();
+  const unsigned int numTransforms = composite->GetNumberOfTransforms();
   for( unsigned int i = 0; i < numTransforms; ++i )
     {
     TransformPointer                curXfrm = composite->GetNthTransform(i);
@@ -104,8 +102,8 @@ int Disassemble(const std::string & CompositeName,
                            // failure.
       }
     }
-  unsigned int inDim(transform->GetInputSpaceDimension() ),
-  outDim(transform->GetOutputSpaceDimension() );
+  const unsigned int inDim(transform->GetInputSpaceDimension() );
+  const unsigned int outDim(transform->GetOutputSpaceDimension() );
   if( inDim != outDim )
     {
     antscout << "Can't handle mixed input & output dimension: input("
@@ -134,10 +132,9 @@ Assemble(const std::string & CompositeName,
 {
   typedef itk::CompositeTransform<double, VImageDimension> CompositeTransformType;
   typedef typename CompositeTransformType::TransformType   TransformType;
-  typename CompositeTransformType::Pointer composite =
-    CompositeTransformType::New();
+  typename CompositeTransformType::Pointer composite = CompositeTransformType::New();
   composite->AddTransform(firstTransform);
-  for( unsigned i = 1; i < transformNames.size(); ++i )
+  for( unsigned int i = 1; i < transformNames.size(); ++i )
     {
     typename TransformType::Pointer curXfrm = itk::ants::ReadTransform<VImageDimension>(transformNames[i]);
     if( curXfrm.IsNull() )
