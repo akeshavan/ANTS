@@ -2488,8 +2488,7 @@ RegistrationHelper<VImageDimension>
         unsigned int numberOfIntegrationSteps = this->m_TransformMethods[currentStage].m_NumberOfTimeIndices;
 
         outputDisplacementFieldTransform->SetGaussianSmoothingVarianceForTheUpdateField( varianceForUpdateField );
-        outputDisplacementFieldTransform->SetGaussianSmoothingVarianceForTheVelocityField( varianceForVelocityField );
-        outputDisplacementFieldTransform->SetComputeInverse( true );
+        outputDisplacementFieldTransform->SetGaussianSmoothingVarianceForTheConstantVelocityField( varianceForVelocityField );
         if( numberOfIntegrationSteps == 0 )
           {
           outputDisplacementFieldTransform->SetCalculateNumberOfIntegrationStepsAutomatically( true );
@@ -2525,7 +2524,7 @@ RegistrationHelper<VImageDimension>
           fieldTransformAdaptor->SetTransform( outputDisplacementFieldTransform );
 
           fieldTransformAdaptor->SetGaussianSmoothingVarianceForTheUpdateField( varianceForUpdateField );
-          fieldTransformAdaptor->SetGaussianSmoothingVarianceForTheVelocityField( varianceForVelocityField );
+          fieldTransformAdaptor->SetGaussianSmoothingVarianceForTheConstantVelocityField( varianceForVelocityField );
 
           adaptors.push_back( fieldTransformAdaptor.GetPointer() );
           }
@@ -2625,7 +2624,6 @@ RegistrationHelper<VImageDimension>
           outputDisplacementFieldTransform->SetNumberOfIntegrationSteps( numberOfIntegrationSteps );
           }
         outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStage].m_SplineOrder );
-        outputDisplacementFieldTransform->SetComputeInverse( true );
         outputDisplacementFieldTransform->SetDisplacementField( displacementField );
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheVelocityField.size() != VImageDimension )
@@ -2673,7 +2671,7 @@ RegistrationHelper<VImageDimension>
             newVelocityMeshSize[d] = newVelocityMeshSize[d] << ( level + 1 );
             }
           bsplineFieldTransformAdaptor->SetMeshSizeForTheUpdateField( newUpdateMeshSize );
-          bsplineFieldTransformAdaptor->SetMeshSizeForTheVelocityField( newVelocityMeshSize );
+          bsplineFieldTransformAdaptor->SetMeshSizeForTheConstantVelocityField( newVelocityMeshSize );
 
           adaptors.push_back( bsplineFieldTransformAdaptor.GetPointer() );
           }
