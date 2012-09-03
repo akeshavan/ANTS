@@ -4006,7 +4006,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType totalcorr = 0;
   RealType bestcorr = 0;
   unsigned int bestseed = 1;
-  for ( unsigned int seeder = 1; seeder < 120; seeder++ )  
+  for ( unsigned int seeder = 1; seeder < 20; seeder++ )  
     {
     totalcorr = this->InitializeSCCA( n_vecs, seeder );
     if ( totalcorr > bestcorr ) { bestseed = seeder;  bestcorr = totalcorr; }
@@ -4018,7 +4018,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   unsigned int loop = 0;
   bool         energyincreases = true;
   RealType     energy = 0, lastenergy = 0;
-  while( ( ( loop < maxloop )  && ( energyincreases ) ) || loop < 1 )
+  while( ( ( loop < maxloop )  )  && ( energyincreases )  || loop < 1 )
     {
     // Arnoldi Iteration SCCA
     for( unsigned int k = 0; k < n_vecs; k++ )
@@ -4033,18 +4033,25 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       qveck = qveck - this->m_MatrixQ.transpose() * ( this->m_MatrixQ * qtemp ) * 0.5;
       for( unsigned int j = 0; j < k; j++ )
 	{
-        VectorType qj = this->m_VariatesP.get_column( j );  // this->ZeroProduct( pveck, qj );
-	pveck = this->Orthogonalize( pveck / ( this->m_MatrixP * pveck ).two_norm() , qj );
-        qj = this->m_VariatesQ.get_column( j ); // this->ZeroProduct( qveck, qj );
-	qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm() , qj );
+        VectorType qj = this->m_VariatesP.get_column( j ); 
+	pveck = this->Orthogonalize( pveck , qj );
+        qj = this->m_VariatesQ.get_column( j ); 
+	qveck = this->Orthogonalize( qveck , qj );
         }
-      RealType smooth = 0.5;
+      RealType smooth = 0.0;
       if ( smooth > 0 ) pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP, smooth );
       if ( smooth > 0 ) qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ, smooth );
-      RealType sclp = ( static_cast< RealType > ( pveck.size() ) * this->m_FractionNonZeroP );
-      RealType sclq = ( static_cast< RealType > ( qveck.size() ) * this->m_FractionNonZeroQ );
+      RealType sclp = ( static_cast< RealType > ( pveck.size() )  * this->m_FractionNonZeroP );
+      RealType sclq = ( static_cast< RealType > ( qveck.size() )  * this->m_FractionNonZeroQ );
       pveck = ptemp + pveck * ( this->m_GradStep / sclp );
       qveck = qtemp + qveck * ( this->m_GradStep / sclq );
+      /*      for( unsigned int j = 0; j < k; j++ )
+	{
+        VectorType qj = this->m_VariatesP.get_column( j );  
+	pveck = this->Orthogonalize( pveck / ( this->m_MatrixP * pveck ).two_norm()  , qj );
+        qj = this->m_VariatesQ.get_column( j ); 
+	qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm()  , qj );
+        } */
       this->SparsifyP( pveck );
       this->SparsifyQ( qveck );
       if ( n_vecs == 0 )  
@@ -4077,6 +4084,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 	::ants::antscout << " corr3 " << corr3 << " v " << corr1 << std::endl;
 	}
       else ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << std::endl;
+      //        this->m_VariatesP.set_column( k, pveck  );
+      //        this->m_VariatesQ.set_column( k, qveck  );
       this->NormalizeWeightsByCovariance( k, 0, 0 );
       VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
       VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
