@@ -4644,6 +4644,15 @@ int TensorFunctions(int argc, char *argv[])
         }
       vimage->SetPixel(ind, result);
       }
+    else if( strcmp(operation.c_str(), "TensorAxialDiffusion") == 0 )
+      {
+      result = GetTensorADC<TensorType>(tIter.Value(), 5);
+      if( vnl_math_isnan(result) )
+        {
+        result = 0;
+        }
+      vimage->SetPixel(ind, result);
+      }
     else if( strcmp(operation.c_str(), "TensorFANumerator") == 0 )
       {
       result = GetTensorFANumerator<TensorType>(tIter.Value() );
@@ -10492,11 +10501,13 @@ private:
     antscout << "  TensorIOTest    : Will write the DT image back out ... tests I/O processes for consistency. "
              << std::endl;
     antscout << "    Usage        : TensorIOTest DTImage.ext" << std::endl;
-    antscout << "  TensorMeanDiffusion    : " << std::endl;
+    antscout << "  TensorMeanDiffusion      : Mean of the eigenvalues" << std::endl;
     antscout << "    Usage        : TensorMeanDiffusion DTImage.ext" << std::endl;
     antscout << "  TensorRadialDiffusion    : Mean of the two smallest eigenvalues" << std::endl;
     antscout << "    Usage        : TensorRadialDiffusion DTImage.ext" << std::endl;
-    antscout << "  TensorEigenvalue    : gets single eigenvalue 0-2, where 0 = smallest, 2 = largest" << std::endl;
+    antscout << "  TensorAxialDiffusion     : Largest eigenvalue, equivalent to TensorEigenvalue DTImage.ext 2" << std::endl;
+    antscout << "    Usage        : TensorAxialDiffusion DTImage.ext" << std::endl;
+    antscout << "  TensorEigenvalue         : Gets a single eigenvalue 0-2, where 0 = smallest, 2 = largest" << std::endl;
     antscout << "    Usage        : TensorEigenvalue DTImage.ext WhichInd" << std::endl;
     antscout
     <<
@@ -11279,6 +11290,14 @@ private:
         TensorFunctions<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "TensorRadialDiffusion") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorAxialDiffusion") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorEigenvalue") == 0 )
         {
         TensorFunctions<3>(argc, argv);
         }
