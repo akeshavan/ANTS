@@ -15,4 +15,3 @@ add_test(${THIS_TEST_NAME} ${TEST_BINARY_DIR}/ANTS 2
  -m PSE[${DEVIL_IMAGE},${ANGEL_IMAGE},${DEVIL_IMAGE_TXT},${ANGEL_IMAGE_TXT},1,0.1,11,1,1]
  --continue-affine 0 --number-of-affine-iterations 0
  -o ${OUTPUT_PREFIX}.nii.gz --use-all-metrics-for-convergence 1 )
-
