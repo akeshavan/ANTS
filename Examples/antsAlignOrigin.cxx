@@ -29,8 +29,13 @@ namespace ants
 {
 
 template <unsigned int Dimension>
-int antsAlignOrigin( itk::ants::CommandLineParser::Pointer & parser, unsigned int inputImageType = 0 )
+int antsAlignOriginImplementation( itk::ants::CommandLineParser::Pointer & parser, unsigned int inputImageType )
 {
+  if ( inputImageType != 0 )
+    {
+    antscout << "inputImageType is not used, therefore only mode 0 is supported at the momemnt." << std::endl;
+    return EXIT_FAILURE;
+    }
   typedef double                           RealType;
   typedef double                           PixelType;
   typedef itk::Vector<RealType, Dimension> VectorType;
@@ -76,7 +81,6 @@ int antsAlignOrigin( itk::ants::CommandLineParser::Pointer & parser, unsigned in
       outputTransform = outputOption->GetParameter( 0, 0 );
       }
 
-    outputWarpedImageName;
     if( outputOption->GetNumberOfParameters( 0 ) > 1 )
       {
       outputWarpedImageName = outputOption->GetParameter( 0, 1 );
@@ -84,7 +88,6 @@ int antsAlignOrigin( itk::ants::CommandLineParser::Pointer & parser, unsigned in
 
     antscout << "Output transform: " << outputTransform << std::endl;
     antscout << "Output image: " << outputWarpedImageName << std::endl;
-
     }
 
  /**
@@ -125,7 +128,7 @@ int antsAlignOrigin( itk::ants::CommandLineParser::Pointer & parser, unsigned in
   typename TransformType::Pointer transform = TransformType::New();
   transform->SetIdentity();
   transform->SetTranslation( translation );
-  
+
   typename itk::TransformFileWriter::Pointer transform_writer = itk::TransformFileWriter::New();
   transform_writer->SetFileName( outputTransform );
   transform_writer->SetInput( transform );
@@ -344,11 +347,11 @@ private:
 
         if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
           {
-          antsAlignOrigin<2>( parser, 0 );
+          antsAlignOriginImplementation<2>( parser, 0 );
           }
         else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
           {
-          antsAlignOrigin<2>( parser, 1 );
+          antsAlignOriginImplementation<2>( parser, 1 );
           }
         else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
           {
@@ -362,7 +365,7 @@ private:
         }
       else
         {
-        antsAlignOrigin<2>( parser, 0 );
+        antsAlignOriginImplementation<2>( parser, 0 );
         }
       }
       break;
@@ -374,15 +377,15 @@ private:
 
         if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
           {
-          antsAlignOrigin<3>( parser, 0 );
+          antsAlignOriginImplementation<3>( parser, 0 );
           }
         else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
           {
-          antsAlignOrigin<3>( parser, 1 );
+          antsAlignOriginImplementation<3>( parser, 1 );
           }
         else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
           {
-          antsAlignOrigin<3>( parser, 2 );
+          antsAlignOriginImplementation<3>( parser, 2 );
           }
         else
           {
@@ -392,7 +395,7 @@ private:
         }
       else
         {
-        antsAlignOrigin<3>( parser, 0 );
+        antsAlignOriginImplementation<3>( parser, 0 );
         }
       }
       break;
@@ -404,11 +407,11 @@ private:
 
         if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
           {
-          antsAlignOrigin<4>( parser, 0 );
+          antsAlignOriginImplementation<4>( parser, 0 );
           }
         else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
           {
-          antsAlignOrigin<4>( parser, 1 );
+          antsAlignOriginImplementation<4>( parser, 1 );
           }
         else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
           {
@@ -422,7 +425,7 @@ private:
         }
       else
         {
-        antsAlignOrigin<3>( parser, 0 );
+        antsAlignOriginImplementation<3>( parser, 0 );
         }
       }
       break;
