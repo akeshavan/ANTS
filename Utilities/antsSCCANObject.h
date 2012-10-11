@@ -595,6 +595,13 @@ public:
     return 0;
   }
 
+  inline RealType ComputeIntercept(  MatrixType A , VectorType x, VectorType b  )
+    {
+    RealType intercept = b.mean();
+    for ( unsigned int Acol = 0; Acol < A.cols(); Acol++ ) intercept -= A.get_column( Acol ).mean() * x( Acol );
+    return intercept;
+    }
+
   inline RealType SimpleRegression(  VectorType y, VectorType ypred  )
   {
     RealType corr = this->PearsonCorr( y, ypred );
@@ -914,8 +921,8 @@ private:
   bool     m_AlreadyWhitened;
   bool     m_SpecializationForHBM2011;
   RealType m_CorrelationForSignificanceTest;
+  // this->ComputeIntercept( A, x, b );
   RealType m_Intercept;
-
   unsigned int               m_MinClusterSizeP;
   unsigned int               m_MinClusterSizeQ;
   unsigned int               m_KeptClusterSize;
