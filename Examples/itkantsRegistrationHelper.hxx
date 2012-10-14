@@ -18,6 +18,12 @@ public:
 protected:
   antsRegistrationCommandIterationUpdate()
   {
+    std::cout << "ECHO HACK: INIT NEW CLASS" << std::endl;
+    m_clock.Start();
+    m_clock.Stop();
+    const itk::RealTimeClock::TimeStampType now=m_clock.GetTotal ();
+    this->m_lastTotalTime=now;
+    m_clock.Start();
     this->m_LogStream = &::ants::antscout;
   }
 
@@ -34,20 +40,24 @@ public:
 
     if( typeid( event ) == typeid( itk::InitializeEvent ) )
       {
-      unsigned int currentLevel = filter->GetCurrentLevel();
+      const unsigned int currentLevel = filter->GetCurrentLevel();
 
       typename TFilter::ShrinkFactorsArrayType shrinkFactors = filter->GetShrinkFactorsPerLevel();
       typename TFilter::SmoothingSigmasArrayType smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
       typename TFilter::TransformParametersAdaptorsContainerType adaptors =
         filter->GetTransformParametersAdaptorsPerLevel();
 
+      m_clock.Stop();
+      const itk::RealTimeClock::TimeStampType now=m_clock.GetTotal ();
       this->Logger() << "  Current level = " << currentLevel + 1 << " of " << this->m_NumberOfIterations.size()
                      << std::endl;
       this->Logger() << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
       this->Logger() << "    shrink factors = " << shrinkFactors[currentLevel] << std::endl;
       this->Logger() << "    smoothing sigmas = " << smoothingSigmas[currentLevel] << std::endl;
-      this->Logger() << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
-                     << std::endl;
+      this->Logger() << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters() << std::endl;
+      //this->Logger() << "\n  LEVEL_TIME_INDEX: " << now << " SINCE_LAST: " << (now-this->m_lastTotalTime) << std::endl;
+      this->m_lastTotalTime=now;
+      m_clock.Start();
 
       typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
       GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>(
@@ -57,9 +67,24 @@ public:
       }
     else if( typeid( event ) == typeid( itk::IterationEvent ) )
       {
-      this->Logger() << "      Iteration " << filter->GetCurrentIteration() << ": "
-                     << "metric value = " << filter->GetCurrentMetricValue() << ", "
-                     << "convergence value = " << filter->GetCurrentConvergenceValue() << std::endl;
+      const unsigned int lCurrentIteration=filter->GetCurrentIteration();
+      if ( lCurrentIteration  == 1 )
+	{
+	//Print header line one time
+	this->Logger() << "XDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST" << std::endl;
+	}
+
+      m_clock.Stop();
+      const itk::RealTimeClock::TimeStampType now=m_clock.GetTotal ();
+      this->Logger() << "DIAGNOSTIC, " 
+	             << lCurrentIteration << ", "
+                     << filter->GetCurrentMetricValue() << ", "
+                     << filter->GetCurrentConvergenceValue() << ", "
+                     << now << ", "
+		     << (now-this->m_lastTotalTime) << ", "
+                     << std::endl;
+      this->m_lastTotalTime=now;
+      m_clock.Start();
       }
   }
 
@@ -81,6 +106,9 @@ private:
 
   std::vector<unsigned int> m_NumberOfIterations;
   std::ostream *            m_LogStream;
+  itk::TimeProbe            m_clock;
+
+  itk::RealTimeClock::TimeStampType m_lastTotalTime;
 };
 
 /** \class antsRegistrationOptimizerCommandIterationUpdate
@@ -97,6 +125,11 @@ public:
 protected:
   antsRegistrationOptimizerCommandIterationUpdate()
   {
+    m_clock.Start();
+    m_clock.Stop();
+    const itk::RealTimeClock::TimeStampType now=m_clock.GetTotal ();
+    this->m_lastTotalTime=now;
+    m_clock.Start();
     this->m_LogStream = &::ants::antscout;
   }
 
@@ -111,9 +144,24 @@ public:
   {
     if( typeid( event ) == typeid( itk::IterationEvent ) )
       {
-      this->Logger() << "      Iteration " << this->m_Optimizer->GetCurrentIteration() + 1 << ": "
-                     << "metric value = " << this->m_Optimizer->GetValue() << ", "
-                     << "convergence value = " << this->m_Optimizer->GetConvergenceValue() << std::endl;
+      const unsigned int lCurrentIteration=this->m_Optimizer->GetCurrentIteration() + 1;
+      if ( lCurrentIteration  == 1 )
+	{
+	//Print header line one time
+	this->Logger() << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST" << std::endl;
+
+	}
+      m_clock.Stop();
+      const itk::RealTimeClock::TimeStampType now=m_clock.GetTotal ();
+      this->Logger() << "DIAGNOSTIC, " 
+                     << lCurrentIteration << ", "
+                     << this->m_Optimizer->GetValue() << ", "
+                     << this->m_Optimizer->GetConvergenceValue() << ", "
+                     << now << ", "
+		     << (now-this->m_lastTotalTime)  << ", "
+                     << std::endl;
+      this->m_lastTotalTime=now;
+      m_clock.Start();
       }
   }
 
@@ -148,6 +196,8 @@ private:
   }
 
   std::ostream *m_LogStream;
+  itk::TimeProbe m_clock;
+  itk::RealTimeClock::TimeStampType m_lastTotalTime;
 };
 
 /**
