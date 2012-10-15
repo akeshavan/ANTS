@@ -76,7 +76,7 @@ public:
 
       m_clock.Stop();
       const itk::RealTimeClock::TimeStampType now=m_clock.GetTotal ();
-      this->Logger() << "DIAGNOSTIC, " 
+      this->Logger() << "DIAGNOSTIC, "
 	             << lCurrentIteration << ", "
                      << filter->GetCurrentMetricValue() << ", "
                      << filter->GetCurrentConvergenceValue() << ", "
@@ -153,7 +153,7 @@ public:
 	}
       m_clock.Stop();
       const itk::RealTimeClock::TimeStampType now=m_clock.GetTotal ();
-      this->Logger() << "DIAGNOSTIC, " 
+      this->Logger() << "DIAGNOSTIC, "
                      << lCurrentIteration << ", "
                      << this->m_Optimizer->GetValue() << ", "
                      << this->m_Optimizer->GetConvergenceValue() << ", "
@@ -1013,7 +1013,7 @@ RegistrationHelper<VImageDimension>
     this->Logger() << "  shrink factors per level: " << shrinkFactorsPerLevel << std::endl;
 
     // Get smoothing sigmas
-    const std::vector<float> sigmas(this->m_SmoothingSigmas[currentStageNumber]);
+    const std::vector<float> sigmas( this->m_SmoothingSigmas[currentStageNumber] );
     typename AffineRegistrationType::SmoothingSigmasArrayType smoothingSigmasPerLevel;
     smoothingSigmasPerLevel.SetSize( sigmas.size() );
 
@@ -2756,7 +2756,7 @@ RegistrationHelper<VImageDimension>
         try
           {
           this->Logger() << std::endl
-                         << "*** Running bspline displacement field registration (updateMeshSizeAtBaseLevel = "
+                         << "*** Running bspline exponential field registration (updateMeshSizeAtBaseLevel = "
                          << updateMeshSize << ", velocityMeshSizeAtBaseLevel = " << velocityMeshSize << ") ***" << std::endl
                          << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
