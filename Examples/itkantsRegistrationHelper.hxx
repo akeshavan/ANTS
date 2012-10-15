@@ -2506,12 +2506,11 @@ RegistrationHelper<VImageDimension>
         {
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
-        typename DisplacementFieldType::Pointer displacementField = DisplacementFieldType::New();
-        displacementField->CopyInformation( fixedImage );
-        displacementField->SetRegions( fixedImage->GetBufferedRegion() );
-        displacementField->Allocate();
-        displacementField->FillBuffer( zeroVector );
+
+        typedef itk::Image<VectorType, VImageDimension> ConstantVelocityFieldType;
+
+        typename ConstantVelocityFieldType::Pointer constantVelocityField =
+          AllocImage<ConstantVelocityFieldType>( fixedImage, zeroVector );
 
         typedef itk::GaussianExponentialDiffeomorphicTransform<RealType, VImageDimension> GaussianDisplacementFieldTransformType;
 
@@ -2545,7 +2544,7 @@ RegistrationHelper<VImageDimension>
           {
           outputDisplacementFieldTransform->SetNumberOfIntegrationSteps( numberOfIntegrationSteps );
           }
-        outputDisplacementFieldTransform->SetDisplacementField( displacementField );
+        outputDisplacementFieldTransform->SetConstantVelocityField( constantVelocityField );
         // Create the transform adaptors
         // For the gaussian displacement field, the specified variances are in image spacing terms
         // and, in normal practice, we typically don't change these values at each level.  However,
@@ -2557,10 +2556,10 @@ RegistrationHelper<VImageDimension>
           // domain at each level.  To speed up calculation and avoid unnecessary memory
           // usage, we could calculate these fixed parameters directly.
 
-          typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
+          typedef itk::ShrinkImageFilter<ConstantVelocityFieldType, ConstantVelocityFieldType> ShrinkFilterType;
           typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
           shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
-          shrinkFilter->SetInput( displacementField );
+          shrinkFilter->SetInput( constantVelocityField );
           shrinkFilter->Update();
 
           typename DisplacementFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
@@ -2631,12 +2630,10 @@ RegistrationHelper<VImageDimension>
         {
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
-        typename DisplacementFieldType::Pointer displacementField = DisplacementFieldType::New();
-        displacementField->CopyInformation( fixedImage );
-        displacementField->SetRegions( fixedImage->GetBufferedRegion() );
-        displacementField->Allocate();
-        displacementField->FillBuffer( zeroVector );
+        typedef itk::Image<VectorType, VImageDimension> ConstantVelocityFieldType;
+
+        typename ConstantVelocityFieldType::Pointer constantVelocityField =
+          AllocImage<ConstantVelocityFieldType>( fixedImage, zeroVector );
 
         typedef itk::BSplineExponentialDiffeomorphicTransform<RealType, VImageDimension> BSplineDisplacementFieldTransformType;
 
@@ -2672,7 +2669,7 @@ RegistrationHelper<VImageDimension>
           outputDisplacementFieldTransform->SetNumberOfIntegrationSteps( numberOfIntegrationSteps );
           }
         outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStageNumber].m_SplineOrder );
-        outputDisplacementFieldTransform->SetDisplacementField( displacementField );
+        outputDisplacementFieldTransform->SetConstantVelocityField( constantVelocityField );
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheVelocityField.size() != VImageDimension )
           {
@@ -2694,10 +2691,10 @@ RegistrationHelper<VImageDimension>
           // domain at each level.  To speed up calculation and avoid unnecessary memory
           // usage, we could calculate these fixed parameters directly.
 
-          typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
+          typedef itk::ShrinkImageFilter<ConstantVelocityFieldType, ConstantVelocityFieldType> ShrinkFilterType;
           typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
           shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
-          shrinkFilter->SetInput( displacementField );
+          shrinkFilter->SetInput( constantVelocityField );
           shrinkFilter->Update();
 
           typedef itk::BSplineExponentialDiffeomorphicTransformParametersAdaptor<BSplineDisplacementFieldTransformType>
