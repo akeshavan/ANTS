@@ -1013,6 +1013,8 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
       itk::ants::WriteTransform<VImageDimension>( inverseCompositeTransform, inverseCompositeTransformFileName.c_str() );
       }
+    // temporary fix
+    compositeTransform->GetInverseTransform()->GetInverseTransform();
     }
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
   // write out transforms actually computed, so skip any initial transforms.
@@ -1112,7 +1114,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
 
   typename ImageType::SpacingType cache_spacing_for_smoothing_sigmas;
-  if( !std::strcmp( whichInterpolator.c_str(), "gaussian" ) 
+  if( !std::strcmp( whichInterpolator.c_str(), "gaussian" )
     ||   !std::strcmp( whichInterpolator.c_str(), "multilabel" )
   )
     {
@@ -1132,7 +1134,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
 
 #include "make_interpolator_snip.tmpl"
-  regHelper->SetInterpolator(interpolator);
+  regHelper->SetInterpolator( interpolator );
 
   typename ImageType::Pointer warpedImage = regHelper->GetWarpedImage();
   typedef itk::ImageFileWriter<ImageType> WarpedImageWriterType;
