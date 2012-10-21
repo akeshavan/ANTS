@@ -1013,8 +1013,6 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
       itk::ants::WriteTransform<VImageDimension>( inverseCompositeTransform, inverseCompositeTransformFileName.c_str() );
       }
-    // temporary fix
-    compositeTransform->GetInverseTransform()->GetInverseTransform();
     }
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
   // write out transforms actually computed, so skip any initial transforms.
