@@ -9,15 +9,14 @@
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
-
-#include "itkLabelImageGaussianInterpolateImageFunction.h"
 #include "antsUtilities.h"
+// Needed for the LabelImageGaussianInterpolateImageFunction to work on
+// vector images
+#include "itkLabelImageGaussianInterpolateImageFunction.h"
+
 
 namespace ants
 {
-
-// Needed for the LabelImageGaussianInterpolateImageFunction to work on
-// vector images
 
 static bool IsInverseDeformation(const char *str)
 {
