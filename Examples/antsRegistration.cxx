@@ -512,7 +512,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     }
 
-  if( maskOption.IsNotNull() )
+  if( maskOption.IsNotNull() && maskOption->GetNumberOfFunctions() )
     {
     typedef typename RegistrationHelperType::MaskImageType MaskImageType;
     typedef itk::ImageFileReader<MaskImageType>            ImageReaderType;
@@ -617,7 +617,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     OptionType::Pointer winsorizeOption = parser->GetOption( "winsorize-image-intensities" );
     bool                doWinsorize(false);
 
-    if( winsorizeOption && winsorizeOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+    if( winsorizeOption && winsorizeOption->GetNumberOfFunctions() )
       {
       doWinsorize = true;
       if( winsorizeOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
@@ -662,28 +662,36 @@ DoRegistration(typename ParserType::Pointer & parser)
     std::vector<unsigned int> iterations;
     double                    convergenceThreshold = 1e-6;
     unsigned int              convergenceWindowSize = 10;
-    if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() == 0 )
+    if( convergenceOption.IsNotNull() && convergenceOption->GetNumberOfFunctions() )
       {
-      iterations = parser->ConvertVector<unsigned int>( convergenceOption->GetFunction( currentStage )->GetName() );
-      }
-    else if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() > 0 )
-      {
-      iterations = parser->ConvertVector<unsigned int>( convergenceOption->GetFunction( currentStage )->GetParameter( 0 ) );
-      }
-    if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() > 1 )
-      {
-      convergenceThreshold = parser->Convert<double>( convergenceOption->GetFunction( currentStage )->GetParameter( 1 ) );
-      }
-    if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
-      {
-      convergenceWindowSize = parser->Convert<unsigned int>( convergenceOption->GetFunction( currentStage )->GetParameter( 2 ) );
-      const unsigned int minAllowedconvergenceWindowSize = 2; // The BSplineScatteredDataPoints requires at least 2
-                                                              // points for interpolation.
-      if( convergenceWindowSize < minAllowedconvergenceWindowSize )
+      if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() == 0 )
         {
-        antscout << "Convergence Window Size must be greater than or equal to " << minAllowedconvergenceWindowSize
-                 << std::endl;
+        iterations = parser->ConvertVector<unsigned int>( convergenceOption->GetFunction( currentStage )->GetName() );
         }
+      else if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() > 0 )
+        {
+        iterations = parser->ConvertVector<unsigned int>( convergenceOption->GetFunction( currentStage )->GetParameter( 0 ) );
+        }
+      if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() > 1 )
+        {
+        convergenceThreshold = parser->Convert<double>( convergenceOption->GetFunction( currentStage )->GetParameter( 1 ) );
+        }
+      if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
+        {
+        convergenceWindowSize = parser->Convert<unsigned int>( convergenceOption->GetFunction( currentStage )->GetParameter( 2 ) );
+        const unsigned int minAllowedconvergenceWindowSize = 2; // The BSplineScatteredDataPoints requires at least 2
+                                                                // points for interpolation.
+        if( convergenceWindowSize < minAllowedconvergenceWindowSize )
+          {
+          antscout << "Convergence Window Size must be greater than or equal to " << minAllowedconvergenceWindowSize
+                   << std::endl;
+          }
+        }
+      }
+    else
+      {
+      antscout << "No convergence criteria are specified." << std::endl;
+      return EXIT_FAILURE;
       }
 
     iterationList.push_back( iterations );
