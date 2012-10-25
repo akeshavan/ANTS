@@ -51,20 +51,20 @@ int antsAlignOriginImplementation( itk::ants::CommandLineParser::Pointer & parse
   typename itk::ants::CommandLineParser::OptionType::Pointer inputOption = parser->GetOption( "input" );
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
 
-  if( inputOption && inputOption->GetNumberOfValues() > 0 )
+  if( inputOption && inputOption->GetNumberOfFunctions() > 0 )
     {
-    if( inputOption->GetNumberOfParameters( 0 ) > 1 &&
-        parser->Convert<unsigned int>( outputOption->GetParameter( 0, 1 ) ) == 0 )
+    if( inputOption->GetFunction()->GetNumberOfParameters() > 1 &&
+        parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) == 0 )
       {
       antscout << "An input image is required." << std::endl;
       return EXIT_FAILURE;
       }
 
-    antscout << "Input image: " << inputOption->GetValue() << std::endl;
+    antscout << "Input image: " << inputOption->GetFunction()->GetName() << std::endl;
 
     typedef itk::ImageFileReader<ImageType> ReaderType;
     typename ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName( ( inputOption->GetValue() ).c_str() );
+    reader->SetFileName( ( inputOption->GetFunction()->GetName() ).c_str() );
     reader->Update();
     inputImage = reader->GetOutput();
     }
@@ -72,18 +72,18 @@ int antsAlignOriginImplementation( itk::ants::CommandLineParser::Pointer & parse
   std::string outputTransform;
   std::string outputWarpedImageName;
 
-  if( outputOption && outputOption->GetNumberOfValues() > 0 )
+  if( outputOption && outputOption->GetNumberOfFunctions() > 0 )
     {
 
-    outputTransform = outputOption->GetValue( 0 );
-    if( outputOption->GetNumberOfParameters( 0 ) > 0 )
+    outputTransform = outputOption->GetFunction( 0 )->GetName();
+    if( outputOption->GetFunction()->GetNumberOfParameters() > 0 )
       {
-      outputTransform = outputOption->GetParameter( 0, 0 );
+      outputTransform = outputOption->GetFunction( 0 )->GetParameter( 0 );
       }
 
-    if( outputOption->GetNumberOfParameters( 0 ) > 1 )
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
-      outputWarpedImageName = outputOption->GetParameter( 0, 1 );
+      outputWarpedImageName = outputOption->GetFunction( 0 )->GetParameter( 1 );
       }
 
     antscout << "Output transform: " << outputTransform << std::endl;
@@ -100,15 +100,15 @@ int antsAlignOriginImplementation( itk::ants::CommandLineParser::Pointer & parse
 
   typename itk::ants::CommandLineParser::OptionType::Pointer referenceOption =
     parser->GetOption( "reference-image" );
-  if( referenceOption && referenceOption->GetNumberOfValues() > 0 )
+  if( referenceOption && referenceOption->GetNumberOfFunctions() > 0 )
     {
-    antscout << "Reference image: " << referenceOption->GetValue() << std::endl;
+    antscout << "Reference image: " << referenceOption->GetFunction()->GetName() << std::endl;
 
     // read in the image as char since we only need the header information.
     typedef itk::ImageFileReader<ReferenceImageType> ReferenceReaderType;
     typename ReferenceReaderType::Pointer referenceReader =
       ReferenceReaderType::New();
-    referenceReader->SetFileName( ( referenceOption->GetValue() ).c_str() );
+    referenceReader->SetFileName( ( referenceOption->GetFunction()->GetName() ).c_str() );
 
     referenceImage = referenceReader->GetOutput();
     referenceImage->Update();
@@ -204,7 +204,7 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetShortName( 'h' );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 
@@ -214,7 +214,7 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 }
@@ -283,7 +283,7 @@ private:
   parser->Parse( argc, argv );
 
   if( argc < 2 || ( parser->GetOption( "help" ) &&
-                    ( parser->Convert<bool>( parser->GetOption( "help" )->GetValue() ) ) ) )
+                    ( parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) ) ) )
     {
     parser->PrintMenu( antscout, 5, false );
     if( argc < 2)
@@ -293,7 +293,7 @@ private:
     return EXIT_SUCCESS;
     }
   else if( parser->GetOption( 'h' ) &&
-           ( parser->Convert<bool>( parser->GetOption( 'h' )->GetValue() ) ) )
+           ( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) ) )
     {
     parser->PrintMenu( antscout, 5, true );
     return EXIT_SUCCESS;
@@ -304,15 +304,15 @@ private:
 
   itk::ants::CommandLineParser::OptionType::Pointer inputOption =
     parser->GetOption( "reference-image" );
-  if( inputOption && inputOption->GetNumberOfValues() > 0 )
+  if( inputOption && inputOption->GetNumberOfFunctions() > 0 )
     {
-    if( inputOption->GetNumberOfParameters( 0 ) > 0 )
+    if( inputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      filename = inputOption->GetParameter( 0, 0 );
+      filename = inputOption->GetFunction( 0 )->GetParameter( 0 );
       }
     else
       {
-      filename = inputOption->GetValue( 0 );
+      filename = inputOption->GetFunction( 0 )->GetName();
       }
     }
   else
@@ -332,9 +332,9 @@ private:
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "dimensionality" );
-  if( dimOption && dimOption->GetNumberOfValues() > 0 )
+  if( dimOption && dimOption->GetNumberOfFunctions() > 0 )
     {
-    dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
+    dimension = parser->Convert<unsigned int>( dimOption->GetFunction()->GetName() );
     }
 
   switch( dimension )
@@ -343,7 +343,7 @@ private:
       {
       if( inputImageTypeOption )
         {
-        std::string inputImageType = inputImageTypeOption->GetValue();
+        std::string inputImageType = inputImageTypeOption->GetFunction()->GetName();
 
         if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
           {
@@ -373,7 +373,7 @@ private:
       {
       if( inputImageTypeOption )
         {
-        std::string inputImageType = inputImageTypeOption->GetValue();
+        std::string inputImageType = inputImageTypeOption->GetFunction()->GetName();
 
         if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
           {
@@ -403,7 +403,7 @@ private:
       {
       if( inputImageTypeOption )
         {
-        std::string inputImageType = inputImageTypeOption->GetValue();
+        std::string inputImageType = inputImageTypeOption->GetFunction()->GetName();
 
         if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
           {

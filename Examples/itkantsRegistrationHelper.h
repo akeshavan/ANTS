@@ -563,8 +563,8 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
 
   std::deque<std::string> transformNames;
   std::deque<std::string> transformTypes;
-  derivedTransforms.resize( initialTransformOption->GetNumberOfValues() );
-  for( unsigned int n = 0; n < initialTransformOption->GetNumberOfValues(); n++ )
+  derivedTransforms.resize( initialTransformOption->GetNumberOfFunctions() );
+  for( unsigned int n = 0; n < initialTransformOption->GetNumberOfFunctions(); n++ )
     {
     std::string initialTransformName;
     bool        useInverse = false;
@@ -572,17 +572,17 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
 
     derivedTransforms[n] = false;
 
-    if( initialTransformOption->GetNumberOfParameters( n ) == 0 )
+    if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() == 0 )
       {
-      initialTransformName = initialTransformOption->GetValue( n );
+      initialTransformName = initialTransformOption->GetFunction( n )->GetName();
       }
-    else if( initialTransformOption->GetNumberOfParameters( n ) > 2 )
+    else if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() > 2 )
       {
       typedef itk::ImageFileReader<ImageType> ImageReaderType;
 
       typename ImageType::Pointer fixedImage = NULL;
 
-      std::string fixedImageFileName = initialTransformOption->GetParameter( 0, 0 );
+      std::string fixedImageFileName = initialTransformOption->GetFunction( n )->GetParameter( 0 );
 
       typename ImageReaderType::Pointer fixedReader = ImageReaderType::New();
       fixedReader->SetFileName( fixedImageFileName.c_str() );
@@ -601,7 +601,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
 
       if( fixedImage )
         {
-        std::string movingImageFileName = initialTransformOption->GetParameter( 0, 1 );
+        std::string movingImageFileName = initialTransformOption->GetFunction( n )->GetParameter( 1 );
 
         typename ImageReaderType::Pointer movingReader = ImageReaderType::New();
         movingReader->SetFileName( movingImageFileName.c_str() );
@@ -618,9 +618,9 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         }
 
       bool useCenterOfMass = true;
-      if( initialTransformOption->GetNumberOfParameters( 0 ) > 2 )
+      if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() > 2 )
         {
-        std::string parameter = initialTransformOption->GetParameter( 0, 2 );
+        std::string parameter = initialTransformOption->GetFunction( n )->GetParameter( 2 );
         ConvertToLowerCase( parameter );
         if( parameter.compare( "0" ) == 0 || parameter.compare( "false" ) == 0 )
           {
@@ -650,8 +650,8 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         }
       initializer->InitializeTransform();
 
-      initialTransformName += std::string( "fixed image: " ) + initialTransformOption->GetParameter( 0, 0 )
-        + std::string( " and moving image: " ) + initialTransformOption->GetParameter( 0, 1 );
+      initialTransformName += std::string( "fixed image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 0 )
+        + std::string( " and moving image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 1 );
 
       typedef itk::TranslationTransform<double, VImageDimension> TranslationTransformType;
       typename TranslationTransformType::Pointer translationTransform = TranslationTransformType::New();
@@ -668,17 +668,17 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
 
     if( !calculatedTransformFromImages )
       {
-      if( initialTransformOption->GetNumberOfParameters( n ) == 0 )
+      if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() == 0 )
         {
-        initialTransformName = initialTransformOption->GetValue( n );
+        initialTransformName = initialTransformOption->GetFunction( n )->GetName();
         useInverse = false;
         }
       else
         {
-        initialTransformName = initialTransformOption->GetParameter( n, 0 );
-        if( initialTransformOption->GetNumberOfParameters( n ) > 1 )
+        initialTransformName = initialTransformOption->GetFunction( n )->GetParameter( 0 );
+        if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() > 1 )
           {
-          useInverse = parser->Convert<bool>( initialTransformOption->GetParameter( n, 1  ) );
+          useInverse = parser->Convert<bool>( initialTransformOption->GetFunction( n )->GetParameter( 1 ) );
           }
         }
       }
@@ -699,7 +699,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
 
       typedef typename RegistrationHelperType::TransformType TransformType;
-      typename TransformType::Pointer initialTransform = itk::ants::ReadTransform<VImageDimension>(initialTransformName);
+      typename TransformType::Pointer initialTransform = itk::ants::ReadTransform<VImageDimension>( initialTransformName );
       if( initialTransform.IsNull() )
         {
         ::ants::antscout << "Can't read initial transform " << initialTransformName << std::endl;
@@ -716,18 +716,18 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         initialTransformName = std::string( "inverse of " ) + initialTransformName;
         }
       static const std::string CompositeTransformID("CompositeTransform");
-      if ( initialTransform->GetNameOfClass() == CompositeTransformID )
+      if( initialTransform->GetNameOfClass() == CompositeTransformID )
         {
         const typename itk::CompositeTransform<double,VImageDimension>::ConstPointer tempComp=
           dynamic_cast<const itk::CompositeTransform<double,VImageDimension> * >( initialTransform.GetPointer() );
-        for (unsigned int i =0; i< tempComp->GetNumberOfTransforms() ; ++i)
+        for( unsigned int i = 0; i< tempComp->GetNumberOfTransforms() ; ++i )
           {
           std::stringstream tempstream;
           tempstream << initialTransformName << "[" << i << "]";
 
-          compositeTransform->AddTransform( tempComp->GetNthTransform(i) );
+          compositeTransform->AddTransform( tempComp->GetNthTransform( i ) );
           transformNames.push_back( tempstream.str() );
-          transformTypes.push_back( tempComp->GetNthTransform(i)->GetNameOfClass() );
+          transformTypes.push_back( tempComp->GetNthTransform( i )->GetNameOfClass() );
           }
         }
       else
