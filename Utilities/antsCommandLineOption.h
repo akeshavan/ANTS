@@ -54,7 +54,7 @@ public:
   OptionFunction() :
     m_Name( "" ),
     m_ArgOrder( 0 ),
-    m_WhichStage( 0 )  {};
+    m_StageID( 0 )  {};
   ~OptionFunction() {};
 
   typedef OptionFunction     Self;
@@ -73,8 +73,8 @@ public:
   itkSetMacro( ArgOrder, unsigned int );
   itkGetConstMacro( ArgOrder, unsigned int );
 
-  itkSetMacro( WhichStage, unsigned int );
-  itkGetConstMacro( WhichStage, unsigned int );
+  itkSetMacro( StageID, unsigned int );
+  itkGetConstMacro( StageID, unsigned int );
 
   ParameterStackType GetParameters()
   {
@@ -108,7 +108,7 @@ public:
 private:
   std::string                m_Name;
   unsigned int               m_ArgOrder;
-  unsigned int               m_WhichStage;
+  unsigned int               m_StageID;
   ParameterStackType         m_Parameters;
 };
 
