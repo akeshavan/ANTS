@@ -987,7 +987,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
   /**
    * output
    */
-  if( icmOption && icmOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
+  if( icmOption && icmOption->GetNumberOfFunctions() && icmOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
     {
     if( segmenter->GetUseAsynchronousUpdating() && segmenter->GetICMCodeImage() )
       {
