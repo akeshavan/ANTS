@@ -167,6 +167,9 @@ private:
     case 3:
       SmoothImage<3>(argc, argv);
       break;
+    case 4:
+      SmoothImage<4>(argc, argv);
+      break;
     default:
       antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
