@@ -739,8 +739,8 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     // Get smoothing sigmas
     std::string smoothingSigmasString = smoothingSigmasOption->GetFunction( currentStage )->GetName();
-    size_t mmPosition = smoothingSigmasString.find( "mm" );
-    size_t voxPosition = smoothingSigmasString.find( "vox" );
+    const size_t mmPosition = smoothingSigmasString.find( "mm" );
+    const size_t voxPosition = smoothingSigmasString.find( "vox" );
     if( mmPosition != std::string::npos )
       {
       smoothingSigmasString.replace( mmPosition, 2, "" );
