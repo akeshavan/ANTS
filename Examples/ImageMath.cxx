@@ -10570,6 +10570,7 @@ private:
     antscout << "  GE Image1.ext s    : Grayscale Erosion with radius s" << std::endl;
     antscout << "  GO Image1.ext s    : Grayscale Opening with radius s" << std::endl;
     antscout << "  GC Image1.ext s    : Grayscale Closing with radius s" << std::endl;
+    antscout << "  BlobDetector Image1.ext NumberOfBlobs    :  blob detection by searching for local extrema of the Laplacian of the Gassian (LoG) " << std::endl;
 
     antscout << "\nTime Series Operations:" << std::endl;
     antscout
