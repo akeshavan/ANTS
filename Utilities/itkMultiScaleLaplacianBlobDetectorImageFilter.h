@@ -52,7 +52,8 @@ public:
   typedef SmartPointer< Superclass >           SuperclassPointer;
   typedef typename Superclass::PointType       PointType;
   typedef float                                               RealPixelType;
-  typedef Image< RealPixelType, TDimension > RealImageType;
+  typedef Image< RealPixelType, TDimension >   RealImageType;
+  typedef typename RealImageType::IndexType    CenterType; 
 
   itkStaticConstMacro(NumberOfDimensions, unsigned int,
                       TDimension);
@@ -71,11 +72,13 @@ public:
   double GetScaleSpaceSigma( void ) const { return this->GetSigma() / ( vcl_sqrt( TDimension / 2.0 ) ); }
 
   /** The location where the extrema occoured */
-  typename RealImageType::IndexType GetCenter( void ) const { return this->GetSigma() / ( vcl_sqrt( TDimension / 2.0 ) ); }
-
+  itkGetMacro( Center, CenterType );
+  itkSetMacro( Center, CenterType );
+  
 private:
   double m_ScaleSpaceValue;
   double m_ObjectRadius;
+  CenterType m_Center;
 
 };
 
