@@ -552,7 +552,7 @@ private:
   void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageBaseType * const, const bool applyInverse );
 
   DisplacementFieldTransformPointer CollapseDisplacementFieldTransforms( const CompositeTransformType * );
-  MatrixOffsetTransformBasePointer CollapseLinearTransforms( const CompositeTransformType * );
+  typename AffineTransformType::Pointer  CollapseLinearTransforms( const CompositeTransformType * );
 
   bool m_ApplyLinearTransformsToFixedImageHeader;
   bool m_AllPreviousTransformsAreLinear;
