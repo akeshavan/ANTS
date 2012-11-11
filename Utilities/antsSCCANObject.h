@@ -346,6 +346,7 @@ public:
 
   VectorType InitializeV( MatrixType p, unsigned long seed = 0 );
   TRealType InitializeSCCA( unsigned int n_vecs, unsigned int seeder );
+  TRealType InitializeSPCA( unsigned int n_vecs, unsigned int seeder, MatrixType& , VectorType& );
 
   VectorType ComputeVectorLaplacian( VectorType, ImagePointer );
   VectorType ComputeVectorGradMag( VectorType, ImagePointer );
@@ -556,6 +557,10 @@ public:
   RealType SparseReconB( MatrixType& , VectorType& );
 
   RealType SparseRecon(unsigned int nvecs);
+
+  RealType IHTPowerIterationHome( MatrixType & A,  VectorType & x_k, unsigned int, unsigned int );
+  RealType SparseReconHome(unsigned int nvecs);
+
 
   RealType SparseArnoldiSVDGreedy(unsigned int nvecs);
 
