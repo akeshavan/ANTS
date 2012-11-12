@@ -1100,7 +1100,8 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
       if( collapsedResultTransform->GetNthTransform( i )->GetTransformCategory() == TransformType::Linear )
         {
-        TransformTypeNames.push_back( "matrixoffset" );
+        // The output type must be Affine, not matrixoffset!  TransformTypeNames.push_back( "matrixoffset" );
+        TransformTypeNames.push_back( "affine" );
         }
       else if( collapsedResultTransform->GetNthTransform( i )->GetTransformCategory() == TransformType::DisplacementField )
         {
@@ -1142,7 +1143,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     //
     // only registrations not part of the initial transforms in the
     // TransformTypeNames list.
-    std::string curTransformType = TransformTypeNames.front();
+    const std::string curTransformType = TransformTypeNames.front();
     TransformTypeNames.pop_front();
 
     bool writeInverse;
