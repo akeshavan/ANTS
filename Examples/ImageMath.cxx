@@ -10471,6 +10471,11 @@ int BlobDetector( int argc, char *argv[] )
     {
     outname2 = std::string(argv[argct]); argct++;
     }
+  RealType corrthresh = 0;
+  if( argc > argct )
+    {
+    corrthresh = atof(argv[argct]); argct++;
+    }
 
   typename ImageType::Pointer image;
   typename ImageType::Pointer image2;
@@ -10549,7 +10554,7 @@ int BlobDetector( int argc, char *argv[] )
   VectorType sample2( Gsz , 0);
   vnl_matrix<RealType> grad1mat( Gsz , ImageDimension); grad1mat.fill( 0 );
   vnl_matrix<RealType> grad2mat( Gsz , ImageDimension); grad2mat.fill( 0 );  
-  RealType maxcorr = 1.e9;
+  RealType maxcorr = 0;
   unsigned int matchpt = 0;
   BlobPointer bestblob = NULL;
   if ( !blobs2.empty() && ! ( blobs1.empty() ) )
@@ -10561,7 +10566,7 @@ int BlobDetector( int argc, char *argv[] )
       if ( image->GetPixel( indexi ) > 1.e-4 ) 
       {
       GHood.SetLocation( indexi );					
-      maxcorr = 1.e9;
+      maxcorr = -1.e9;
       bestblob = NULL;
       unsigned int count2 = 0;
       for( typename BlobsListType::const_iterator j = blobs2.begin(); j != blobs2.end(); ++j )
@@ -10586,10 +10591,10 @@ int BlobDetector( int argc, char *argv[] )
 	RealType sd1 = sqrt( sample1.squared_magnitude() );
 	RealType sd2 = sqrt( sample2.squared_magnitude() );
 	RealType correlation = inner_product( sample1 , sample2 ) / ( sd1 * sd2 );
+	/*
 	vnl_matrix<RealType> cov1 = grad1mat.transpose() * grad1mat;
 	vnl_matrix<RealType> cov2 = grad2mat.transpose() * grad2mat;
 	correlation =  ( cov1 - cov2 ).frobenius_norm() / ( cov1 + cov2 ).frobenius_norm() ;
-	/*
 //	vnl_svd<RealType> eig1(  cov1 , 1.e-8);
 //	vnl_svd<RealType> eig2(  cov2 , 1.e-8);
 	vnl_symmetric_eigensystem<RealType>  eig1( cov1 );
@@ -10605,22 +10610,22 @@ int BlobDetector( int argc, char *argv[] )
 	if ( fabs( norm1 * norm2 ) >  0 )
    	  correlation = numer / sqrt( norm1 * norm2 );
 	  else correlation = 0;*/
-	if ( ( correlation <  maxcorr ) && (  (*i)->GetObjectRadius() > 1.5 )  && (  (*j)->GetObjectRadius() > 1.5 )   )
+	if ( ( correlation > maxcorr ) && fabs(  (*i)->GetObjectRadius() - (*j)->GetObjectRadius() ) < 1 )
 	  {
 	  maxcorr = correlation;
 	  bestblob = ( *j );
 	  }
 	count2++;
 	}
-      if ( /* ( maxcorr > 0.75 ) &&*/ maxcorr < 0.1 && ( bestblob )  ) // && ( image->GetPixel( indexi )   > 1.e-4  )  && ( image2->GetPixel( bestblob->GetCenter() )  > 1.e-4  ) )
+      if (  maxcorr > corrthresh && ( bestblob )   && ( image->GetPixel( indexi )   > 1.e-4  )  && ( image2->GetPixel( bestblob->GetCenter() )  > 1.e-4  ) )
 	{
 	antscout << " best correlation " << maxcorr << " rad1 " << ( *i )->GetObjectRadius() << " rad2 " << bestblob->GetObjectRadius( ) << " : " << (RealType) count1 / (RealType) blobs1.size() * 100.0 << "% " << matchpt << " voxval1 " <<  indexi  << " voxval2 " <<  bestblob->GetCenter()  << std::endl;
 	labimg->SetPixel(    ( *i )->GetCenter() , matchpt ); // ( int ) ( 0.5 +   ( *i )->GetObjectRadius() ) );
 	labimg2->SetPixel( bestblob->GetCenter() , matchpt ); // ( int ) ( 0.5 + bestblob->GetObjectRadius() ) );
 	matchpt++;
 	}
-      count1++;
       }// imagei GetPixel gt 0 
+      count1++;
       }
     WriteImage< BlobRadiusImageType >( labimg, outname.c_str() );
     WriteImage< BlobRadiusImageType >( labimg2, outname2.c_str() );
