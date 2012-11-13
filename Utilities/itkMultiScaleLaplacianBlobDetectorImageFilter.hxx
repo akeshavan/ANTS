@@ -112,7 +112,7 @@ void MultiScaleLaplacianBlobDetectorImageFilter< TInputImage >
     const double sigma = initial_sigma * vcl_pow( k, double( numberOfScales - i -1 ) );
     //    const double t = vnl_math_sqr( initial_sigma * vcl_pow( k, double( numberOfScales - i - 1 ) ) );
 
-    itkDebugMacro( << "i: " << i << " sigma: " << sigma << " t: " << t << " k: " << k );
+    itkDebugMacro( << "i: " << i << " sigma: " << sigma << " k: " << k );
 
     // update largest index with new largest sigma
     laplacianFilter[2]->SetSigma( sigma );
@@ -221,7 +221,7 @@ void MultiScaleLaplacianBlobDetectorImageFilter< TInputImage >
 
     m_BlobList.push_back( blob );
     }
-   
+
 }
 
 
