@@ -896,6 +896,8 @@ int
 RegistrationHelper<VImageDimension>
 ::DoRegistration()
 {
+  /** Can really impact performance */
+  const bool gradientfilter = false;
   itk::TimeProbe totalTimer;
 
   totalTimer.Start();
@@ -1094,8 +1096,8 @@ RegistrationHelper<VImageDimension>
           radius.Fill( radiusOption );
           correlationMetric->SetRadius( radius );
           }
-        correlationMetric->SetUseMovingImageGradientFilter( false );
-        correlationMetric->SetUseFixedImageGradientFilter( false );
+        correlationMetric->SetUseMovingImageGradientFilter( gradientfilter );
+        correlationMetric->SetUseFixedImageGradientFilter( gradientfilter );
 
         metric = correlationMetric;
         }
@@ -1111,8 +1113,8 @@ RegistrationHelper<VImageDimension>
           MutualInformationMetricType::New();
         mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
-        mutualInformationMetric->SetUseMovingImageGradientFilter( false );
-        mutualInformationMetric->SetUseFixedImageGradientFilter( false );
+        mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
+        mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
         mutualInformationMetric->SetUseFixedSampledPointSet( false );
         metric = mutualInformationMetric;
         }
@@ -1128,8 +1130,8 @@ RegistrationHelper<VImageDimension>
           MutualInformationMetricType::New();
         mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
-        mutualInformationMetric->SetUseMovingImageGradientFilter( false );
-        mutualInformationMetric->SetUseFixedImageGradientFilter( false );
+        mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
+        mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
         mutualInformationMetric->SetUseFixedSampledPointSet( false );
         mutualInformationMetric->SetVarianceForJointPDFSmoothing( 1.0 );
         metric = mutualInformationMetric;
@@ -1166,10 +1168,8 @@ RegistrationHelper<VImageDimension>
       default:
         ::ants::antscout << "ERROR: Unrecognized image metric: " << std::endl;
       }
-    /** Can really impact performance */
-    const bool gaussian = false;
-    metric->SetUseMovingImageGradientFilter( gaussian );
-    metric->SetUseFixedImageGradientFilter( gaussian );
+    metric->SetUseMovingImageGradientFilter( gradientfilter );
+    metric->SetUseFixedImageGradientFilter( gradientfilter );
     if( this->m_FixedImageMask.IsNotNull() )
       {
       metric->SetFixedImageMask(this->m_FixedImageMask);

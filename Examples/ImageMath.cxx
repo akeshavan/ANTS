@@ -10430,7 +10430,7 @@ int MinMaxMean( int argc, char *argv[] )
 }
 
 template <unsigned int ImageDimension,class TRealType, class TImageType, class TGImageType, class TInterp >
-TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::NeighborhoodIterator<TImageType> GHood2, std::vector<unsigned int> activeindex , typename TGImageType::Pointer gimage, typename TGImageType::Pointer gimage2, TInterp interp2 ) 
+TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::NeighborhoodIterator<TImageType> GHood2, std::vector<unsigned int> activeindex , std::vector<TRealType> weight , typename TGImageType::Pointer gimage, typename TGImageType::Pointer gimage2, TInterp interp2 ) 
 {	
   typedef TRealType RealType;
   typedef typename TImageType::PointType PointType;
@@ -10456,8 +10456,8 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
     sample2[ ii ] = GHood2.GetPixel(  activeindex[ ii ] );
     IndexType gind = GHood.GetIndex(  activeindex[ ii ] );
     IndexType gind2 = GHood2.GetIndex(  activeindex[ ii ] );
-    GradientPixelType grad1 = gimage->GetPixel( gind );
-    GradientPixelType grad2 = gimage2->GetPixel( gind2 );
+    GradientPixelType grad1 = gimage->GetPixel( gind ) * weight[ ii ];
+    GradientPixelType grad2 = gimage2->GetPixel( gind2 ) * weight[ ii ];
     for( unsigned int jj = 0; jj < ImageDimension; jj++ ) { grad1mat( ii , jj ) = grad1[ jj ]; grad2mat( ii , jj ) = grad2[ jj ]; }
     PointType point1;
     PointType point2;
@@ -10534,6 +10534,7 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
     sd2 = sqrt( sample2.squared_magnitude() );
     correlation = inner_product( sample1 , sample2 ) / ( sd1 * sd2 );
     }// done applying wahba solution 
+  else correlation = 0;
 
   if ( vnl_math_isnan( correlation ) || vnl_math_isinf( correlation )  ) return 0; else return correlation;
 }
@@ -10583,9 +10584,9 @@ int BlobDetector( int argc, char *argv[] )
     antscout << " Not enough inputs " << std::endl;
     return 1;
     }
-  bool usesinkhorn = false;
+  bool usesinkhorn = true;
   RealType gradsig = 1.5; // sigma for gradient filter
-  unsigned int   radval = 20; // radius for correlation 
+  unsigned int   radval = 10; // radius for correlation 
   unsigned int   stepsperoctave = 16; // number of steps between doubling of scale 
   RealType       minscale = vcl_pow( 2.0, 1 );
   RealType       maxscale = vcl_pow( 2.0, 8 );
@@ -10668,6 +10669,8 @@ int BlobDetector( int argc, char *argv[] )
   GHood.SetLocation( zeroind );
   // get indices within a ND-sphere
   std::vector<unsigned int> activeindex;
+  std::vector<RealType> weights;
+  RealType weightsum = 0;
   for( unsigned int ii = 0; ii < GHood.Size(); ii++ )
     {
     IndexType ind = GHood.GetIndex( ii );
@@ -10676,10 +10679,18 @@ int BlobDetector( int argc, char *argv[] )
       {
       dist += ( ind[jj] - zeroind[jj] ) * ( ind[jj] - zeroind[jj] );
       }
-      if ( sqrt( dist ) <= radval )
-	{
-        activeindex.push_back( ii );
-	}
+    dist = sqrt( dist );
+    if ( dist <= radval )
+      {
+      activeindex.push_back( ii );
+      RealType wt =  exp( -1.0 * dist / radval ) ;
+      weights.push_back( wt );
+      weightsum += ( wt );
+      }
+    }
+  for( unsigned int ii = 0; ii < weights.size(); ii++ )
+    {
+    weights[ ii ] = weights[ ii ] / weightsum;
     }
   RealType maxcorr = 0;
   RealType meancorr = 0;
@@ -10710,7 +10721,7 @@ int BlobDetector( int argc, char *argv[] )
         {
 	IndexType indexj = (*j)->GetCenter();
 	GHood2.SetLocation( indexj );
-	RealType correlation = PatchCorrelation< ImageDimension, RealType, ImageType, GradientImageType, InterpPointer >( GHood, GHood2, activeindex, gimage, gimage2, interp2 );
+	RealType correlation = PatchCorrelation< ImageDimension, RealType, ImageType, GradientImageType, InterpPointer >( GHood, GHood2, activeindex, weights, gimage, gimage2, interp2 );
 	if ( correlation < 0 ) correlation = 0;
 	correspondencematrix( count1, count2 ) = correlation;
 	count2++;
@@ -10729,7 +10740,7 @@ int BlobDetector( int argc, char *argv[] )
       BlobPointer blob1 = blobs1[ maxrow ];
       bestblob = blobs2[ maxcol ];
       if ( bestblob )
-	if ( bestblob->GetObjectRadius() > 1 && blob1->GetObjectRadius() > 1 ) 
+	if ( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < 0.2 ) 
 	{
 	  if ( bestblob && ( image->GetPixel( blob1->GetCenter() ) > 1.e-6 )  && ( image2->GetPixel( bestblob->GetCenter() )  > 1.e-6 ) )
   	    {
