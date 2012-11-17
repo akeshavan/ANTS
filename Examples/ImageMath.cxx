@@ -10504,14 +10504,16 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
   vnl_matrix<RealType> B = outer_product( evec2_primary , evec1_primary );
   if ( ImageDimension == 3 )
     {
-    B = outer_product( evec2_2ndary , evec1_2ndary ) * wt1 / evsum +
-        outer_product( evec2_primary , evec1_primary ) * wt0 / evsum;
+      //    B = outer_product( evec2_2ndary , evec1_2ndary ) * wt1 / evsum +
+      //        outer_product( evec2_primary , evec1_primary ) * wt0 / evsum;
+    B = outer_product( evec2_2ndary , evec1_2ndary ) +
+        outer_product( evec2_primary , evec1_primary ) ;
     }
   vnl_svd< RealType > wahba( B );
   vnl_matrix<RealType> A_solution = wahba.V() * wahba.U().transpose();
-  //std::cout <<" V1 " << evec1_primary << std::endl;
-  //std::cout <<" V2 " << evec2_primary << std::endl;
-  //std::cout <<" R(V2) " << A_solution * evec2_primary << " dets " << vnl_determinant<RealType>(  wahba.V()) <<  "   " << vnl_determinant<RealType>(  wahba.U()) << std::endl;
+  //  std::cout <<" V1 " << evec1_primary << std::endl;
+  //  std::cout <<" V2 " << evec2_primary << std::endl;
+  //  std::cout <<" R(V2) " << A_solution * evec2_primary << " dets " << vnl_determinant<RealType>(  wahba.V()) <<  "   " << vnl_determinant<RealType>(  wahba.U()) << std::endl;
   // now rotate the points to the same frame and sample the neighborhoods again
   for( unsigned int ii = 0; ii < Gsz; ii++ )
     {
@@ -10542,6 +10544,7 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
 template <class TRealType>
 void Sinkhorn( vnl_matrix<TRealType>&  correspondencematrix  )
 {
+  antscout << " SH begin " << std::endl;
   typedef TRealType RealType;
   // now that we have the correspondence matrix we convert it to a "probability" matrix 
   for ( unsigned int loop = 0; loop < 5; loop++ )
@@ -10559,6 +10562,7 @@ void Sinkhorn( vnl_matrix<TRealType>&  correspondencematrix  )
       if ( rsum > 0 ) correspondencematrix.set_row( ii, correspondencematrixrow / rsum );
       }
     }
+  antscout << " SH done " << std::endl;
 }
 
 template <unsigned int ImageDimension>
@@ -10586,9 +10590,9 @@ int BlobDetector( int argc, char *argv[] )
     }
   bool usesinkhorn = true;
   RealType gradsig = 1.5; // sigma for gradient filter
-  unsigned int   radval = 10; // radius for correlation 
+  unsigned int   radval = 8; // radius for correlation 
   unsigned int   stepsperoctave = 16; // number of steps between doubling of scale 
-  RealType       minscale = vcl_pow( 2.0, 1 );
+  RealType       minscale = vcl_pow( 1.0, 1 );
   RealType       maxscale = vcl_pow( 2.0, 8 );
   int            argct = 2;
   std::string    outname = std::string(argv[argct]); argct++;
@@ -10692,11 +10696,13 @@ int BlobDetector( int argc, char *argv[] )
     {
     weights[ ii ] = weights[ ii ] / weightsum;
     }
+  unsigned int count1 = 0;
+  unsigned int count2 = 0;
   RealType maxcorr = 0;
   RealType meancorr = 0;
   unsigned int matchpt = 1;
   BlobPointer bestblob = NULL;
-  if ( !blobs2.empty() && ! ( blobs1.empty() ) )
+  if ( ( !blobs2.empty() ) && ( !blobs1.empty() ) )
     {
     typedef itk::LinearInterpolateImageFunction<ImageType,float> ScalarInterpolatorType;
     typedef typename ScalarInterpolatorType::Pointer InterpPointer;
@@ -10706,31 +10712,37 @@ int BlobDetector( int argc, char *argv[] )
     interp2->SetInputImage(image2);
     vnl_matrix<RealType> correspondencematrix( blobs1.size(), blobs2.size() );
     correspondencematrix.fill( 0 );
-    unsigned int count1 = 0;
-    for( typename BlobsListType::const_iterator i = blobs1.begin(); i != blobs1.end(); ++i )
+    count1 = 0;
+    for( unsigned int i = 0; i < blobs1.size(); i++ )
       {
-      IndexType indexi = (*i)->GetCenter();
-      if ( image->GetPixel( indexi ) > 1.e-4 ) 
+      BlobPointer blob1 = blobs1[ i ];
+      IndexType indexi = blob1->GetCenter();
+      if ( image->GetPixel( indexi ) > 1.e-12 ) 
       {
       GHood.SetLocation( indexi );					
       maxcorr = -1.e9;
       meancorr = 0;
       bestblob = NULL;
-      unsigned int count2 = 0;
-      for( typename BlobsListType::const_iterator j = blobs2.begin(); j != blobs2.end(); ++j )
+      count2 = 0;
+      for( unsigned int j = 0; j < blobs2.size(); j++ )
         {
-	IndexType indexj = (*j)->GetCenter();
+	BlobPointer blob2 = blobs2[ j ];
+	IndexType indexj = blob2->GetCenter();
+	if ( image2->GetPixel( indexj ) > 1.e-12 ) 
+        {
 	GHood2.SetLocation( indexj );
 	RealType correlation = PatchCorrelation< ImageDimension, RealType, ImageType, GradientImageType, InterpPointer >( GHood, GHood2, activeindex, weights, gimage, gimage2, interp2 );
 	if ( correlation < 0 ) correlation = 0;
-	correspondencematrix( count1, count2 ) = correlation;
+	correspondencematrix( i, j ) = correlation;
 	count2++;
 	}
-      }// imagei GetPixel gt 0 
+	}
       count1++;
+      }// imagei GetPixel gt 0 
+      if ( i % 100 == 0) antscout << " Progress : " << (float ) i / (float) blobs1.size() *100.0 << std::endl;
       }
     if ( usesinkhorn ) Sinkhorn<RealType>( correspondencematrix );
-    antscout << " now compute pairwise matching " << correspondencematrix.max_value( ) << " reducing to " << corrthresh <<  std::endl;
+    antscout << " now compute pairwise matching " << correspondencematrix.max_value( ) << " reducing to " << corrthresh << " count1 " << count1 << " count2 " << count2 << std::endl;
     while ( correspondencematrix.max_value( ) > corrthresh && matchpt < 100 ) 
       {
       unsigned int maxpair = correspondencematrix.arg_max();
@@ -10740,16 +10752,16 @@ int BlobDetector( int argc, char *argv[] )
       BlobPointer blob1 = blobs1[ maxrow ];
       bestblob = blobs2[ maxcol ];
       if ( bestblob )
-	if ( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < 0.2 ) 
-	{
-	  if ( bestblob && ( image->GetPixel( blob1->GetCenter() ) > 1.e-6 )  && ( image2->GetPixel( bestblob->GetCenter() )  > 1.e-6 ) )
+	if ( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < 0.05 ) 
+          {
+	  if ( bestblob && ( image->GetPixel( blob1->GetCenter() ) > 1.e-12 )  && ( image2->GetPixel( bestblob->GetCenter() )  > 1.e-12 ) )
   	    {
   	    antscout << " best correlation " << correspondencematrix.absolute_value_max( ) << " rad1 " << blob1->GetObjectRadius() << " rad2 " << bestblob->GetObjectRadius( ) << " : " << matchpt << std::endl;
 	    labimg->SetPixel(     blob1->GetCenter() , matchpt ); // ( int ) ( 0.5 +   ( *i )->GetObjectRadius() ) );
             labimg2->SetPixel( bestblob->GetCenter() , matchpt ); // ( int ) ( 0.5 + bestblob->GetObjectRadius() ) );
             matchpt++;
             }
-	}
+	  }
       correspondencematrix.set_row( maxrow, correspondencematrix.get_row( 0 ).fill( 0 ) );
       correspondencematrix.set_column( maxcol, correspondencematrix.get_column( 0 ).fill( 0 ) );
       } 
