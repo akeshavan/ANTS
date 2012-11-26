@@ -67,7 +67,7 @@ namespace ants
       const float samplingPercentage = 1.0;
       RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
       const unsigned int binOption = 200;
-      regHelper->AddMetric(curMetric, fixedImage, movingImage, 1.0, samplingStrategy, binOption, 1, samplingPercentage);
+      regHelper->AddMetric(curMetric, fixedImage, movingImage, 0, 1.0, samplingStrategy, binOption, 1, samplingPercentage);
 
       const float learningRate(0.25F);
       const float varianceForUpdateField( 3.0F );
