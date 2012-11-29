@@ -298,7 +298,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
     trans2[i] =  fixed_center[i] * ( 1 ) ;
     }
   affine1->SetIdentity();
-  affine1->SetOffset( trans );
+  affine1->SetOffset(  const_cast<VectorType &>( trans ) );
   affine1->SetMatrix( A_solution );
   affine1->SetCenter( trans2 );
   if ( ImageDimension > 3  )
@@ -362,7 +362,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
 	  {
           affinesearch->SetIdentity();
 	  affinesearch->SetCenter( trans2 );
-	  affinesearch->SetOffset( trans );
+	  affinesearch->SetOffset( const_cast<VectorType &>( trans ) );
 	  affinesearch->SetMatrix( A_solution );
 	  affinesearch->Rotate3D(axis1, ang1, 1);
 	  affinesearch->Rotate3D(axis2, ang2, 1);
@@ -373,7 +373,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
 	{
 	affinesearch->SetIdentity();
 	affinesearch->SetCenter( trans2 );
-	affinesearch->SetOffset( trans );
+	affinesearch->SetOffset( const_cast<VectorType &>( trans ) );
 	affinesearch->SetMatrix( A_solution );
 	affinesearch->Rotate2D( ang1, 1);
 	parametersList.push_back( affinesearch->GetParameters() );
