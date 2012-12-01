@@ -129,14 +129,14 @@ int antsAffineInitializerImp(int argc, char *argv[])
   typedef float PixelType;
 
   /** Define All Parameters Here */
-  double pi = 3.14159265358979323846; // probably a vnl alternative
+  double pi = vnl_math::pi; // probably a vnl alternative
   RealType searchfactor = 10; // in degrees, passed by user
   unsigned int mibins = 32;   // for mattes MI metric
   RealType degtorad = 0.0174532925; // to convert degrees to radians
   RealType localoptimizerlearningrate = 0.1; // for local search via conjgrad
   unsigned int localoptimizeriterations = 20;// for local search via conjgrad
   // piover4 is (+/-) for cross-section of the sphere to multi-start search in increments
-  // of searchfactor ( converted from degrees to radians ). 
+  // of searchfactor ( converted from degrees to radians ).
   // the search is centered +/- from the principal axis alignment of the images.
   RealType piover4 = pi / 4; // works in preliminary practical examples in 3D, in 2D use pi.
 
@@ -158,7 +158,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   typedef itk::CompositeTransform<RealType, ImageDimension> CompositeType;
   typedef itk::AffineTransform<RealType> EulerTransformType;
   typedef typename ImageCalculatorType::MatrixType  MatrixType;
-  if ( argc < 2 ) 
+  if ( argc < 2 )
     {
     return 0;
     }
@@ -173,8 +173,8 @@ int antsAffineInitializerImp(int argc, char *argv[])
   if(  argc > argct )
     {
     RealType temp = atof( argv[ argct ] );   argct++;
-    if ( temp > 1 ) temp = 1;  
-    if ( temp < 0.01 ) temp = 0.01;  
+    if ( temp > 1 ) temp = 1;
+    if ( temp < 0.01 ) temp = 0.01;
     piover4 = pi * temp;
     }
   searchfactor *= degtorad; // convert degrees to radians
@@ -259,7 +259,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
     }
   unsigned int eigind1 = 1;
   unsigned int eigind2 = 1;
-  if ( ImageDimension == 3 ) 
+  if ( ImageDimension == 3 )
     {
     eigind1 = 2;
     }
@@ -278,7 +278,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   vnl_matrix<RealType> A_solution = wahba.V() * wahba.U().transpose();
   A_solution = vnl_inverse( A_solution );
   RealType det = vnl_determinant( A_solution  );
-  if ( det < 0 ) 
+  if ( det < 0 )
     {
     antscout << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "  <<   vnl_determinant( wahba.U() )  << std::endl;
     vnl_matrix<RealType> id( A_solution );
@@ -299,7 +299,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
     }
   affine1->SetIdentity();
   affine1->SetOffset( trans );
-  affine1->SetMatrix( A_solution );
+//   affine1->SetMatrix( A_solution );
   affine1->SetCenter( trans2 );
   if ( ImageDimension > 3  )
     {
@@ -343,11 +343,11 @@ int antsAffineInitializerImp(int argc, char *argv[])
   mimetric->SetParameters( newparams );
   mimetric->Initialize();
   typedef itk::RegistrationParameterScalesFromPhysicalShift< MetricType >  RegistrationParameterScalesFromPhysicalShiftType;
-  typename RegistrationParameterScalesFromPhysicalShiftType::Pointer shiftScaleEstimator = 
+  typename RegistrationParameterScalesFromPhysicalShiftType::Pointer shiftScaleEstimator =
     RegistrationParameterScalesFromPhysicalShiftType::New();
   shiftScaleEstimator->SetMetric( mimetric );
   shiftScaleEstimator->SetTransformForward( true ); //by default, scales for the moving transform
-  typename RegistrationParameterScalesFromPhysicalShiftType::ScalesType 
+  typename RegistrationParameterScalesFromPhysicalShiftType::ScalesType
     movingScales( affinesearch->GetNumberOfParameters() );
   shiftScaleEstimator->EstimateScales( movingScales );
   mstartOptimizer->SetScales( movingScales );
@@ -363,7 +363,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
           affinesearch->SetIdentity();
 	  affinesearch->SetCenter( trans2 );
 	  affinesearch->SetOffset( trans );
-	  affinesearch->SetMatrix( A_solution );
+// 	  affinesearch->SetMatrix( A_solution );
 	  affinesearch->Rotate3D(axis1, ang1, 1);
 	  affinesearch->Rotate3D(axis2, ang2, 1);
 	  parametersList.push_back( affinesearch->GetParameters() );
@@ -374,7 +374,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
 	affinesearch->SetIdentity();
 	affinesearch->SetCenter( trans2 );
 	affinesearch->SetOffset( trans );
-	affinesearch->SetMatrix( A_solution );
+// 	affinesearch->SetMatrix( A_solution );
 	affinesearch->Rotate2D( ang1, 1);
 	parametersList.push_back( affinesearch->GetParameters() );
 	}
@@ -398,7 +398,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   localoptimizer->SetEpsilon( 0.1 );
   localoptimizer->SetDoEstimateLearningRateOnce( true );
   localoptimizer->SetMinimumConvergenceValue( 1.e-8 );
-  localoptimizer->SetConvergenceWindowSize( 10 );  
+  localoptimizer->SetConvergenceWindowSize( 10 );
 
   antscout << "Begin MultiStart: " << parametersList.size() << " searches between -/+ " << piover4 / pi << " radians " << std::endl;
   mstartOptimizer->SetLocalOptimizer( localoptimizer );
@@ -407,7 +407,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   typename AffineType::Pointer bestaffine = AffineType::New();
   bestaffine->SetCenter( trans2 );
   bestaffine->SetParameters( mstartOptimizer->GetBestParameters() );
-  
+
   typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
   transformWriter->SetInput( bestaffine );
   transformWriter->SetFileName( outname.c_str() );
@@ -464,9 +464,9 @@ private:
   if( argc < 3 )
     {
     antscout << "\nUsage: " << argv[0]
-             << " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor Radian-Fraction " << std::endl; 
-    antscout << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments ." << std::endl; 
-    antscout << " Radian-Fraction should be between 0 and 1 --- will search this arc +/- around principal axis." << std::endl; 
+             << " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor Radian-Fraction " << std::endl;
+    antscout << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments ." << std::endl;
+    antscout << " Radian-Fraction should be between 0 and 1 --- will search this arc +/- around principal axis." << std::endl;
     return 0;
     }
   switch( atoi(argv[1]) )
