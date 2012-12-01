@@ -182,6 +182,10 @@ int antsAffineInitializerImp(int argc, char *argv[])
     {
     useprincaxis = atoi( argv[ argct ] );   argct++;
     }
+  if(  argc > argct )
+    {
+    localoptimizeriterations = atoi( argv[ argct ] );   argct++;
+    }
   searchfactor *= degtorad; // convert degrees to radians
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer image2 = NULL;
@@ -293,6 +297,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
       if ( A_solution( i , i ) < 0 ) id( i ,i ) = -1.0;
       }
     A_solution =  A_solution * id.transpose();
+    antscout << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "  <<   vnl_determinant( wahba.U() )  << " new " << vnl_determinant( A_solution  ) << std::endl;
     }
   typename AffineType::Pointer affine1 = AffineType::New(); // translation to center
   typename AffineType::OffsetType trans = affine1->GetOffset();
@@ -306,12 +311,14 @@ int antsAffineInitializerImp(int argc, char *argv[])
   affine1->SetOffset( trans );
   if ( useprincaxis ) affine1->SetMatrix( A_solution );
   affine1->SetCenter( trans2 );
+  {
+  typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+  transformWriter->SetInput( affine1 );
+  transformWriter->SetFileName( outname.c_str() );
+  transformWriter->Update();
+  }
   if ( ImageDimension > 3  )
     {
-    typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-    transformWriter->SetInput( affine1 );
-    transformWriter->SetFileName( outname.c_str() );
-    transformWriter->Update();
     return EXIT_SUCCESS;
     }
   vnl_vector<RealType> evec_tert;
@@ -406,7 +413,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   localoptimizer->SetConvergenceWindowSize( 10 );
 
   antscout << "Begin MultiStart: " << parametersList.size() << " searches between -/+ " << piover4 / pi << " radians " << std::endl;
-  mstartOptimizer->SetLocalOptimizer( localoptimizer );
+  if ( localoptimizeriterations > 0 ) mstartOptimizer->SetLocalOptimizer( localoptimizer );
   mstartOptimizer->StartOptimization();
   antscout << "done" <<std::endl;
   typename AffineType::Pointer bestaffine = AffineType::New();
@@ -469,10 +476,11 @@ private:
   if( argc < 3 )
     {
     antscout << "\nUsage: " << argv[0]
-             << " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor Optional-Radian-Fraction Optional-bool-UsePrincipalAxes  " << std::endl;
+             << " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor Optional-Radian-Fraction Optional-bool-UsePrincipalAxes Optional-uint-UseLocalSearch  " << std::endl;
     antscout << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments ." << std::endl;
     antscout << " Radian-Fraction should be between 0 and 1 --- will search this arc +/- around principal axis." << std::endl;
-    antscout << "  Optional-bool-UsePrincipalAxes determines whether the rotation is searched around an initial principal axis alignment. "  << std::endl;
+    antscout << " Optional-bool-UsePrincipalAxes determines whether the rotation is searched around an initial principal axis alignment.  Default = false. "  << std::endl;
+    antscout << " Optional-uint-UseLocalSearch determines if a local optimization is run at each search point for the set number of iterations. Default = 20." << std::endl;
     return 0;
     }
   switch( atoi(argv[1]) )
