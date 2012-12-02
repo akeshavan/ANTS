@@ -1,0 +1,7 @@
+./sccan --svd prior[wolk_dataMCINormalDemo.mhd,listPriorWolk_nirepDemo.txt,wolk_mask.nii.gz,priorScaleListWolk_nirep0p1Demo.csv,0.2,0.05]  -n 8 -o wolk_MCI_0p1_prior.nii.gz --PClusterThresh 500
+
+
+# The list of files in the argument is: 1). Data File, 2). File with list of priors, 3). Mask, 4). Prior Scaling file (remember we were using a gaussian to smooth the prior, so this parameter defines the width of the gaussian), 5). lambda parameter (It is used in IHTPowerIterationPrior in antsSCCANObject.hxx) 6). Sparsity parameter (as usual)
+
+
+# I am also adding the required files to SVN so the above command line should run, modulo the path of files w.r.t to bin/

@@ -1,0 +1,8 @@
+subsampled_nireplabel_000.nii.gz
+subsampled_nireplabel_001.nii.gz
+subsampled_nireplabel_002.nii.gz
+subsampled_nireplabel_003.nii.gz
+subsampled_nireplabel_004.nii.gz
+subsampled_nireplabel_005.nii.gz
+subsampled_nireplabel_006.nii.gz
+subsampled_nireplabel_007.nii.gz
