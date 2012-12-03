@@ -1,9 +1,9 @@
 
 rm wolk_*View*
-sccan --svd prior[wolk_dataMCINormalDemo.mhd,listPriorWolk_nirepDemo.txt,wolk_mask.nii.gz,priorScaleListWolk_nirep0p1Demo.csv,0.999,0.2]  -n 4 -o wolk_MCI_0p1_prior.nii.gz --PClusterThresh 100 -i 12 --l1 0.05
+sccan --svd prior[wolk_dataMCINormalDemo.mhd,listPriorWolk_nirepDemo.txt,wolk_mask.nii.gz,priorScaleListWolk_nirep0p1Demo.csv,0.95,0.3]  -n 4 -o wolk_MCI_0p1_prior.nii.gz --PClusterThresh 100 -i 10 --l1 0.15
 for x in  wolk_*View*gz ; do 
   ImageMath 3 $x abs $x 1 
-  ThresholdImage 3 $x $x 1.e-3 1.e9 
+#  ThresholdImage 3 $x $x 1.e-3 1.e9 
 done
 exit
 dd=" subsampled_nireplabel_000.nii.gz 
