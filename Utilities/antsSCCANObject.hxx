@@ -1524,8 +1524,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 	  this->m_CanonicalCorrelations[ a ] = ( partialmatrix.frobenius_norm() ) / matpfrobnorm;
 	  partialmatrix = this->m_MatrixP - partialmatrix;
 	  VectorType priorVec =this->m_MatrixPriorROI.get_row(a);
-	  // VectorType evec = this->m_VariatesP.get_column( a );
-	  VectorType evec( priorVec );
+	  VectorType evec = this->m_VariatesP.get_column( a );
+	  // VectorType evec( priorVec );
 	  
 	  this->m_VariatesP.set_column( a, zero );
 	  
@@ -1601,7 +1601,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       nvec = nvec * lam1 + pvec * lam2;
       for( unsigned int orth = 0; orth < maxorth; orth++ )
         {
-	  //        nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
+	//        nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
 	}
       nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, 1. );
       if( ( lastgrad.two_norm() > 0  ) && ( conjgrad ) )
