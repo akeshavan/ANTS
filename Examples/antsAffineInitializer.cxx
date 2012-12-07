@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <vnl/vnl_inverse.h>
 #include "antsAllocImage.h"
+#include "itkImageMaskSpatialObject.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkArray.h"
 #include "itkGradientImageFilter.h"
@@ -185,6 +186,11 @@ int antsAffineInitializerImp(int argc, char *argv[])
   if(  argc > argct )
     {
     localoptimizeriterations = atoi( argv[ argct ] );   argct++;
+    }
+  std::string maskfn="";
+  if(  argc > argct )
+    {
+    maskfn = std::string( argv[ argct ] );   argct++;
     }
   searchfactor *= degtorad; // convert degrees to radians
   typename ImageType::Pointer image1 = NULL;
@@ -353,6 +359,16 @@ int antsAffineInitializerImp(int argc, char *argv[])
   mimetric->SetMovingImage( image2 );
   mimetric->SetMovingTransform( affinesearch );
   mimetric->SetParameters( newparams );
+  if ( maskfn.length() > 3 ) 
+    {
+    typedef typename itk::ImageMaskSpatialObject<ImageDimension>::ImageType maskimagetype;
+    typename maskimagetype::Pointer mask;
+    ReadImage<maskimagetype>( mask, maskfn.c_str() );
+    typename itk::ImageMaskSpatialObject<ImageDimension>::Pointer so =
+      itk::ImageMaskSpatialObject<ImageDimension>::New();
+    so->SetImage( const_cast<maskimagetype*>(mask.GetPointer()) );
+    mimetric->SetFixedImageMask( so );
+    }
   mimetric->Initialize();
   typedef itk::RegistrationParameterScalesFromPhysicalShift< MetricType >  RegistrationParameterScalesFromPhysicalShiftType;
   typename RegistrationParameterScalesFromPhysicalShiftType::Pointer shiftScaleEstimator =
@@ -476,7 +492,7 @@ private:
   if( argc < 3 )
     {
     antscout << "\nUsage: " << argv[0]
-             << " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor Optional-Radian-Fraction Optional-bool-UsePrincipalAxes Optional-uint-UseLocalSearch  " << std::endl;
+             << " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor Optional-Radian-Fraction Optional-bool-UsePrincipalAxes Optional-uint-UseLocalSearch Optional-Image1Mask " << std::endl;
     antscout << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments ." << std::endl;
     antscout << " Radian-Fraction should be between 0 and 1 --- will search this arc +/- around principal axis." << std::endl;
     antscout << " Optional-bool-UsePrincipalAxes determines whether the rotation is searched around an initial principal axis alignment.  Default = false. "  << std::endl;
