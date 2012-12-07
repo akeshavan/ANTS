@@ -924,11 +924,11 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       // on the command observer.
       //    typedef itk::JointHistogramMutualInformationImageToImageMetricv4<FixedImageType, FixedImageType>
       // MutualInformationMetricType;
+
       typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> ScalesEstimatorType;
       typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
       scalesEstimator->SetMetric( metric );
       scalesEstimator->SetTransformForward( true );
-      // scalesEstimator->SetSamplingStrategy(ScalesEstimatorType::CornerSampling);
 
       float learningRate = parser->Convert<float>( transformOption->GetFunction( currentStage )->GetParameter(  0 ) );
 
@@ -976,10 +976,14 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typename AffineTransformType::Pointer affineTransform = AffineTransformType::New();
         affineTransform->SetIdentity();
         nparams = affineTransform->GetNumberOfParameters() + 2;
-        typename ScalesEstimatorType::ScalesType scales(affineTransform->GetNumberOfParameters() );
         metric->SetFixedImage( preprocessFixedImage );
         metric->SetVirtualDomainFromImage( preprocessFixedImage );
         metric->SetMovingImage( preprocessMovingImage );
+	metric->SetMovingTransform( affineTransform );
+        typename ScalesEstimatorType::ScalesType scales(affineTransform->GetNumberOfParameters() );
+	typename MetricType::ParametersType newparams(  affineTransform->GetParameters() );
+	metric->SetParameters( newparams );
+	metric->Initialize();
         scalesEstimator->SetMetric(metric);
         scalesEstimator->EstimateScales(scales);
         optimizer->SetScales(scales);
@@ -1043,6 +1047,14 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         metric->SetFixedImage( preprocessFixedImage );
         metric->SetVirtualDomainFromImage( preprocessFixedImage );
         metric->SetMovingImage( preprocessMovingImage );
+	metric->SetMovingTransform( rigidTransform );
+        typename ScalesEstimatorType::ScalesType scales(rigidTransform->GetNumberOfParameters() );
+	typename MetricType::ParametersType newparams(  rigidTransform->GetParameters() );
+	metric->SetParameters( newparams );
+	metric->Initialize();
+        scalesEstimator->SetMetric(metric);
+        scalesEstimator->EstimateScales(scales);
+        optimizer->SetScales(scales);
         rigidRegistration->SetFixedImage( preprocessFixedImage );
         rigidRegistration->SetMovingImage( preprocessMovingImage );
         rigidRegistration->SetNumberOfLevels( numberOfLevels );
