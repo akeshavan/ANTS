@@ -169,7 +169,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
   typedef typename HistogramFilterType::InputBooleanObjectType InputBooleanObjectType;
   typedef typename HistogramFilterType::HistogramSizeType      HistogramSizeType;
-  typedef typename HistogramFilterType::HistogramType          HistogramType;
+  typedef typename HistogramFilterType::HistogramType          HistogramType; 
 
   HistogramSizeType histogramSize( 1 );
   histogramSize[0] = 256;
@@ -381,7 +381,7 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
   typedef TImageIn  ImageType;
   typedef TImageOut OutImageType;
   enum { ImageDimension = ImageType::ImageDimension };
-  typedef double                                          PixelType;
+  typedef typename TImageIn::PixelType                    PixelType;
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> Iterator;
   image_avg->FillBuffer(0);
   unsigned int timedims = image_in->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
@@ -422,7 +422,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   // specified by the user which should match the number of metrics.
   unsigned numberOfStages = 0;
 
-  typedef double                                    PixelType;
+  typedef double                                     PixelType;
   typedef double                                    RealType;
   typedef itk::Image<PixelType, ImageDimension>     FixedImageType;
   typedef itk::Image<PixelType, ImageDimension + 1> MovingImageType;
@@ -467,8 +467,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     avgImage = extractFilter->GetOutput();
     std::vector<unsigned int> timelist;
     AverageTimeImages<MovingImageType, FixedImageType>( movingImage, avgImage, timelist );
-    typename FixedImageType::IndexType ind; ind.Fill( 0 );
-    antscout << "average out " << outputPrefix << " pix " << avgImage->GetPixel( ind ) << std::endl;
+    antscout << "average out " << outputPrefix <<  std::endl;
     WriteImage<FixedImageType>( avgImage , outputPrefix.c_str() );
     return EXIT_SUCCESS;
     }
@@ -1308,6 +1307,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         {
         outputPrefix = outputOption->GetFunction( 0 )->GetName();
         }
+      antscout << "motion corrected out " << fileName <<  std::endl;
       WriteImage< MovingImageType >( outputImage , fileName.c_str()  );
       }
     if( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2 && outputImage && currentStage == 0 )
@@ -1337,7 +1337,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         antscout << " i^th value " << i << "  is " << metriclist[timelist[i]] << std::endl;
         }
       AverageTimeImages<MovingImageType, FixedImageType>( outputImage, avgImage, timelistsort );
-      WriteImage<FixedImageType>( avgImage , outputPrefix.c_str() );
+      antscout << " write average post " << fileName << std::endl;
+      WriteImage<FixedImageType>( avgImage , fileName.c_str() );
       }
     }
   totalTimer.Stop();
@@ -1358,13 +1359,14 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
     std::string fnmp ;
+    antscout << " get motion corr params " << outputPrefix << std::endl;
     if( outputPrefix[0] == '0' && outputPrefix[1] == 'x' )
       {
 	std::stringstream strstream ; 
 	strstream << outputPrefix ;
 	void* ptr ;
 	strstream >> ptr ;
-	( static_cast< std::pair< std::vector<std::string> , vnl_matrix<double> >* >( ptr ) )->first = ColumnHeaders ;
+	( static_cast< std::pair< std::vector<std::string> , vnl_matrix<float> >* >( ptr ) )->first = ColumnHeaders ;
         ( static_cast< std::pair< std::vector<std::string> , vnl_matrix<double> >* >( ptr ) )->second = param_values ;
         antscout << "motion-correction params written" << std::endl ;
       }
