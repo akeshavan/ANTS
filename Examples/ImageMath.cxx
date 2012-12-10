@@ -82,6 +82,7 @@
 #include "itkSampleToHistogramFilter.h"
 #include "itkScalarImageKmeansImageFilter.h"
 #include "itkShrinkImageFilter.h"
+#include "itkSigmoidImageFilter.h"
 #include "itkSize.h"
 #include "itkSphereSpatialFunction.h"
 #include "itkSTAPLEImageFilter.h"
@@ -523,7 +524,7 @@ int Finite(int argc, char *argv[])
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     float val = vfIter2.Get();
-    if ( val != val ) 
+    if ( val != val )
       {
       vfIter2.Set( replaceValue );
       }
@@ -1701,6 +1702,50 @@ int PadImage(int argc, char *argv[])
   return 0;
 
 }
+
+template <unsigned int ImageDimension>
+int SigmoidImage(int argc, char *argv[])
+{
+  typedef float                                   PixelType;
+  typedef itk::Image<PixelType, ImageDimension>   ImageType;
+  typedef itk::ImageFileReader<ImageType>         ReaderType;
+  typedef itk::ImageFileWriter<ImageType>         WriterType;
+
+  int         argct = 2;
+  std::string outname = std::string( argv[argct++] );
+  std::string operation = std::string( argv[argct++] );
+  std::string inputFilename = std::string( argv[argct++] );
+
+  double alpha = 1.0;
+  if( argc > argct )
+    {
+    alpha = atof( argv[argct++] );
+    }
+  double beta = 0.0;
+  if( argc > argct )
+    {
+    beta = atof( argv[argct++] );
+    }
+
+  typename ImageType::Pointer inputImage = NULL;
+  if( inputFilename.length() > 3 )
+    {
+    ReadImage<ImageType>( inputImage, inputFilename.c_str() );
+    }
+
+  typedef itk::SigmoidImageFilter<ImageType, ImageType> FilterType;
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( inputImage );
+  filter->SetAlpha( alpha );
+  filter->SetBeta( beta );
+  filter->SetOutputMinimum( 0.0 );
+  filter->SetOutputMaximum( 1.0 );
+  filter->Update();
+
+  WriteImage<ImageType>( filter->GetOutput(), outname.c_str() );
+  return 0;
+}
+
 
 template <unsigned int ImageDimension>
 int CenterImage2inImage1(int argc, char *argv[])
@@ -9851,7 +9896,7 @@ int MostLikely( int argc, char *argv[] )
       output->SetDirection( iLabel->GetDirection() );
       output->Allocate();
       output->FillBuffer( 0 );
-      
+
       prob->SetRegions( iLabel->GetLargestPossibleRegion() );
       prob->SetSpacing( iLabel->GetSpacing() );
       prob->SetOrigin( iLabel->GetOrigin() );
@@ -9861,8 +9906,8 @@ int MostLikely( int argc, char *argv[] )
       }
 
     IteratorType it( output, output->GetLargestPossibleRegion() );
-    
-    while ( !it.IsAtEnd() ) 
+
+    while ( !it.IsAtEnd() )
       {
       if ( ( iLabel->GetPixel( it.GetIndex() ) > sigma ) &&
            ( iLabel->GetPixel( it.GetIndex() ) > prob->GetPixel( it.GetIndex() ) ) )
@@ -9932,7 +9977,7 @@ int STAPLE( int argc, char *argv[] )
     }
 
   antscout << "Examining " << maxLabel << " labels" << std::endl;
-  
+
   for ( int label=1; label <= maxLabel; label++)
     {
     std::stringstream out;
@@ -9942,7 +9987,7 @@ int STAPLE( int argc, char *argv[] )
     std::string  oname = tempname + num + extension;
     stapler->SetForegroundValue( label );
     stapler->Update();
-    WriteImage<OutputImageType>( stapler->GetOutput(), oname.c_str() );    
+    WriteImage<OutputImageType>( stapler->GetOutput(), oname.c_str() );
     }
 
   return 0;
@@ -10014,14 +10059,14 @@ int AverageLabels( int argc, char *argv[] )
       {
       if ( it.Value() > 0 )
         {
-        
-        outimages[it.Value()-1]->SetPixel( it.GetIndex(),  
-                                           outimages[it.Value()-1]->GetPixel( it.GetIndex() ) 
+
+        outimages[it.Value()-1]->SetPixel( it.GetIndex(),
+                                           outimages[it.Value()-1]->GetPixel( it.GetIndex() )
                                            + 1.0 / images.size() );
         }
       }
     }
-    
+
   for ( int label=1; label <= maxLabel; label++)
     {
     std::stringstream out;
@@ -10029,7 +10074,7 @@ int AverageLabels( int argc, char *argv[] )
     sprintf( num, "%04d", label );
 
     std::string  oname = tempname + num + extension;
-    WriteImage<OutputImageType>( outimages[label-1], oname.c_str() );    
+    WriteImage<OutputImageType>( outimages[label-1], oname.c_str() );
     }
 
   return 0;
@@ -10431,8 +10476,8 @@ int MinMaxMean( int argc, char *argv[] )
 }
 
 template <unsigned int ImageDimension,class TRealType, class TImageType, class TGImageType, class TInterp >
-TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::NeighborhoodIterator<TImageType> GHood2, std::vector<unsigned int> activeindex , std::vector<TRealType> weight , typename TGImageType::Pointer gimage, typename TGImageType::Pointer gimage2, TInterp interp2 ) 
-{	 
+TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::NeighborhoodIterator<TImageType> GHood2, std::vector<unsigned int> activeindex , std::vector<TRealType> weight , typename TGImageType::Pointer gimage, typename TGImageType::Pointer gimage2, TInterp interp2 )
+{
   typedef TRealType RealType;
   typedef typename TImageType::PointType PointType;
   typedef itk::CovariantVector<RealType,ImageDimension> GradientPixelType;
@@ -10444,7 +10489,7 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
   VectorType sample1( Gsz , 0);
   VectorType sample2( Gsz , 0);
   vnl_matrix<RealType> grad1mat( Gsz , ImageDimension); grad1mat.fill( 0 );
-  vnl_matrix<RealType> grad2mat( Gsz , ImageDimension); grad2mat.fill( 0 );  
+  vnl_matrix<RealType> grad2mat( Gsz , ImageDimension); grad2mat.fill( 0 );
   // compute mean difference
   PointType avgpoint1;
   PointType avgpoint2;
@@ -10485,7 +10530,7 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
   RealType correlation = inner_product( sample1 , sample2 ) / ( sd1 * sd2 );
 
   bool ok = true;
-  /** compute patch orientation */  
+  /** compute patch orientation */
   vnl_matrix<RealType> cov1 = grad1mat.transpose() * grad1mat;
   vnl_matrix<RealType> cov2 = grad2mat.transpose() * grad2mat;
   vnl_symmetric_eigensystem<RealType>  eig1( cov1 );
@@ -10522,7 +10567,7 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
   // now rotate the points to the same frame and sample the neighborhoods again
   for( unsigned int ii = 0; ii < Gsz; ii++ )
     {
-    PointType ptran = imagepatch2[ ii ]; 
+    PointType ptran = imagepatch2[ ii ];
     vnl_vector<RealType> ptran2( ptran.Size() , 0 );
     for( unsigned int dd = 0; dd < ImageDimension; dd++ ) { ptran[ dd ] -= avgpoint2[ dd ]; ptran2[ dd ] = ptran[ dd ]; }
     // rotate ptran
@@ -10534,13 +10579,13 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
       }
     else ok = false;
     }
-  if ( ok ) 
+  if ( ok )
     {
     mean2 = sample2.mean( );
     sample2 = ( sample2 - mean2 ) ;
     sd2 = sqrt( sample2.squared_magnitude() );
     correlation = inner_product( sample1 , sample2 ) / ( sd1 * sd2 );
-    }// done applying wahba solution 
+    }// done applying wahba solution
   else correlation = 0;
 
   if ( vnl_math_isnan( correlation ) || vnl_math_isinf( correlation )  ) return 0; else return correlation;
@@ -10551,7 +10596,7 @@ void Sinkhorn( vnl_matrix<TRealType>&  correspondencematrix  )
 {
   antscout << " SH begin " << std::endl;
   typedef TRealType RealType;
-  // now that we have the correspondence matrix we convert it to a "probability" matrix 
+  // now that we have the correspondence matrix we convert it to a "probability" matrix
   for ( unsigned int loop = 0; loop < 2; loop++ )
     {
     for ( unsigned int ii = 0; ii < correspondencematrix.cols(); ii++ )
@@ -10615,8 +10660,8 @@ int BlobDetector( int argc, char *argv[] )
     }
   bool usesinkhorn = false;
   RealType gradsig = 1.0; // sigma for gradient filter
-  unsigned int   radval = 10; // radius for correlation 
-  unsigned int   stepsperoctave = 16; // number of steps between doubling of scale 
+  unsigned int   radval = 10; // radius for correlation
+  unsigned int   stepsperoctave = 16; // number of steps between doubling of scale
   RealType       minscale = vcl_pow( 1.0, 1 );
   RealType       maxscale = vcl_pow( 2.0, 6 );
   int            argct = 2;
@@ -10659,12 +10704,12 @@ int BlobDetector( int argc, char *argv[] )
   blobFilter->Update();
   typedef typename BlobFilterType::BlobRadiusImageType BlobRadiusImageType;
   typename BlobRadiusImageType::Pointer labimg = blobFilter->GetBlobRadiusImage();
-  typename BlobRadiusImageType::Pointer labimg2; 
+  typename BlobRadiusImageType::Pointer labimg2;
   WriteImage< BlobRadiusImageType >( labimg, outname.c_str() );
   typedef typename BlobFilterType::BlobsListType BlobsListType;
-  BlobsListType blobs1 =  blobFilter->GetBlobs();  
+  BlobsListType blobs1 =  blobFilter->GetBlobs();
   BlobsListType blobs2;
-  if ( fn2.length() > 3 ) 
+  if ( fn2.length() > 3 )
     {
     ReadImage<ImageType>( image2, fn2.c_str() );
     GradientImageFilterPointer gfilter2 = GradientImageFilterType::New();
@@ -10677,18 +10722,18 @@ int BlobDetector( int argc, char *argv[] )
     blobFilter2->SetEndT( maxscale );
     blobFilter2->SetStepsPerOctave( stepsperoctave );
     blobFilter2->SetNumberOfBlobs( nblobs );
-    blobFilter2->SetInput( image2 ); 
+    blobFilter2->SetInput( image2 );
     //  blobFilter2->SetInput( ComputeLaplacianImage<ImageType>( image2 ) );
     blobFilter2->Update();
     labimg2 = blobFilter2->GetBlobRadiusImage();
     WriteImage< BlobRadiusImageType >( labimg2, outname2.c_str() );
     labimg->FillBuffer( 0 );
     labimg2->FillBuffer( 0 );
-    blobs2 =  blobFilter2->GetBlobs();  
+    blobs2 =  blobFilter2->GetBlobs();
     }
   else return EXIT_SUCCESS;
   antscout << " Blob1Length " << blobs1.size() << " Blob2Length " << blobs2.size() << std::endl;
-  // now compute some feature characteristics in each blob 
+  // now compute some feature characteristics in each blob
   typedef typename ImageType::IndexType IndexType;
   typedef itk::NeighborhoodIterator<ImageType> niteratorType;
   typename niteratorType::RadiusType rad;
@@ -10744,9 +10789,9 @@ int BlobDetector( int argc, char *argv[] )
       {
       BlobPointer blob1 = blobs1[ i ];
       IndexType indexi = blob1->GetCenter();
-      if ( image->GetPixel( indexi ) > smallval ) 
+      if ( image->GetPixel( indexi ) > smallval )
       {
-      GHood.SetLocation( indexi );					
+      GHood.SetLocation( indexi );
       maxcorr = -1.e9;
       meancorr = 0;
       bestblob = NULL;
@@ -10755,7 +10800,7 @@ int BlobDetector( int argc, char *argv[] )
         {
 	BlobPointer blob2 = blobs2[ j ];
 	IndexType indexj = blob2->GetCenter();
-	if ( image2->GetPixel( indexj ) > smallval ) 
+	if ( image2->GetPixel( indexj ) > smallval )
         {
 	GHood2.SetLocation( indexj );
 	RealType correlation = PatchCorrelation< ImageDimension, RealType, ImageType, GradientImageType, InterpPointer >( GHood, GHood2, activeindex, weights, gimage, gimage2, interp2 );
@@ -10765,7 +10810,7 @@ int BlobDetector( int argc, char *argv[] )
 	}
 	}
       count1++;
-      }// imagei GetPixel gt 0 
+      }// imagei GetPixel gt 0
       if ( i % 100 == 0) antscout << " Progress : " << (float ) i / (float) blobs1.size() *100.0 << std::endl;
       }
     if ( usesinkhorn ) Sinkhorn<RealType>( correspondencematrix );
@@ -10783,11 +10828,11 @@ int BlobDetector( int argc, char *argv[] )
       BlobPointer blob1 = blobs1[ maxrow ];
       bestblob = blobs2[ maxcol ];
       if ( bestblob )
-	if ( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < 0.5 ) 
+	if ( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < 0.5 )
           {
 	  if ( bestblob && ( image->GetPixel( blob1->GetCenter() ) > smallval )  && ( image2->GetPixel( bestblob->GetCenter() )  > smallval ) )
   	    {
-	    BlobPairType blobpairing = std::make_pair( blob1  , bestblob );  
+	    BlobPairType blobpairing = std::make_pair( blob1  , bestblob );
 	    blobpairs.push_back( blobpairing );
   	    antscout << " best correlation " << correspondencematrix.absolute_value_max( ) << " rad1 " << blob1->GetObjectRadius() << " rad2 " << bestblob->GetObjectRadius( ) << " : " << matchpt << std::endl;
 	    labimg->SetPixel(     blob1->GetCenter() , matchpt ); // ( int ) ( 0.5 +   ( *i )->GetObjectRadius() ) );
@@ -10799,7 +10844,7 @@ int BlobDetector( int argc, char *argv[] )
       correspondencematrix.set_row( maxrow, correspondencematrix.get_row( 0 ).fill( 0 ) );
       correspondencematrix.set_column( maxcol, correspondencematrix.get_column( 0 ).fill( 0 ) );
       count1++;
-      } 
+      }
     /** For every blob, compute the distance to its neighbors before and after matching */
     vnl_matrix<RealType> distmatpre( blobpairs.size(), blobpairs.size() );
     distmatpre.fill( 0 );
@@ -10816,7 +10861,7 @@ int BlobDetector( int argc, char *argv[] )
       for ( unsigned int bp2 = 0; bp2 < blobpairs.size(); bp2++ )
 	{
         IndexType blobneighborind = blobpairs[ bp2 ].first->GetCenter();
-	IndexType blobpairneighborind  = blobpairs[ bp2 ].second->GetCenter();  
+	IndexType blobpairneighborind  = blobpairs[ bp2 ].second->GetCenter();
 	RealType dist1 = 0;
 	RealType dist2 = 0;
         for ( unsigned int dim = 0; dim < ImageDimension; dim++ )
@@ -10839,11 +10884,11 @@ int BlobDetector( int argc, char *argv[] )
       std::sort( distspostind.begin(), distspostind.end(), blob_index_cmp< std::vector<RealType>& >( distspost ) );
       //      std::cout << distspreind[0] << "  " << distspreind[1] << " dist0 " <<   distspreind[  distspreind[0] ]  << std::endl;
       //      std::cout << distspostind[0] << "  " << distspostind[1] << " dist0 " << distspostind[  distspostind[0] ]  <<  std::endl;
-      if ( ( distspostind[ 1 ] == distspreind[ 1 ] )   ||  
-  	   ( distspostind[ 1 ] == distspreind[ 2 ] )   || 
+      if ( ( distspostind[ 1 ] == distspreind[ 1 ] )   ||
+  	   ( distspostind[ 1 ] == distspreind[ 2 ] )   ||
            ( distspostind[ 1 ] == distspreind[ 3 ] )  )
 	kneighborhoodequal = true;
-      if ( ! kneighborhoodequal ) 
+      if ( ! kneighborhoodequal )
 	{
 	labimg->SetPixel(  blobind, 0 ); // ( int ) ( 0.5 +   ( *i )->GetObjectRadius() ) );
 	labimg2->SetPixel( blobpairind , 0 ); // ( int ) ( 0.5 + bestblob->GetObjectRadius() ) );
@@ -11228,11 +11273,14 @@ private:
     antscout << "\n  Normalize        : Normalize to [0,1]. Option instead divides by average value" << std::endl;
     antscout << "      Usage        : Normalize Image.ext opt" << std::endl;
 
-    antscout << "\n  PadImage        : If Pad-Number is negative, de-Padding occurs" << std::endl;
+    antscout << "\n  PadImage       : If Pad-Number is negative, de-Padding occurs" << std::endl;
     antscout << "      Usage        : PadImage ImageIn Pad-Number" << std::endl;
 
+    antscout << "\n  SigmoidImage   : " << std::endl;
+    antscout << "      Usage        : SigmoidImage ImageIn [alpha=1.0] [beta=0.0]" << std::endl;
+
     antscout << "\n  CenterImage2inImage1        : " << std::endl;
-    antscout << "      Usage        : ReferenceImageSpace ImageToCenter " << std::endl;
+    antscout << "      Usage       : ReferenceImageSpace ImageToCenter " << std::endl;
 
     antscout << "\n  PH            : Print Header" << std::endl;
 
@@ -11500,6 +11548,10 @@ private:
       else if( strcmp(operation.c_str(), "PadImage") == 0 )
         {
         PadImage<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "SigmoidImage") == 0 )
+        {
+        SigmoidImage<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
         {
@@ -11885,6 +11937,10 @@ private:
         {
         PadImage<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "SigmoidImage") == 0 )
+        {
+        SigmoidImage<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
         {
         SetOrGetPixel<3>(argc, argv);
@@ -12230,6 +12286,10 @@ private:
       else if( strcmp(operation.c_str(), "PadImage") == 0 )
         {
         PadImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "SigmoidImage") == 0 )
+        {
+        SigmoidImage<4>(argc, argv);
         }
       //  else if (strcmp(operation.c_str(),"SetOrGetPixel") == 0 )  SetOrGetPixel<4>(argc,argv);
       else if( strcmp(operation.c_str(), "MakeImage") == 0 )
